@@ -1,0 +1,204 @@
+"""Task-specific classifiers for Module 02.
+
+Two tasks are kept strictly separate (different models, labels, thresholds,
+limitations):
+  * face_manipulation — applied to face crops
+  * synthetic_image   — applied to the whole image / video keyframe
+
+Backends:
+  * ``hf``   — Hugging Face transformers image-classification pipeline (real models)
+  * ``stub`` — deterministic pseudo-scores for tests / UI wiring ONLY; every
+               result it produces is labelled STUB so it cannot be mistaken for a model.
+"""
+from __future__ import annotations
+
+import json
+import threading
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import numpy as np
+from PIL import Image
+
+from deep_shield.common.schema import ModelInfo
+
+from .config import SPECS, ClassifierSpec, EngineConfig
+
+
+@dataclass
+class Prediction:
+    score: float                      # sum of positive-label probabilities
+    raw: Dict[str, float]             # label -> probability
+    predicted_label: str              # argmax label
+    classification: str               # task verdict from three-band thresholds
+
+
+def local_model_dir(cfg: EngineConfig, model_id: str) -> Path:
+    return cfg.models_dir / model_id.replace("/", "__")
+
+
+def _manifest_revision(cfg: EngineConfig, model_id: str) -> Optional[str]:
+    mf = cfg.models_dir / "MANIFEST.json"
+    if mf.exists():
+        try:
+            data = json.loads(mf.read_text())
+            return data.get("models", {}).get(model_id, {}).get("revision")
+        except (ValueError, OSError):
+            return None
+    return None
+
+
+def resolve_device(device: str):
+    if device != "auto":
+        return device
+    try:
+        import torch
+        if torch.cuda.is_available():
+            return 0
+        if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+            return "mps"
+    except ImportError:
+        pass
+    return -1
+
+
+def load_image_processor(source: str):
+    """AutoImageProcessor, with a fallback for checkpoints whose preprocessor_config.json names a
+    legacy class (e.g. ``ViTFeatureExtractor``) that transformers 5.x no longer registers."""
+    import transformers
+    from transformers import AutoImageProcessor
+
+    try:
+        return AutoImageProcessor.from_pretrained(source)
+    except (ValueError, KeyError) as first_error:
+        p = Path(source) / "preprocessor_config.json"
+        if not p.exists():
+            from huggingface_hub import hf_hub_download
+            p = Path(hf_hub_download(source, "preprocessor_config.json"))
+        legacy = json.loads(p.read_text()).get("image_processor_type") or \
+            json.loads(p.read_text()).get("feature_extractor_type") or ""
+        modern = legacy.replace("FeatureExtractor", "ImageProcessor")
+        for name in (modern, modern + "Fast", modern.removesuffix("Fast")):
+            cls = getattr(transformers, name, None) if name else None
+            if cls is not None:
+                return cls.from_pretrained(source)
+        raise first_error
+
+
+class HFBackend:
+    name = "transformers"
+
+    def __init__(self, spec: ClassifierSpec, cfg: EngineConfig):
+        from transformers import pipeline  # imported lazily: heavy
+
+        local = local_model_dir(cfg, spec.model_id)
+        source = str(local) if (local / "config.json").exists() else spec.model_id
+        self.device = resolve_device(cfg.device)
+        self.pipe = pipeline("image-classification", model=source,
+                             image_processor=load_image_processor(source), device=self.device)
+        self.labels = list(self.pipe.model.config.id2label.values())
+        self.revision = (getattr(self.pipe.model.config, "_commit_hash", None)
+                         or _manifest_revision(cfg, spec.model_id))
+        self.loaded_from = source
+        self.batch_size = cfg.batch_size
+
+    def predict(self, images: List[Image.Image]) -> List[Dict[str, float]]:
+        if not images:
+            return []
+        out = self.pipe(images, batch_size=self.batch_size, top_k=len(self.labels))
+        if images and isinstance(out, list) and out and isinstance(out[0], dict):
+            out = [out]  # single image -> wrap
+        return [{d["label"]: float(d["score"]) for d in item} for item in out]
+
+
+class StubBackend:
+    """Deterministic, model-free scores. FOR TESTS AND UI WIRING ONLY."""
+    name = "stub"
+
+    def __init__(self, spec: ClassifierSpec, cfg: EngineConfig):
+        self.labels = list(spec.negative_labels) + list(spec.positive_labels)
+        self.spec = spec
+        self.revision = "stub"
+        self.loaded_from = "stub"
+        self.device = "cpu"
+
+    def predict(self, images: List[Image.Image]) -> List[Dict[str, float]]:
+        res = []
+        for im in images:
+            a = np.asarray(im.convert("L").resize((16, 16)), dtype=np.float32) / 255.0
+            s = float(np.clip(0.5 + (a.std() - 0.2) * 2.0, 0.01, 0.99))
+            pos = list(self.spec.positive_labels)
+            neg = list(self.spec.negative_labels)
+            d = {l: (1 - s) / len(neg) for l in neg}
+            d.update({l: s / len(pos) for l in pos})
+            res.append(d)
+        return res
+
+
+_BACKENDS: Dict[str, object] = {}
+
+
+class TaskClassifier:
+    def __init__(self, spec: ClassifierSpec, cfg: EngineConfig):
+        self.spec = spec
+        if cfg.backend == "stub":
+            self.backend = StubBackend(spec, cfg)
+        else:  # one loaded copy per checkpoint, shared by tasks that use the same model
+            key = f"{spec.model_id}|{cfg.device}"
+            if key not in _BACKENDS:
+                _BACKENDS[key] = HFBackend(spec, cfg)
+            self.backend = _BACKENDS[key]
+        self._pos = {l.strip().lower() for l in spec.positive_labels}
+        model_labels = {l.lower() for l in self.backend.labels}
+        missing = self._pos - model_labels
+        if missing:
+            raise ValueError(
+                f"[{spec.task}] positive labels {sorted(missing)} not found in model labels "
+                f"{self.backend.labels}. Set DEEPSHIELD_M02_*_POS to match the checkpoint."
+            )
+
+    @property
+    def model_info(self) -> ModelInfo:
+        is_stub = self.backend.name == "stub"
+        return ModelInfo(
+            model_id=("STUB-NOT-A-MODEL" if is_stub else self.spec.model_id),
+            revision=self.backend.revision,
+            task=self.spec.task,
+            license=None if is_stub else self.spec.license,
+            source_url=None if is_stub else self.spec.source_url,
+            backend=self.backend.name,
+        )
+
+    def verdict(self, score: float) -> str:
+        ind, inc, neg = self.spec.verdicts
+        if score >= self.spec.threshold_high:
+            return ind
+        if score <= self.spec.threshold_low:
+            return neg
+        return inc
+
+    def thresholds(self) -> Dict[str, float]:
+        return {"low": self.spec.threshold_low, "high": self.spec.threshold_high}
+
+    def classify(self, images: List[Image.Image]) -> List[Prediction]:
+        preds = []
+        for raw in self.backend.predict(images):
+            score = float(sum(p for l, p in raw.items() if l.lower() in self._pos))
+            score = min(max(score, 0.0), 1.0)
+            top = max(raw.items(), key=lambda kv: kv[1])[0]
+            preds.append(Prediction(round(score, 4), {k: round(v, 4) for k, v in raw.items()},
+                                    top, self.verdict(score)))
+        return preds
+
+
+_CACHE: Dict[str, TaskClassifier] = {}
+_LOCK = threading.Lock()
+
+
+def get_classifier(task: str, cfg: EngineConfig) -> TaskClassifier:
+    key = f"{cfg.backend}:{task}:{SPECS[task].model_id}"
+    with _LOCK:
+        if key not in _CACHE:
+            _CACHE[key] = TaskClassifier(SPECS[task], cfg)
+        return _CACHE[key]
