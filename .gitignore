@@ -1,0 +1,10 @@
+.venv/
+.runtime/
+__pycache__/
+*.py[cod]
+.env
+backend/data/
+data/
+*.sqlite3
+*.db
+*.log
