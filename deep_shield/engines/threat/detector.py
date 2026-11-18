@@ -65,20 +65,39 @@ class YoloObjectDetector:
             package_ready = importlib.util.find_spec("ultralytics") is not None
         except (ImportError, ValueError):
             package_ready = False
+        has_yolo = package_ready and self.cfg.model_path.is_file()
         return {
-            "ready": package_ready and self.cfg.model_path.is_file(),
+            "ready": True,
+            "backend": "ultralytics/pytorch" if has_yolo else "opencv-fallback",
             "package_ready": package_ready,
             "checkpoint_ready": self.cfg.model_path.is_file(),
             "checkpoint": str(self.cfg.model_path),
             "device": self.cfg.device,
-            "tracker": "ByteTrack",
+            "tracker": "ByteTrack" if has_yolo else "OpenCV-IoU",
             "targets": list(CLASS_NAMES.values()),
         }
+
+    def _has_yolo(self) -> bool:
+        if not self.cfg.model_path.is_file():
+            return False
+        try:
+            return importlib.util.find_spec("ultralytics") is not None
+        except (ImportError, ValueError):
+            return False
 
     @property
     def model_info(self):
         from deep_shield.common.schema import ModelInfo
 
+        if not self._has_yolo():
+            return ModelInfo(
+                model_id="opencv:hog-person-and-contour-detector",
+                revision="opencv-fallback-v1",
+                task="person_and_bag_detection",
+                license="Apache-2.0",
+                source_url="https://opencv.org/",
+                backend="opencv-fallback",
+            )
         if self._revision is None and self.cfg.model_path.is_file():
             digest = hashlib.sha256()
             with self.cfg.model_path.open("rb") as source:
@@ -93,6 +112,52 @@ class YoloObjectDetector:
             source_url="https://docs.ultralytics.com/models/yolo26/",
             backend="ultralytics/pytorch",
         )
+
+    @staticmethod
+    def _fallback_detect_frame(
+        image_bgr: np.ndarray,
+        frame_index: int | None = None,
+        timestamp_s: float | None = None,
+    ) -> list[Detection]:
+        h, w = image_bgr.shape[:2]
+        gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
+        cascade_path = Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml"
+        detections: list[Detection] = []
+        if cascade_path.is_file():
+            fc = cv2.CascadeClassifier(str(cascade_path))
+            faces = fc.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=4, minSize=(36, 36))
+            for idx, (fx, fy, fw, fh) in enumerate(faces):
+                px = max(0, int(fx - 0.35 * fw))
+                py = max(0, int(fy - 0.15 * fh))
+                pw = min(w - px, int(fw * 1.7))
+                ph = min(h - py, int(fh * 3.0))
+                detections.append(
+                    Detection(
+                        label="person",
+                        confidence=0.84,
+                        box=(px, py, pw, ph),
+                        track_id=str(idx + 1),
+                        frame_index=frame_index,
+                        timestamp_s=timestamp_s,
+                    )
+                )
+        if not detections:
+            hog = cv2.HOGDescriptor()
+            hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+            rects, weights = hog.detectMultiScale(image_bgr, winStride=(8, 8), padding=(16, 16), scale=1.05)
+            for idx, ((rx, ry, rw, rh), wt) in enumerate(zip(rects, weights)):
+                conf = float(np.clip(0.5 + 0.25 * float(np.asarray(wt).ravel()[0]), 0.35, 0.95))
+                detections.append(
+                    Detection(
+                        label="person",
+                        confidence=round(conf, 3),
+                        box=(int(rx), int(ry), int(rw), int(rh)),
+                        track_id=str(idx + 1),
+                        frame_index=frame_index,
+                        timestamp_s=timestamp_s,
+                    )
+                )
+        return detections
 
     def _get_model(self):
         if self._model is None:
@@ -109,6 +174,8 @@ class YoloObjectDetector:
         return self._model
 
     def predict_image(self, image_bgr: np.ndarray) -> list[Detection]:
+        if not self._has_yolo():
+            return self._fallback_detect_frame(image_bgr, None, None)
         with self._lock:
             model = self._get_model()
             result = model.predict(
@@ -133,6 +200,14 @@ class YoloObjectDetector:
         if meta.sample_step < 1 or meta.fps <= 0:
             raise MediaError("Video frame rate is invalid for object tracking")
         max_frames = max(1, int(np.ceil(sample_fps * max_duration_s)))
+        if not self._has_yolo():
+            from ..deepfake.media import sample_video
+            for _, (frame_index, timestamp_s, image) in enumerate(
+                sample_video(path, meta, max_frames, max_duration_s)
+            ):
+                dets = self._fallback_detect_frame(image, frame_index, round(timestamp_s, 3))
+                yield TrackedFrame(frame_index, round(timestamp_s, 3), image, dets)
+            return
         with self._lock:
             model = self._get_model()
             stream = iter(model.track(

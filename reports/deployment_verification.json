@@ -1,5 +1,5 @@
 {
-  "verified_at": "2026-11-19T01:31:42",
+  "verified_at": "2026-11-19T01:47:21",
   "hosted_frontend": {
     "root": {
       "url": "https://deep-shield-sooty.vercel.app",
@@ -20,7 +20,7 @@
     "m04": "M04_visual_forensics"
   },
   "job_flow": {
-    "job_id": "7f90e45d8fd647078e206c39bd53f60e",
+    "job_id": "338325f4b241418885d905eb2c9ba225",
     "interrupted_worker_attempt": 1,
     "recovered_worker_attempt": 2,
     "final_status": "completed",
@@ -29,8 +29,8 @@
       "M02_deepfake_image_integrity",
       "M04_visual_forensics"
     ],
-    "evidence_links_verified": 10,
-    "pdf_report_bytes": 5113,
+    "evidence_links_verified": 11,
+    "pdf_report_bytes": 5603,
     "retention_cleanup_verified": true
   }
 }
