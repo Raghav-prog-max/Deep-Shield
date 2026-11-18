@@ -6,7 +6,7 @@ import tempfile
 import uuid
 from io import BytesIO
 
-from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
 from deep_shield.api.routes_deepfake import get_engine as get_m02_engine
@@ -33,21 +33,6 @@ def _analyze_path(path: Path, filename: str, zones) -> IntelligenceResult:
         results.append(get_m03_engine().analyze(path, zones=zones, source_name=filename))
     results.append(get_m04_engine().analyze(path, source_name=filename))
     return link_module_results(results)
-
-
-def _execute_job(job_id: str, path: Path, filename: str, zones) -> None:
-    store = AnalysisJobStore()
-    store.update(job_id, status="running")
-    try:
-        result = _analyze_path(path, filename, zones)
-        failures = sum(item.status == "failed" for item in result.module_results)
-        status = "failed" if failures == len(result.module_results) else (
-            "partial" if failures else "completed")
-        store.update(job_id, status=status, media_id=result.media_id, result=result)
-    except Exception as exc:  # noqa: BLE001 - persist unexpected worker failures for polling clients
-        store.update(job_id, status="failed", error=f"{type(exc).__name__}: {exc}")
-    finally:
-        path.unlink(missing_ok=True)
 
 
 @router.post("/link", response_model=IntelligenceResult)
@@ -97,7 +82,6 @@ def analyze_all(
 
 @router.post("/jobs", response_model=JobRecord, status_code=202)
 def create_job(
-    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     zones: str = Form("", description="Optional normalized polygons used by M01 and M03."),
 ):
@@ -127,10 +111,15 @@ def create_job(
                 output.write(chunk)
         if not written:
             raise HTTPException(400, "Empty file")
-        job = AnalysisJobStore().create(job_id, filename)
-        background_tasks.add_task(_execute_job, job_id, source_path, filename, parsed_zones)
+        job = AnalysisJobStore().create(
+            job_id, filename, source_path,
+            [zone.model_dump() for zone in parsed_zones],
+        )
         return job
     except HTTPException:
+        source_path.unlink(missing_ok=True)
+        raise
+    except Exception:
         source_path.unlink(missing_ok=True)
         raise
     finally:

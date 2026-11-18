@@ -9,7 +9,7 @@ DEEP SHIELD analyzes images and video for human review. Modules 01–04 return f
 | 03 | Video event understanding | Reuses M01 tracks for zone entry/exit, loitering, crowding and rapid-movement candidates |
 | 04 | Visual forensics | Copy-move, ELA/noise, JPEG observations and metadata |
 
-No module recognizes identity or infers intent or wrongdoing. M01/M03 rule thresholds and M02 classifier thresholds require evaluation on consented, representative footage before operational use.
+No module recognizes identity or infers intent or wrongdoing. M01/M03 rule thresholds and M02 classifier thresholds require evaluation on consented, representative footage before operational use. See [EVALUATION.md](EVALUATION.md) for required labels and the M02 evaluation workflow.
 
 This project is licensed under AGPL-3.0-only. Ultralytics code and YOLO26n weights use AGPL-3.0 by default; see [LICENSE](LICENSE) and [Ultralytics licensing](https://www.ultralytics.com/license) before private or commercial deployment.
 
@@ -342,9 +342,20 @@ This version uses explainable rules; the optional GRU is not included. Crowd and
 
 `POST /api/v1/intelligence/analyze` accepts one multipart `file` and optional normalized `zones`. It runs M01, M02 and M04 for images, and all four modules for video, sequentially on the same temporary upload. The response contains each original `ModuleResult` plus cross-module links, connected evidence groups and unlinked finding IDs. The temporary upload is removed after the request; each engine keeps its own derived evidence.
 
-For long clips, use `POST /api/v1/intelligence/jobs` with multipart `file` and optional `zones`. It returns a queued job record; poll `GET /api/v1/intelligence/jobs/{job_id}` and retrieve completed output from `GET /api/v1/intelligence/jobs/{job_id}/result`. Job state and result JSON are stored in SQLite. This prototype runs background work in the API process; use a durable worker queue before multi-process or production deployment.
+For long clips, use `POST /api/v1/intelligence/jobs` with multipart `file` and optional `zones`. It returns a queued job record; poll `GET /api/v1/intelligence/jobs/{job_id}` and retrieve completed output from `GET /api/v1/intelligence/jobs/{job_id}/result`. Job state, options and results are stored in SQLite. A separate worker claims jobs transactionally, renews a lease while analysing, and retries a job if a worker stops unexpectedly. Keep the SQLite database and queued uploads on persistent storage. This is a durable single-host queue; move to PostgreSQL, a broker and shared object storage before running multiple API hosts.
 
 Download the human-readable report after completion from `GET /api/v1/intelligence/jobs/{job_id}/report.pdf`. It includes the media hash, per-module status, linked groups, findings, evidence references and limitations. The complete result remains available as JSON; reports list at most 300 findings.
+
+### Durable worker and frontend
+
+Run the API and worker as separate processes from the repository root:
+
+```sh
+uvicorn deep_shield.api.main:app --host 127.0.0.1 --port 8002
+python -m deep_shield.jobs.worker
+```
+
+Then run the frontend from `frontend/` with `npm install` and `npm run dev`. It proxies `/api` requests to the API, so uploads, reports and evidence use the same browser origin. For an HTTPS, password-protected single-host Docker deployment, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 If modules were run separately, submit their `ModuleResult` objects to `POST /api/v1/intelligence/link` as `{"module_results": [ ... ]}`. This endpoint requires two to four distinct modules analyzing the same media ID and SHA-256.
 
