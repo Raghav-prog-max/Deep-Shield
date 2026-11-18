@@ -208,7 +208,7 @@ def test_real_models_load(tmp_path, media):
     r = DeepfakeImageIntegrityEngine(cfg).analyze(media / "face.jpg")
     assert r.status == "completed", r.error
     face = [s for s in r.task_summaries if s.task == "face_manipulation"][0]
-    assert face.model and face.model.backend == "transformers"
+    assert face.model and face.model.backend.startswith("transformers")
 
 
 def test_heatmap_honest_scaling():

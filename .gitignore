@@ -1,7 +1,8 @@
 models/*
 !models/.gitkeep
+!models/m02_face_head.npz
 evidence_store/
-data/*.sqlite3*
+data/
 eval_out/
 __pycache__/
 .pytest_cache/

@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Optional, Tuple
 
 MODULE_NAME = "M02_deepfake_image_integrity"
-ENGINE_VERSION = "m02-0.2.0"
+ENGINE_VERSION = "m02-0.3.0"
 
 TASK_FACE = "face_manipulation"      # model: face deepfake classifier (+ suspicious-region heatmap)
 TASK_SYNTH = "synthetic_image"       # model: whole-image AI-generation check (experimental, opt-in)

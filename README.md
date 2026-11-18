@@ -176,6 +176,7 @@ def run_m02_job(path, tasks=None):
 | `DEEPSHIELD_M02_BATCH` · `DEEPSHIELD_MAX_UPLOAD_MB` | 16 · 200 | Inference batch size; upload size limit |
 | `DEEPSHIELD_M02_DEFAULT_TASKS` | `face_manipulation,image_manipulation,frequency_analysis` | Tasks run when none are requested (videos keep only the face task) |
 | `DEEPSHIELD_M02_EXPLAIN` | `1` | `0` disables the occlusion heatmap (saves about 25 extra classifier passes per face) |
+| `DEEPSHIELD_M02_FACE_HEAD` | `models/m02_face_head.npz` | Trained multi-generator face head (§6b). Loaded automatically when present; `none` restores original head |
 | `DEEPSHIELD_M01_MODEL` | `models/yolo26n.pt` | Local Ultralytics checkpoint; download with `scripts/download_m01_model.py` |
 | `DEEPSHIELD_M01_ZONES` | empty | Optional JSON array of normalized polygon zones |
 | `DEEPSHIELD_M01_SAMPLE_FPS` · `_MAX_DURATION` | 1 · 60 | M01 sample rate and video duration cap |
@@ -196,6 +197,18 @@ python scripts/evaluate_m02.py --data eval/synthetic --task synthetic_image  --l
 ```
 
 The script outputs `metrics.json` with ROC-AUC, accuracy, precision, recall, F1 and the confusion matrix at 0.5. It also reports three-band coverage and how many cases are inconclusive, plus a threshold sweep from 0.05 to 0.95. Per-file scores go to `scores.csv`. Record the dataset source, licence, access date, split and class balance with the numbers. Use FaceForensics++ only under its access agreement and do not redistribute samples. Use consented or synthetic media for the live demo.
+
+### 6b. Multi-generator trained face head & consolidated M01–M04 evaluation
+
+Module 02 includes a trained classification head (`models/m02_face_head.npz`, SHA `c8c61b23a9d5`) on top of the frozen SigLIP2 backbone across three generator families (`stylegan1`, `tpdne` StyleGAN2, and `dff` DeepFakeFace swaps/diffusion), lifting held-out pooled test ROC-AUC from `0.6509` to **`0.9057`** (`90.1%` decided accuracy):
+
+```bash
+python scripts/fetch_train_faces.py          # fetch disjoint train/test face splits into data/m02_train
+python scripts/train_m02_head.py             # train head, calibrate on validation, test on held-out split
+python scripts/evaluate_all.py --out reports # run consolidated M01-M04 evaluation & threshold calibration
+```
+
+Full evaluation outputs are committed under [reports/EVALUATION_REPORT.md](reports/EVALUATION_REPORT.md) and [reports/m02_training/report.md](reports/m02_training/report.md).
 
 ## 7. Known limitations — show these in the report
 
@@ -357,7 +370,7 @@ uvicorn deep_shield.api.main:app --host 127.0.0.1 --port 8002
 python -m deep_shield.jobs.worker
 ```
 
-Then run the frontend from `frontend/` with `npm install` and `npm run dev`. It proxies `/api` requests to the API, so uploads, reports and evidence use the same browser origin. For an HTTPS, password-protected single-host Docker deployment, see [DEPLOYMENT.md](DEPLOYMENT.md).
+Then run the frontend from `frontend/` with `npm install` and `npm run dev`. The root route (`/`) serves the interactive Deep Shield Explainable Media-Analysis Landing Page together with the embedded Live Media Review Workspace (`#workspace`), and `/review` serves the standalone fullscreen review workspace. It proxies `/api` requests to the API, so uploads, reports and evidence use the same browser origin. For an HTTPS, password-protected single-host Docker deployment, see [DEPLOYMENT.md](DEPLOYMENT.md).
 
 If modules were run separately, submit their `ModuleResult` objects to `POST /api/v1/intelligence/link` as `{"module_results": [ ... ]}`. This endpoint requires two to four distinct modules analyzing the same media ID and SHA-256.
 

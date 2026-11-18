@@ -13,8 +13,9 @@ Backends:
 from __future__ import annotations
 
 import json
+import os
 import threading
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -23,7 +24,8 @@ from PIL import Image
 
 from deep_shield.common.schema import ModelInfo
 
-from .config import SPECS, ClassifierSpec, EngineConfig
+from .config import SPECS, TASK_FACE, ClassifierSpec, EngineConfig
+from .head import FaceHead, extract, load_head
 
 
 @dataclass
@@ -111,6 +113,57 @@ class HFBackend:
             out = [out]  # single image -> wrap
         return [{d["label"]: float(d["score"]) for d in item} for item in out]
 
+    def features(self, images: List[Image.Image], layers, pos_idx):
+        """Frozen backbone features (see head.py) + the model's own positive-class probability."""
+        model = self.pipe.model
+        return extract(model, self.pipe.image_processor, images, layers, pos_idx,
+                       device=model.device, batch_size=self.batch_size)
+
+
+class HeadBackend:
+    """Frozen pretrained backbone + DEEP SHIELD's trained face head (scripts/train_m02_head.py)."""
+    name = "transformers+trained_head"
+
+    def __init__(self, base: HFBackend, head: FaceHead, spec: ClassifierSpec):
+        self.base, self.head = base, head
+        self.labels = base.labels
+        self.pos_label, self.neg_label = spec.positive_labels[0], spec.negative_labels[0]
+        pos = {l.lower() for l in spec.positive_labels}
+        id2label = base.pipe.model.config.id2label
+        self.pos_idx = [int(i) for i, l in id2label.items() if l.lower() in pos]
+        self.revision = f"{base.revision or 'local'}+head:{head.sha}"
+        self.loaded_from = f"{base.loaded_from} + {head.name}"
+        self.device = base.device
+
+    def predict(self, images: List[Image.Image]) -> List[Dict[str, float]]:
+        if not images:
+            return []
+        feats, _ = self.base.features(images, self.head.layers, self.pos_idx)
+        probs = self.head.predict_proba(feats)
+        labels = {self.pos_label, self.neg_label}
+        res = []
+        for p in probs:
+            d = {l: 0.0 for l in self.labels if l not in labels}
+            d[self.pos_label], d[self.neg_label] = float(p), float(1.0 - p)
+            res.append(d)
+        return res
+
+
+def face_head_path(cfg: EngineConfig) -> Optional[Path]:
+    v = os.getenv("DEEPSHIELD_M02_FACE_HEAD")
+    if v is not None and v.strip().lower() in ("", "0", "none", "off"):
+        return None
+    return Path(v) if v else cfg.models_dir / "m02_face_head.npz"
+
+
+def _apply_head_spec(spec: ClassifierSpec, head: FaceHead) -> ClassifierSpec:
+    """Trained head brings its own validated thresholds unless the operator overrides them by env var."""
+    lo = spec.threshold_low if os.getenv("DEEPSHIELD_M02_FACE_LOW") else head.threshold_low
+    hi = spec.threshold_high if os.getenv("DEEPSHIELD_M02_FACE_HIGH") else head.threshold_high
+    lims = [head.meta.get("summary", "Trained DEEP SHIELD face head on a frozen pretrained backbone.")]
+    lims += [l for l in spec.limitations if "Internal check on 50" not in l]
+    return replace(spec, threshold_low=lo, threshold_high=hi, limitations=tuple(lims))
+
 
 class StubBackend:
     """Deterministic, model-free scores. FOR TESTS AND UI WIRING ONLY."""
@@ -142,6 +195,8 @@ _BACKENDS: Dict[str, object] = {}
 class TaskClassifier:
     def __init__(self, spec: ClassifierSpec, cfg: EngineConfig):
         self.spec = spec
+        self.head: Optional[FaceHead] = None
+        self.head_note: Optional[str] = None
         if cfg.backend == "stub":
             self.backend = StubBackend(spec, cfg)
         else:  # one loaded copy per checkpoint, shared by tasks that use the same model
@@ -149,6 +204,8 @@ class TaskClassifier:
             if key not in _BACKENDS:
                 _BACKENDS[key] = HFBackend(spec, cfg)
             self.backend = _BACKENDS[key]
+            if spec.task == TASK_FACE:
+                self._maybe_attach_head(cfg)
         self._pos = {l.strip().lower() for l in spec.positive_labels}
         model_labels = {l.lower() for l in self.backend.labels}
         missing = self._pos - model_labels
@@ -158,11 +215,29 @@ class TaskClassifier:
                 f"{self.backend.labels}. Set DEEPSHIELD_M02_*_POS to match the checkpoint."
             )
 
+    def _maybe_attach_head(self, cfg: EngineConfig) -> None:
+        path = face_head_path(cfg)
+        try:
+            head = load_head(path)
+        except Exception as exc:  # noqa: BLE001 - a broken head file must not break the engine
+            self.head_note = f"trained head at {path} could not be loaded ({exc}); using the original model"
+            return
+        if head is None:
+            return
+        if head.base_model_id and head.base_model_id != self.spec.model_id:
+            self.head_note = (f"trained head {path} was built for {head.base_model_id}, not "
+                              f"{self.spec.model_id}; ignored")
+            return
+        self.head = head
+        self.backend = HeadBackend(self.backend, head, self.spec)
+        self.spec = _apply_head_spec(self.spec, head)
+
     @property
     def model_info(self) -> ModelInfo:
         is_stub = self.backend.name == "stub"
+        mid = self.spec.model_id + (f" + {self.head.name}" if self.head else "")
         return ModelInfo(
-            model_id=("STUB-NOT-A-MODEL" if is_stub else self.spec.model_id),
+            model_id=("STUB-NOT-A-MODEL" if is_stub else mid),
             revision=self.backend.revision,
             task=self.spec.task,
             license=None if is_stub else self.spec.license,

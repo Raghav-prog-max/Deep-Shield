@@ -71,6 +71,12 @@ class DeepfakeImageIntegrityEngine:
                 c = get_classifier(t, self.cfg)
                 info["tasks"][t] = {"ready": True, "model": c.model_info.model_dump(),
                                     "device": str(c.backend.device), "thresholds": c.thresholds()}
+                if t == TASK_FACE:
+                    info["tasks"][t]["trained_head"] = (
+                        {"name": c.head.name, "sha": c.head.sha, "test_auc": c.head.meta.get("test_auc"),
+                         "trained_at": c.head.meta.get("trained_at")} if c.head else None)
+                    if c.head_note:
+                        info["tasks"][t]["note"] = c.head_note
             except Exception as exc:  # noqa: BLE001
                 info["tasks"][t] = {"ready": False, "error": f"{type(exc).__name__}: {exc}"}
         return info

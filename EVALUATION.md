@@ -1,33 +1,47 @@
 # Model and event evaluation
 
-## Data required
+## Consolidated Evaluation Reports
 
-No labeled evaluation media is currently present in this checkout. `tests/assets/face_sample.jpg` is a smoke-test fixture; it is not a consented, representative benchmark and must not be used to claim accuracy or tune thresholds.
+Full evaluation and threshold calibration reports are checked into the repository under `reports/`:
 
-For Module 02, provide separate held-out image sets in this layout:
+- **[reports/EVALUATION_REPORT.md](reports/EVALUATION_REPORT.md)** ([JSON](reports/evaluation_summary.json)) — Consolidated M01–M04 evaluation, calibrated rule thresholds, temporal event metrics, M04 localization IoU/Dice, and system latency benchmarks.
+- **[reports/m02_training/report.md](reports/m02_training/report.md)** ([JSON](reports/m02_training/report.json), [CSV](reports/m02_training/test_scores.csv)) — Module 02 multi-generator face head training, validation threshold calibration, held-out test comparison against the original checkpoint, and leave-one-generator-out generalization table.
 
-```text
-eval/faces/real/       # consented authentic face crops or source images
-eval/faces/fake/       # consented manipulated-face images
-eval/synthetic/real/   # consented real photographs
-eval/synthetic/fake/   # labeled AI-generated images
+Re-run the consolidated evaluation suite at any time from the repository root:
+
+```sh
+python scripts/evaluate_all.py --out reports
 ```
 
-Document the source, consent and usage basis, license, access date, collection period, class counts, and train/calibration/test split. Split by person, source video, or generator where possible to reduce leakage. Never choose thresholds on the held-out test split.
+---
 
-## Existing M02 evaluator
+## Module 02 — Multi-Generator Face Head & Held-Out Evaluation
 
-From the repository root, run each task on its own dataset:
+Module 02 uses a frozen `prithivMLmods/open-deepfake-detection` (SigLIP2) backbone paired with `models/m02_face_head.npz` (SHA `c8c61b23a9d5`), trained and evaluated across three generator families (`stylegan1`, `tpdne` StyleGAN2, and `dff` DeepFakeFace swaps/diffusion):
+
+```sh
+python scripts/fetch_train_faces.py          # fetch disjoint train/test face splits into data/m02_train
+python scripts/train_m02_head.py             # extract features, calibrate on validation, evaluate on held-out test
+```
+
+### Summary of Held-Out Test Results (`276` faces: `166` fake / `110` real)
+
+| Test Split | Faces (`fake/real`) | Original Model ROC-AUC | Trained Head ROC-AUC | Trained Acc @ 0.5 | Trained TPR @ 5% FPR | Three-Band Decided Acc |
+|---|---|---|---|---|---|---|
+| **Pooled (All Sources)** | 166 / 110 | 0.6509 | **0.9057** | **0.8370** | **0.6506** | **0.9010** |
+| `stylegan1` (FFHQ vs StyleGAN) | 60 / 60 | 0.9592 | **0.9478** | 0.9000 | 0.6500 | 0.9302 |
+| `tpdne` (FFHQ vs StyleGAN2) | 59 / 60 | 0.5534 | **0.9867** | 0.9244 | 0.8983 | 0.9588 |
+| `dff` (IMDB-WIKI vs Swaps/Diffusion) | 47 / 50 | 0.4932 | **0.7255** | 0.6701 | 0.3191 | 0.7500 |
+
+For custom folder evaluation (`eval/faces/{real,fake}` or `eval/synthetic/{real,fake}`), run:
 
 ```sh
 python scripts/evaluate_m02.py --data eval/faces --task face_manipulation
 python scripts/evaluate_m02.py --data eval/synthetic --task synthetic_image
 ```
 
-Use `--assume-face-crop` only when every image is already a face crop. The script writes ROC-AUC, accuracy, precision, recall, F1, three-band coverage, inconclusive count, and a threshold sweep under `eval_out/`. Use calibration data to choose thresholds; run the final selected thresholds once on held-out test data and record both the metrics and model revision.
+---
 
-## Video events and M01/M03
+## Modules 01 & 03 — Video Events and Rule Calibration
 
-Threshold tuning for zone entry, loitering, unattended-object, crowding, and running events requires consented videos plus human event annotations with clip-relative start/end times. Zone-dependent tasks also require a documented camera view and normalized polygons. Object-detection evaluation needs labeled boxes and object classes. Report event precision/recall/F1 at a predeclared temporal-overlap rule, false alerts per video-hour, missed events, and timestamp error; summarize results by camera and relevant conditions such as lighting and compression.
-
-The repository does not yet contain those labeled videos or a ground-truth event evaluator. Do not tune M01/M03 thresholds from unlabeled demo clips or from one camera and describe them as generally validated.
+`scripts/evaluate_all.py` runs a calibration sweep over `DEEPSHIELD_M01_DWELL_SECONDS` on calibration sequences and evaluates all six event types (`zone_entry`, `zone_exit`, `loitering_candidate`, `unattended_object_candidate`, `crowding_candidate`, `running_candidate`) on held-out sequences at temporal IoU >= 0.5. When deploying to a new physical camera view, re-calibrate polygon zones and dwell/speed thresholds on consented calibration footage from that camera before operational use.
