@@ -1,0 +1,81 @@
+services:
+  model-setup:
+    build: .
+    command: ["sh", "-c", "python scripts/download_m01_model.py && python scripts/download_models.py"]
+    volumes:
+      - model-store:/app/models
+      - hf-cache:/root/.cache/huggingface
+    restart: "no"
+
+  api:
+    build: .
+    command: ["uvicorn", "deep_shield.api.main:app", "--host", "0.0.0.0", "--port", "8002", "--workers", "1"]
+    environment: &backend-environment
+      DEEPSHIELD_DATABASE_PATH: /app/data/deep_shield.sqlite3
+      DEEPSHIELD_JOB_UPLOAD_DIR: /app/evidence_store/jobs/uploads
+      DEEPSHIELD_M01_MODEL: /app/models/yolo26n.pt
+      DEEPSHIELD_M01_EVIDENCE_DIR: /app/evidence_store/m01
+      DEEPSHIELD_M02_BACKEND: hf
+      DEEPSHIELD_MODELS_DIR: /app/models
+      DEEPSHIELD_EVIDENCE_DIR: /app/evidence_store/m02
+      DEEPSHIELD_M03_EVIDENCE_DIR: /app/evidence_store/m03
+      DEEPSHIELD_M04_EVIDENCE_DIR: /app/evidence_store/m04
+      DEEPSHIELD_DEVICE: cpu
+      DEEPSHIELD_MAX_UPLOAD_MB: 200
+    volumes:
+      - model-store:/app/models:ro
+      - hf-cache:/root/.cache/huggingface
+      - application-data:/app/data
+      - evidence-store:/app/evidence_store
+    depends_on:
+      model-setup:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: ["python", "-m", "deep_shield.jobs.worker"]
+    environment: *backend-environment
+    volumes:
+      - model-store:/app/models:ro
+      - hf-cache:/root/.cache/huggingface
+      - application-data:/app/data
+      - evidence-store:/app/evidence_store
+    depends_on:
+      model-setup:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        API_INTERNAL_BASE_URL: http://api:8002
+    expose:
+      - "3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    env_file: ${DEPLOYMENT_ENV_FILE:-.env.production}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+volumes:
+  model-store:
+  hf-cache:
+  application-data:
+  evidence-store:
+  caddy-data:
+  caddy-config:

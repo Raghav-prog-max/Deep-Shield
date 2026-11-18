@@ -1,0 +1,7 @@
+{$SITE_ADDRESS} {
+	basic_auth {
+		{$SITE_USER} {$SITE_PASSWORD_HASH}
+	}
+	encode zstd gzip
+	reverse_proxy frontend:3000
+}

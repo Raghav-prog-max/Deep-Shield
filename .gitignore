@@ -10,3 +10,4 @@ eval/
 demo/
 *.zip
 *.mp4
+.env.production

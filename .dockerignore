@@ -1,0 +1,14 @@
+.git
+.venv
+__pycache__
+.pytest_cache
+data
+evidence_store
+eval
+eval_out
+demo
+models/*
+!models/.gitkeep
+frontend/node_modules
+frontend/.next
+frontend/tsconfig.tsbuildinfo
