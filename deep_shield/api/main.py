@@ -4,6 +4,7 @@
     open http://localhost:8002/docs
 """
 from contextlib import asynccontextmanager
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,8 +25,13 @@ async def lifespan(_app: FastAPI):
     yield
 
 
+_cors_origins = [
+    o.strip()
+    for o in os.getenv("DEEPSHIELD_CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+    if o.strip()
+]
 app = FastAPI(title="DEEP SHIELD — Modules 01–04 API", version="0.4.0", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3000"], allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(CORSMiddleware, allow_origins=_cors_origins, allow_methods=["*"], allow_headers=["*"])
 app.include_router(m02_router)
 app.include_router(m01_router)
 app.include_router(m03_router)
