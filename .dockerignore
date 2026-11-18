@@ -9,6 +9,7 @@ eval_out
 demo
 models/*
 !models/.gitkeep
+!models/m02_face_head.npz
 frontend/node_modules
 frontend/.next
 frontend/tsconfig.tsbuildinfo
