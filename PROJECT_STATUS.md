@@ -1,6 +1,6 @@
 # DEEP SHIELD — Project Status
 
-**Last reviewed:** 2026-11-18
+**Last reviewed:** 2026-11-19
 
 **Repository:** [Raghav-prog-max/Deep-Shield](https://github.com/Raghav-prog-max/Deep-Shield)
 
@@ -38,7 +38,7 @@ flowchart TD
 | Reports | PDF report endpoint with media hash, module status, groups, findings, evidence references and limitations | Implemented at `/api/v1/intelligence/jobs/{job_id}/report.pdf`. |
 | Frontend | Upload, job status, module summaries, findings, evidence links, and PDF download | Implemented and locally verified at `http://127.0.0.1:3000`. |
 | Local verification | Frontend typecheck/build and dependency audit pass; a real image job completed through the frontend proxy and returned a PDF; stale-worker recovery was exercised | Integration PR #4 previously recorded 21 passed and 1 skipped. The current deployment container has not been built. |
-| GitHub integration | Engine, integration, and frontend/queue work are merged | PRs [#3](https://github.com/Raghav-prog-max/Deep-Shield/pull/3), [#4](https://github.com/Raghav-prog-max/Deep-Shield/pull/4), and [#5](https://github.com/Raghav-prog-max/Deep-Shield/pull/5) are merged. |
+| GitHub integration | Contributor, engine, integration, frontend, and status-documentation work are merged | PRs [#2](https://github.com/Raghav-prog-max/Deep-Shield/pull/2) through [#6](https://github.com/Raghav-prog-max/Deep-Shield/pull/6) are merged. PR #1 was closed as superseded. |
 
 ## Left to do
 
