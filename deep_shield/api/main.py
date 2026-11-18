@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from deep_shield.api.routes_deepfake import get_engine, router as m02_router
 from deep_shield.api.routes_forensics import router as m04_router
+from deep_shield.api.routes_intelligence import router as intelligence_router
 from deep_shield.api.routes_threat import router as m01_router
 from deep_shield.api.routes_video_events import router as m03_router
 
@@ -29,3 +30,4 @@ app.include_router(m02_router)
 app.include_router(m01_router)
 app.include_router(m03_router)
 app.include_router(m04_router)
+app.include_router(intelligence_router)
