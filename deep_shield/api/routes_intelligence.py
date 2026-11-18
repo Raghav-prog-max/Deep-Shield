@@ -163,3 +163,22 @@ def get_job_report(job_id: str):
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="deep-shield-{job.job_id}.pdf"'},
     )
+
+
+@router.delete("/jobs/{job_id}")
+def delete_job(job_id: str):
+    """Retention control: delete a job record and its derived evidence."""
+    if not _JOB_ID.fullmatch(job_id):
+        raise HTTPException(400, "Invalid job ID")
+    if not AnalysisJobStore().delete(job_id):
+        raise HTTPException(404, "Analysis job not found")
+    return {"deleted": job_id}
+
+
+@router.post("/retention/purge")
+def purge_expired_jobs(max_age_hours: float = 168.0):
+    """Retention control: purge completed/failed jobs and derived evidence older than max_age_hours."""
+    if max_age_hours < 0:
+        raise HTTPException(422, "max_age_hours must be non-negative")
+    purged = AnalysisJobStore().purge_expired(max_age_hours)
+    return {"purged_jobs": purged, "max_age_hours": max_age_hours}

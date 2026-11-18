@@ -159,3 +159,12 @@ def test_intelligence_linking_and_pdf_and_durable_store(tmp_path: Path):
     final_rec = store.get("job-123")
     assert final_rec is not None and final_rec.status == "completed"
     assert final_rec.result is not None and len(final_rec.result.groups) == 1
+
+    # Test evidence retention & job deletion / purge_expired
+    ev_root = tmp_path / "evidence_store"
+    mod_ev = ev_root / "m02" / mid
+    mod_ev.mkdir(parents=True, exist_ok=True)
+    (mod_ev / "face_F1.jpg").write_bytes(b"jpg")
+    assert store.purge_expired(max_age_hours=0.0, evidence_root=ev_root) == 1
+    assert store.get("job-123") is None
+    assert not mod_ev.exists()

@@ -29,11 +29,18 @@ def run() -> None:
     lease_seconds = max(30, int(os.getenv("DEEPSHIELD_WORKER_LEASE_SECONDS", "90")))
     max_attempts = max(1, int(os.getenv("DEEPSHIELD_WORKER_MAX_ATTEMPTS", "3")))
     heartbeat_seconds = max(5, lease_seconds // 3)
+    retention_hours = float(os.getenv("DEEPSHIELD_RETENTION_HOURS", "168"))
     worker_id = f"{socket.gethostname()}:{os.getpid()}:{uuid.uuid4().hex[:8]}"
     store = AnalysisJobStore()
-    logger.info("Worker %s polling durable queue", worker_id)
+    last_purge = 0.0
+    logger.info("Worker %s polling durable queue (retention_hours=%s)", worker_id, retention_hours)
 
     while True:
+        if retention_hours > 0 and (time.monotonic() - last_purge) >= 3600:
+            purged = store.purge_expired(retention_hours)
+            if purged:
+                logger.info("Purged %s expired job(s) older than %s hours", purged, retention_hours)
+            last_purge = time.monotonic()
         job = store.claim_next(worker_id, lease_seconds=lease_seconds, max_attempts=max_attempts)
         if job is None:
             time.sleep(poll_seconds)

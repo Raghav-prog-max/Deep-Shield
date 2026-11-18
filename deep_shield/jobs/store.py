@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import sqlite3
 import json
 import threading
@@ -208,3 +209,45 @@ class AnalysisJobStore:
             created_at=row["created_at"], updated_at=row["updated_at"],
             media_id=row["media_id"], result=result, error=row["error"],
         )
+
+    def delete(self, job_id: str, evidence_root: Path | None = None) -> bool:
+        """Delete a job record, any lingering source upload, and its derived evidence if no other job uses that media_id."""
+        with self._connection() as conn:
+            row = conn.execute("SELECT media_id, upload_path FROM analysis_jobs WHERE job_id=?", (job_id,)).fetchone()
+            if row is None:
+                return False
+            media_id = row["media_id"]
+            upload_path = row["upload_path"]
+            conn.execute("DELETE FROM analysis_jobs WHERE job_id=?", (job_id,))
+            remaining = (
+                conn.execute("SELECT COUNT(*) FROM analysis_jobs WHERE media_id=?", (media_id,)).fetchone()[0]
+                if media_id else 0
+            )
+        if upload_path:
+            Path(upload_path).unlink(missing_ok=True)
+        if media_id and remaining == 0:
+            self._delete_media_evidence(media_id, evidence_root)
+        return True
+
+    def purge_expired(self, max_age_hours: float, evidence_root: Path | None = None) -> int:
+        """Purge completed/partial/failed jobs older than max_age_hours and their derived evidence."""
+        cutoff = (datetime.now(timezone.utc) - timedelta(hours=max_age_hours)).isoformat(timespec="seconds")
+        with self._connection() as conn:
+            rows = conn.execute(
+                """SELECT job_id FROM analysis_jobs
+                   WHERE status IN ('completed', 'partial', 'failed') AND updated_at <= ?""",
+                (cutoff,),
+            ).fetchall()
+        purged = 0
+        for row in rows:
+            if self.delete(row["job_id"], evidence_root=evidence_root):
+                purged += 1
+        return purged
+
+    @staticmethod
+    def _delete_media_evidence(media_id: str, evidence_root: Path | None = None) -> None:
+        if not media_id or "/" in media_id or "\\" in media_id or ".." in media_id:
+            return
+        base = evidence_root or (ROOT / "evidence_store")
+        for mod in ("m01", "m02", "m03", "m04"):
+            shutil.rmtree(base / mod / media_id, ignore_errors=True)
