@@ -289,8 +289,21 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
   async function loadSampleDemo() {
     setError("");
     setSubmitting(true);
+    setJob(null);
     try {
+      const resp = await fetch("/demo_face.jpg");
+      const blob = await resp.blob();
+      const demoFile = new File([blob], "tampered_face_demo.jpg", { type: "image/jpeg" });
+      setFile(demoFile);
+      if (apiOnline) {
+        const created = await createAnalysisJob(demoFile, zones);
+        setJob(created);
+        await pollJob(created.job_id);
+        return;
+      }
       await new Promise((resolve) => setTimeout(resolve, 400));
+      setJob(await buildHostedPreviewJob(demoFile));
+    } catch {
       setJob(await buildHostedPreviewJob(file));
     } finally {
       setSubmitting(false);
