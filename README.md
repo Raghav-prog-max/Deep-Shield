@@ -2,6 +2,8 @@
 
 DEEP SHIELD analyzes images and video for human review. Modules 01–04 return findings in the shared `ModuleResult` schema. Outputs are advisory; detector confidence, classifier scores, forensic indicators and rule events remain separate.
 
+See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the current completed stages, remaining evaluation/deployment work, and project flowchart.
+
 | Module | Capability | Current implementation |
 |---|---|---|
 | 01 | Threat and anomaly intelligence | YOLO people/bag detection, ByteTrack, zone entry, dwell and unattended-object candidates |
