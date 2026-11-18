@@ -1,7 +1,40 @@
 import type { JobRecord } from "@/lib/types";
 
-// Requests stay on the frontend origin; Next.js proxies /api to the backend.
+// Default configured base; dynamically falls back to local FastAPI (127.0.0.1:8002) when hosted on Vercel.
 export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/$/, "");
+
+let activeApiBase: string = API_BASE;
+
+export function getActiveApiBase(): string {
+  return activeApiBase;
+}
+
+export async function resolveApiBase(): Promise<{ online: boolean; base: string }> {
+  const candidates = Array.from(
+    new Set([API_BASE, "", "http://127.0.0.1:8002", "http://localhost:8002"])
+  );
+  for (const base of candidates) {
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 2200);
+      const resp = await fetch(`${base}/api/v1/m01/health`, {
+        signal: controller.signal,
+        cache: "no-store",
+      });
+      clearTimeout(timer);
+      if (resp.ok) {
+        const data = await resp.json().catch(() => null);
+        if (data && data.module) {
+          activeApiBase = base;
+          return { online: true, base };
+        }
+      }
+    } catch {
+      // try next candidate
+    }
+  }
+  return { online: false, base: activeApiBase };
+}
 
 async function readJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -17,7 +50,7 @@ export async function createAnalysisJob(file: File, zones: string): Promise<JobR
   const form = new FormData();
   form.append("file", file);
   if (zones.trim()) form.append("zones", zones.trim());
-  const response = await fetch(`${API_BASE}/api/v1/intelligence/jobs`, {
+  const response = await fetch(`${activeApiBase}/api/v1/intelligence/jobs`, {
     method: "POST",
     body: form,
   });
@@ -25,22 +58,26 @@ export async function createAnalysisJob(file: File, zones: string): Promise<JobR
 }
 
 export async function getJob(jobId: string): Promise<JobRecord> {
-  const response = await fetch(`${API_BASE}/api/v1/intelligence/jobs/${encodeURIComponent(jobId)}`, {
+  const response = await fetch(`${activeApiBase}/api/v1/intelligence/jobs/${encodeURIComponent(jobId)}`, {
     cache: "no-store",
   });
   return readJson<JobRecord>(response);
 }
 
 export function reportUrl(jobId: string): string {
-  return `${API_BASE}/api/v1/intelligence/jobs/${encodeURIComponent(jobId)}/report.pdf`;
+  return `${activeApiBase}/api/v1/intelligence/jobs/${encodeURIComponent(jobId)}/report.pdf`;
 }
 
 export function evidenceUrl(module: string, path: string): string | null {
+  if (!path) return null;
+  if (path.startsWith("data:") || path.startsWith("blob:") || path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
   const route = module.startsWith("M01") ? "m01" : module.startsWith("M02") ? "m02" :
     module.startsWith("M03") ? "m03" : module.startsWith("M04") ? "m04" : null;
   const parts = path.split("/").filter(Boolean);
   if (!route || parts.length < 2) return null;
   const mediaId = encodeURIComponent(parts[parts.length - 2] || "");
   const filename = encodeURIComponent(parts[parts.length - 1] || "");
-  return `${API_BASE}/api/v1/${route}/evidence/${mediaId}/${filename}`;
+  return `${activeApiBase}/api/v1/${route}/evidence/${mediaId}/${filename}`;
 }
