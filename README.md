@@ -1,6 +1,17 @@
-# DEEP SHIELD · Module 02 — Deepfake & Image Integrity  (+ Module 04 — Visual Forensics, see below)
+# DEEP SHIELD · Modules 01–04
 
-Engine for the **synthetic media and manipulation** capability of DEEP SHIELD (proposal §4.2). It plugs into the shared FastAPI backend, returns findings in the common schema used by all four modules, and handles both images and video.
+DEEP SHIELD analyzes images and video for human review. Modules 01–04 return findings in the shared `ModuleResult` schema. Outputs are advisory; detector confidence, classifier scores, forensic indicators and rule events remain separate.
+
+| Module | Capability | Current implementation |
+|---|---|---|
+| 01 | Threat and anomaly intelligence | YOLO people/bag detection, ByteTrack, zone entry, dwell and unattended-object candidates |
+| 02 | Deepfake and image integrity | Face manipulation analysis, frequency plots, ELA/noise maps and metadata |
+| 03 | Video event understanding | Reuses M01 tracks for zone entry/exit, loitering, crowding and rapid-movement candidates |
+| 04 | Visual forensics | Copy-move, ELA/noise, JPEG observations and metadata |
+
+No module recognizes identity or infers intent or wrongdoing. M01/M03 rule thresholds and M02 classifier thresholds require evaluation on consented, representative footage before operational use.
+
+This project is licensed under AGPL-3.0-only. Ultralytics code and YOLO26n weights use AGPL-3.0 by default; see [LICENSE](LICENSE) and [Ultralytics licensing](https://www.ultralytics.com/license) before private or commercial deployment.
 
 | Acceptance criterion (proposal §9) | How Module 02 meets it |
 |---|---|
@@ -76,7 +87,8 @@ Set-ExecutionPolicy -Scope Process Bypass        # only if activation is blocked
 .\.venv\Scripts\Activate.ps1
 pip install torch
 pip install -r requirements.txt
-python scripts\download_models.py                # ~700 MB; pins revisions + SHA-256 in models\MANIFEST.json
+python scripts\download_models.py                # M02; ~700 MB, pinned revisions + SHA-256
+python scripts\download_m01_model.py             # M01/M03 YOLO26n checkpoint + SHA-256
 $env:DEEPSHIELD_TEST_REAL = "1"; pytest -q        # wiring tests + real-model smoke test
 python scripts\run_m02.py tests\assets\face_sample.jpg
 ```
@@ -88,6 +100,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install torch --index-url https://download.pytorch.org/whl/cu128   # or /whl/cpu
 pip install -r requirements.txt
 python scripts/download_models.py
+python scripts/download_m01_model.py
 DEEPSHIELD_TEST_REAL=1 pytest -q
 ```
 
@@ -101,7 +114,7 @@ python scripts/run_m02.py samples/face.jpg
 python scripts/run_m02.py samples/clip.mp4 --out clip_m02.json
 
 # API (standalone, for module testing)
-uvicorn deep_shield.api.main:app --host 0.0.0.0 --port 8002     # docs at /docs
+uvicorn deep_shield.api.main:app --host 0.0.0.0 --port 8002     # Modules 01–04 at /docs
 curl -F file=@samples/face.jpg -F tasks=face_manipulation,synthetic_image \
      http://localhost:8002/api/v1/m02/analyze
 ```
@@ -119,8 +132,14 @@ Uploads are deleted after analysis by default (`DEEPSHIELD_KEEP_UPLOADS=1` keeps
 
 ```python
 # main API app
+from deep_shield.api.routes_threat import router as m01_router
 from deep_shield.api.routes_deepfake import router as m02_router
+from deep_shield.api.routes_video_events import router as m03_router
+from deep_shield.api.routes_forensics import router as m04_router
+app.include_router(m01_router)
 app.include_router(m02_router)
+app.include_router(m03_router)
+app.include_router(m04_router)
 
 # background worker (RQ / Celery) for long videos — the engine is a pure function of (path, options)
 from deep_shield.engines.deepfake import DeepfakeImageIntegrityEngine
@@ -155,6 +174,14 @@ def run_m02_job(path, tasks=None):
 | `DEEPSHIELD_M02_BATCH` · `DEEPSHIELD_MAX_UPLOAD_MB` | 16 · 200 | Inference batch size; upload size limit |
 | `DEEPSHIELD_M02_DEFAULT_TASKS` | `face_manipulation,image_manipulation,frequency_analysis` | Tasks run when none are requested (videos keep only the face task) |
 | `DEEPSHIELD_M02_EXPLAIN` | `1` | `0` disables the occlusion heatmap (saves about 25 extra classifier passes per face) |
+| `DEEPSHIELD_M01_MODEL` | `models/yolo26n.pt` | Local Ultralytics checkpoint; download with `scripts/download_m01_model.py` |
+| `DEEPSHIELD_M01_ZONES` | empty | Optional JSON array of normalized polygon zones |
+| `DEEPSHIELD_M01_SAMPLE_FPS` · `_MAX_DURATION` | 1 · 60 | M01 sample rate and video duration cap |
+| `DEEPSHIELD_M01_DWELL_SECONDS` · `_UNATTENDED_SECONDS` | 30 · 60 | M01 loiter and unattended-object candidate thresholds |
+| `DEEPSHIELD_M03_SAMPLE_FPS` · `_MAX_DURATION` | 2 · 60 | M03 sample rate (2–5 FPS) and video duration cap |
+| `DEEPSHIELD_M03_CROWD_MIN_PEOPLE` · `_CROWD_SECONDS` | 4 · 5 | Minimum people and duration for a crowding candidate |
+| `DEEPSHIELD_M03_RUNNING_BODY_LENGTHS_PER_SECOND` | 2.5 | Rapid-movement threshold; requires camera-specific evaluation |
+| `DEEPSHIELD_M01_EVIDENCE_DIR` · `DEEPSHIELD_M03_EVIDENCE_DIR` | `evidence_store/m01` · `evidence_store/m03` | Separate derived-evidence paths |
 
 ## 6. Evaluation (proposal §10)
 
@@ -204,9 +231,13 @@ deep_shield/
     evidence.py                    crops, annotated frames, score timeline
     engine.py                      DeepfakeImageIntegrityEngine.analyze()
     metrics.py                     ROC-AUC, P/R/F1, three-band, threshold sweep
-  api/routes_deepfake.py           FastAPI router (/api/v1/m02/…)
-  api/main.py                      standalone app for module testing
-scripts/  download_models.py · run_m02.py · evaluate_m02.py
+  engines/threat/                  M01 detector, normalized zones and rule findings
+  engines/video_events/            M03 temporal event rules over shared M01 tracks
+  api/routes_threat.py              M01 router (/api/v1/m01/…)
+  api/routes_deepfake.py            M02 router (/api/v1/m02/…)
+  api/routes_video_events.py        M03 router (/api/v1/m03/…)
+  api/main.py                       shared API app for modules 01–04
+scripts/  download_models.py · download_m01_model.py · run_m02.py · run_m04.py
 tests/    test_m02.py (+ assets/)
 ```
 
@@ -264,3 +295,43 @@ Evidence is stored under `evidence_store/m04/<media_id>/` (override with `DEEPSH
 | Grid alignment | A shifted grid also results from ordinary cropping. |
 | ELA / noise / metadata | Visual aids and leads only; metadata is easily stripped or edited. |
 | Video | Codec compression limits ELA and noise maps; copy-move works on decoded frames. |
+
+---
+
+# DEEP SHIELD · Module 01 — Threat and Anomaly Intelligence
+
+M01 uses a local YOLO26n COCO checkpoint with ByteTrack to detect people, backpacks, handbags and suitcases. It supports image detection and sampled video tracking. Video defaults to 1 frame/second with a 60-second cap. The checkpoint is not fine-tuned on campus footage.
+
+Download the checkpoint after installing `requirements.txt`:
+
+```powershell
+python scripts\download_m01_model.py
+```
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/v1/m01/health` | Detector, local checkpoint and rule configuration status |
+| `POST /api/v1/m01/analyze` | multipart `file`; optional `zones` JSON field; returns shared `ModuleResult` |
+| `GET /api/v1/m01/evidence/{media_id}/{file}` | Annotated image or video evidence |
+| `DELETE /api/v1/m01/evidence/{media_id}` | Delete derived M01 evidence |
+
+Zones are normalized polygons, so their coordinates run from 0 to 1 regardless of resolution. Send this JSON value in the multipart `zones` field or configure it as `DEEPSHIELD_M01_ZONES`:
+
+```json
+[{"zone_id":"lobby","polygon":[[0.1,0.1],[0.9,0.1],[0.9,0.9],[0.1,0.9]]}]
+```
+
+M01 returns detector-confidence findings separately from rule-event findings for zone entry, loitering and stationary unattended-object candidates. Image input supports detection only. These rules do not establish intent or threat; thresholds require local validation.
+
+# DEEP SHIELD · Module 03 — Video Event Understanding
+
+M03 reuses the same M01 detector and ByteTrack tracks. It samples video at 2 fps by default (configurable from 2–5 fps), caps analysis at 60 seconds, and emits timestamped candidates for zone entry/exit, loitering, crowding and rapid movement. The crowd rule uses configured zones, or the full frame if no zones are provided. Short intervals of the same event type are merged.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/v1/m03/health` | Detector, sampling and event-rule configuration status |
+| `POST /api/v1/m03/analyze` | multipart video `file`; optional `zones` JSON field; returns shared `ModuleResult` |
+| `GET /api/v1/m03/evidence/{media_id}/{file}` | Annotated frames referenced by events |
+| `DELETE /api/v1/m03/evidence/{media_id}` | Delete derived M03 evidence |
+
+This version uses explainable rules; the optional GRU is not included. Crowd and movement thresholds are starting values, not validated behavior. Evaluate event precision/recall and timestamp error on consented, representative video before relying on the output.

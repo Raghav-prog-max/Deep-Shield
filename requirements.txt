@@ -5,7 +5,8 @@
 torch>=2.2
 transformers>=4.40          # image-classification pipeline only (stable across 4.x/5.x)
 huggingface_hub>=0.23
-opencv-python-headless>=4.8,<5   # 4.x bundles the Haar face cascade (fallback face detector)
+opencv-python>=4.8,<6            # Ultralytics and the image/video engines share cv2
+ultralytics>=8.4,<9              # M01/M03 YOLO + ByteTrack; uses local weights after setup
 numpy>=1.24
 pillow>=10.0
 pydantic>=2.5
