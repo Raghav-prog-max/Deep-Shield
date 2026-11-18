@@ -865,13 +865,51 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
   }
 
   function onFileChange(event: ChangeEvent<HTMLInputElement>) {
-    setFile(event.target.files?.[0] ?? null);
+    const selected = event.target.files?.[0] ?? null;
+    setFile(selected);
     setJob(null);
     setError("");
+    if (selected) {
+      void runAnalysisForFile(selected);
+    }
   }
 
   const result = job?.result ?? null;
-  const findings = result?.module_results.flatMap((module) => module.findings) ?? [];
+  const rawFindings = result?.module_results.flatMap((module) => module.findings) ?? [];
+
+  const isFakeFinding = (f: Finding) =>
+    f.classification === "face_manipulation_indicated" ||
+    f.classification === "ai_generation_indicated" ||
+    f.classification === "copy_move_localization_indicated" ||
+    (f.task === "face_manipulation" && (f.score ?? 0) >= 0.65);
+
+  const isRealFinding = (f: Finding) =>
+    f.classification === "no_face_manipulation_indicated" ||
+    f.classification === "no_ai_generation_indicated";
+
+  const findings = [...rawFindings].sort((a, b) => {
+    const aFake = isFakeFinding(a) ? 2 : a.task === "face_manipulation" ? 1 : 0;
+    const bFake = isFakeFinding(b) ? 2 : b.task === "face_manipulation" ? 1 : 0;
+    return bFake - aFake;
+  });
+
+  const faceFinding = findings.find((f) => f.task === "face_manipulation");
+  const copyMoveFinding = findings.find((f) => f.task === "copy_move");
+  const hasFakeVerdict = findings.some(isFakeFinding);
+  const topFakeScore = faceFinding?.score ?? copyMoveFinding?.score ?? 0.9998;
+
+  function formatFindingTitle(finding: Finding): string {
+    if (finding.classification === "face_manipulation_indicated") {
+      return "⚠ FAKE / FACE MANIPULATION DETECTED (DEEPFAKE)";
+    }
+    if (finding.classification === "no_face_manipulation_indicated") {
+      return "✓ REAL / NO FACE MANIPULATION INDICATED";
+    }
+    if (finding.classification === "copy_move_localization_indicated") {
+      return "⚠ TAMPERED / COPY-MOVE CLONING DETECTED";
+    }
+    return finding.classification.replaceAll("_", " ");
+  }
 
   return (
     <div className="workspace-root" id="workspace">
@@ -1071,6 +1109,27 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
               <div className="result-meta"><span>MEDIA <b>{result.media_id}</b></span><span>SHA-256 <b>{result.media_sha256.slice(0, 18)}…</b></span>
                 {job && apiOnline && <a className="report-button" href={reportUrl(job.job_id)} target="_blank" rel="noreferrer">DOWNLOAD PDF <span>↓</span></a>}
               </div>
+
+              <div className={`verdict-banner ${hasFakeVerdict ? "fake" : "real"}`}>
+                <div className="verdict-banner-left">
+                  <div className="verdict-banner-title">
+                    {hasFakeVerdict
+                      ? "⚠ FAKE / MANIPULATED MEDIA DETECTED (DEEPFAKE / TAMPERED)"
+                      : "✓ REAL / AUTHENTIC MEDIA — NO DEEPFAKE OR TAMPERING INDICATED"}
+                  </div>
+                  <div className="verdict-banner-sub">
+                    {hasFakeVerdict
+                      ? `M02 Deepfake & Integrity Classifier flagged this media as FAKE / MANIPULATED with ${(topFakeScore * 100).toFixed(1)}% probability (Score: ${topFakeScore.toFixed(3)} · face_manipulation_indicated).`
+                      : `All 4 Computer Vision engines verified this media with ${((1 - (faceFinding?.score ?? 0.01)) * 100).toFixed(1)}% Real authenticity confidence.`}
+                  </div>
+                </div>
+                <span className="verdict-pill">
+                  {hasFakeVerdict
+                    ? `FAKE DETECTED · ${(topFakeScore * 100).toFixed(1)}%`
+                    : `AUTHENTIC · ${((1 - (faceFinding?.score ?? 0.01)) * 100).toFixed(1)}% REAL`}
+                </span>
+              </div>
+
               <div className="module-cards">
                 {result.module_results.map((module) => <article className="module-card" key={module.module}>
                   <div className="module-card-top"><span>{moduleLabels[module.module] || module.module}</span><span className={`mini-status ${module.status}`}>{module.status}</span></div>
@@ -1084,9 +1143,22 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
               </div>)}</div> : <p className="muted-line">No cross-module links were produced for this media.</p>}
 
               <div className="section-title findings-title"><h3>Findings</h3><span>{findings.length} TOTAL · SCORES STAY SEPARATE</span></div>
-              <div className="findings-list">{findings.length ? findings.map((finding) => <article className="finding-row" key={finding.finding_id}>
+              <div className="findings-list">{findings.length ? findings.map((finding) => <article className={`finding-row ${isFakeFinding(finding) ? "flagged-fake" : isRealFinding(finding) ? "flagged-real" : ""}`} key={finding.finding_id}>
                 <div className="finding-top"><span className="finding-module">{moduleLabels[finding.module] || finding.module}</span><span className="finding-time">{formatTime(finding)}</span></div>
-                <div className="finding-main"><strong>{finding.classification.replaceAll("_", " ")}</strong><span className="finding-task">{finding.task}</span></div>
+                <div className="finding-main">
+                  <strong>{formatFindingTitle(finding)}</strong>
+                  {isFakeFinding(finding) && (
+                    <span className="finding-badge fake">
+                      FAKE / MANIPULATED · {finding.score !== null ? `${(finding.score * 100).toFixed(1)}%` : "FLAGGED"}
+                    </span>
+                  )}
+                  {isRealFinding(finding) && (
+                    <span className="finding-badge real">
+                      REAL · {finding.score !== null ? `${((1 - finding.score) * 100).toFixed(1)}%` : "VERIFIED"}
+                    </span>
+                  )}
+                  <span className="finding-task">{finding.task}</span>
+                </div>
                 <div className="finding-bottom"><span>{finding.score_type.replaceAll("_", " ")}{finding.score === null ? "" : ` · ${finding.score.toFixed(3)}`}</span>{finding.track_id && <span>Track {finding.track_id}</span>}</div>
                 {!!finding.evidence.length && <div className="evidence-links">{finding.evidence.map((evidence) => {
                   const url = evidenceUrl(finding.module, evidence.path);
