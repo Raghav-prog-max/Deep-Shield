@@ -182,3 +182,14 @@ def purge_expired_jobs(max_age_hours: float = 168.0):
         raise HTTPException(422, "max_age_hours must be non-negative")
     purged = AnalysisJobStore().purge_expired(max_age_hours)
     return {"purged_jobs": purged, "max_age_hours": max_age_hours}
+
+
+@router.get("/models")
+def list_loaded_models_and_parameters():
+    """Return all loaded weights, revisions, parameter counts, and calibrated thresholds across M01-M04."""
+    return {
+        "m01_threat_intelligence": get_m01_engine().health(),
+        "m02_deepfake_image_integrity": get_m02_engine().health(),
+        "m03_video_events": get_m03_engine().health(),
+        "m04_visual_forensics": get_m04_engine().health(),
+    }

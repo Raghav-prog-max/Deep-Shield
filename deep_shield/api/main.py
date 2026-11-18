@@ -10,18 +10,21 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from deep_shield.api.routes_deepfake import get_engine, router as m02_router
-from deep_shield.api.routes_forensics import router as m04_router
+from deep_shield.api.routes_forensics import get_engine as get_m04_engine, router as m04_router
 from deep_shield.api.routes_intelligence import router as intelligence_router
-from deep_shield.api.routes_threat import router as m01_router
-from deep_shield.api.routes_video_events import router as m03_router
+from deep_shield.api.routes_threat import get_engine as get_m01_engine, router as m01_router
+from deep_shield.api.routes_video_events import get_engine as get_m03_engine, router as m03_router
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     try:
-        get_engine().warmup()      # load the M02 face model once so the first request is fast
-    except Exception as exc:       # noqa: BLE001 — /api/v1/m02/health reports the details
-        print(f"[M02] warm-up failed: {exc}")
+        get_m01_engine().health()
+        get_engine().warmup()      # load M02 SigLIP2 + trained face head + YuNet
+        get_m03_engine().health()  # load M03 PyTorch Temporal GRU weights
+        get_m04_engine().health()  # load M04 calibrated forensics parameters
+    except Exception as exc:       # noqa: BLE001 — /api/v1/intelligence/models reports details
+        print(f"[DEEP SHIELD] warm-up warning: {exc}")
     yield
 
 

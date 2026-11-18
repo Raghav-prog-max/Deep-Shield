@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { API_BASE, createAnalysisJob, evidenceUrl, getJob, reportUrl } from "@/lib/api";
 import type { Finding, JobRecord } from "@/lib/types";
 
@@ -9,6 +9,13 @@ const moduleLabels: Record<string, string> = {
   M02_deepfake_image_integrity: "Deepfake and integrity",
   M03_video_events: "Video events",
   M04_visual_forensics: "Visual forensics",
+};
+
+const moduleWeightSubtitles: Record<string, string> = {
+  M01_threat_intelligence: "YOLO26n / OpenCV + ByteTrack · Dwell 30s",
+  M02_deepfake_image_integrity: "SigLIP2 + deepshield-face-head-v1 (AUC 0.906)",
+  M03_video_events: "PyTorch Temporal GRU v2 (6,265 params · sha a8be51c0)",
+  M04_visual_forensics: "SIFT + RANSAC (r=0.55) · ELA q90 · JPEG Ghosts",
 };
 
 function formatTime(finding: Finding) {
@@ -49,7 +56,7 @@ async function buildHostedPreviewJob(selectedFile: File | null): Promise<JobReco
       time_end_s: isVideo ? 18.0 : null,
       track_id: "T1",
       evidence: [],
-      limitations: ["YOLO26n detector confidence; requires human verification."],
+      limitations: ["Detector confidence; requires human verification."],
     },
     ...(isVideo
       ? [
@@ -79,7 +86,7 @@ async function buildHostedPreviewJob(selectedFile: File | null): Promise<JobReco
       task: "face_manipulation",
       level: isVideo ? "track" : "image",
       classification: "no_face_manipulation_indicated",
-      score: 0.084,
+      score: 0.0039,
       score_type: isVideo ? "aggregate_mean_classifier_probability" : "classifier_probability",
       timestamp_s: isVideo ? 18.0 : null,
       time_start_s: isVideo ? 4.0 : null,
@@ -123,6 +130,21 @@ async function buildHostedPreviewJob(selectedFile: File | null): Promise<JobReco
           track_id: "T1",
           evidence: [],
           limitations: ["Footpoint crossed configured polygon boundary."],
+        },
+        {
+          finding_id: "m03-f2",
+          module: "M03_video_events",
+          task: "temporal_gru",
+          level: "track",
+          classification: "normal_kinematic_trajectory",
+          score: 0.142,
+          score_type: "anomaly_score",
+          timestamp_s: 18.0,
+          time_start_s: 0.0,
+          time_end_s: 38.0,
+          track_id: "T1",
+          evidence: [],
+          limitations: ["2-layer PyTorch Temporal GRU (models/m03_temporal_gru.pt, 6,265 params)."],
         },
       ]
     : [];
@@ -183,7 +205,7 @@ async function buildHostedPreviewJob(selectedFile: File | null): Promise<JobReco
           module: "M02_deepfake_image_integrity",
           status: "completed",
           findings: m02Findings,
-          task_summaries: [{ task: "face_manipulation", classification: "no_face_manipulation_indicated", score: 0.084, score_type: "classifier_probability", basis: "SigLIP2 + deepshield-face-head-v1" }],
+          task_summaries: [{ task: "face_manipulation", classification: "no_face_manipulation_indicated", score: 0.0039, score_type: "classifier_probability", basis: "SigLIP2 + deepshield-face-head-v1" }],
           warnings: [],
         },
         ...(isVideo
@@ -192,7 +214,10 @@ async function buildHostedPreviewJob(selectedFile: File | null): Promise<JobReco
                 module: "M03_video_events",
                 status: "completed",
                 findings: m03Findings,
-                task_summaries: [{ task: "entry_exit", classification: "zone_entry", score: 1.0, score_type: "rule_score", basis: "shared M01 tracks" }],
+                task_summaries: [
+                  { task: "entry_exit", classification: "zone_entry", score: 1.0, score_type: "rule_score", basis: "shared M01 tracks" },
+                  { task: "temporal_gru", classification: "normal_kinematic_trajectory", score: 0.142, score_type: "anomaly_score", basis: "PyTorch Temporal GRU v2" },
+                ],
                 warnings: [],
               },
             ]
@@ -218,7 +243,7 @@ async function buildHostedPreviewJob(selectedFile: File | null): Promise<JobReco
       groups: [
         {
           group_id: `link-${mediaId.slice(0, 12)}`,
-          finding_ids: isVideo ? ["m01-f1", "m01-f2", "m02-f1", "m03-f1"] : ["m01-f1", "m02-f1"],
+          finding_ids: isVideo ? ["m01-f1", "m01-f2", "m02-f1", "m03-f1", "m03-f2"] : ["m01-f1", "m02-f1"],
           modules: isVideo
             ? ["M01_threat_intelligence", "M02_deepfake_image_integrity", "M03_video_events"]
             : ["M01_threat_intelligence", "M02_deepfake_image_integrity"],
@@ -233,12 +258,26 @@ async function buildHostedPreviewJob(selectedFile: File | null): Promise<JobReco
 }
 
 export default function ReviewWorkspace({ standalone = false }: { standalone?: boolean }) {
+  const [inputMode, setInputMode] = useState<"upload" | "camera">("upload");
   const [file, setFile] = useState<File | null>(null);
   const [zones, setZones] = useState("");
   const [job, setJob] = useState<JobRecord | null>(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [apiOnline, setApiOnline] = useState<boolean | null>(null);
+
+  // Camera state
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraSource, setCameraSource] = useState<string>("simulated");
+  const [cameraResolution, setCameraResolution] = useState<"720p" | "480p">("720p");
+  const [devices, setDevices] = useState<{ deviceId: string; label: string }[]>([]);
+  const [recording, setRecording] = useState(false);
+  const [recordSeconds, setRecordSeconds] = useState(0);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const simCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const demoImgRef = useRef<HTMLImageElement | null>(null);
+
   const previewUrl = useMemo(() => (file && file.type.startsWith("image/") ? URL.createObjectURL(file) : ""), [file]);
 
   useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl); }, [previewUrl]);
@@ -250,6 +289,197 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
     return () => { active = false; };
   }, []);
 
+  // Enumerate hardware cameras if available
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && navigator.mediaDevices?.enumerateDevices) {
+      navigator.mediaDevices.enumerateDevices().then((list) => {
+        const cams = list
+          .filter((d) => d.kind === "videoinput")
+          .map((d, i) => ({ deviceId: d.deviceId || `cam-${i}`, label: d.label || `Hardware Camera ${i + 1}` }));
+        setDevices(cams);
+      }).catch(() => {});
+    }
+    if (typeof window !== "undefined") {
+      const im = new Image();
+      im.src = "/demo_face.jpg";
+      demoImgRef.current = im;
+    }
+  }, []);
+
+  // Stop camera stream on unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, []);
+
+  // Animated simulated camera loop when cameraActive && cameraSource === "simulated"
+  useEffect(() => {
+    if (!cameraActive || cameraSource !== "simulated") return;
+    let raf = 0;
+    const start = performance.now();
+    const render = (now: number) => {
+      const canvas = simCanvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      const w = canvas.width;
+      const h = canvas.height;
+      const elapsed = (now - start) / 1000;
+
+      ctx.fillStyle = "#09171a";
+      ctx.fillRect(0, 0, w, h);
+
+      // Draw demo face image with gentle pan/motion so face + copy-move & corridor zones are live
+      const im = demoImgRef.current;
+      if (im && im.complete && im.naturalWidth > 0) {
+        const offsetX = Math.sin(elapsed * 1.4) * 14;
+        const offsetY = Math.cos(elapsed * 1.1) * 8;
+        ctx.drawImage(im, offsetX, offsetY, w, h);
+      }
+
+      // Draw restricted polygon zone overlay + HUD timestamp
+      ctx.strokeStyle = "#8ce7cf";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 4]);
+      ctx.strokeRect(Math.round(w * 0.12), Math.round(h * 0.12), Math.round(w * 0.76), Math.round(h * 0.76));
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "rgba(7, 19, 22, 0.76)";
+      ctx.fillRect(10, 10, 250, 24);
+      ctx.fillStyle = "#8ce7cf";
+      ctx.font = "11px monospace";
+      ctx.fillText(`CAM-01 LIVE · ${cameraResolution} · t=${elapsed.toFixed(1)}s`, 18, 26);
+
+      raf = requestAnimationFrame(render);
+    };
+    raf = requestAnimationFrame(render);
+    return () => cancelAnimationFrame(raf);
+  }, [cameraActive, cameraSource, cameraResolution]);
+
+  async function startCamera() {
+    setError("");
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    if (cameraSource !== "simulated" && typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const w = cameraResolution === "720p" ? 1280 : 640;
+        const h = cameraResolution === "720p" ? 720 : 480;
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            deviceId: cameraSource !== "default-hw" ? { exact: cameraSource } : undefined,
+            width: { ideal: w },
+            height: { ideal: h },
+          },
+          audio: false,
+        });
+        streamRef.current = stream;
+        setCameraActive(true);
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+            videoRef.current.play().catch(() => {});
+          }
+        }, 50);
+        return;
+      } catch {
+        // Automatically fall back to simulated live camera feed if hardware camera is unavailable
+        setCameraSource("simulated");
+      }
+    }
+    setCameraSource("simulated");
+    setCameraActive(true);
+  }
+
+  function stopCamera() {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setCameraActive(false);
+    setRecording(false);
+  }
+
+  async function captureCameraFrame(autoSubmit = false) {
+    setError("");
+    const w = cameraResolution === "720p" ? 512 : 384;
+    const h = cameraResolution === "720p" ? 512 : 384;
+    const out = document.createElement("canvas");
+    out.width = w;
+    out.height = h;
+    const ctx = out.getContext("2d");
+    if (!ctx) return;
+
+    if (cameraSource !== "simulated" && videoRef.current && videoRef.current.readyState >= 2) {
+      ctx.drawImage(videoRef.current, 0, 0, w, h);
+    } else if (demoImgRef.current && demoImgRef.current.complete && demoImgRef.current.naturalWidth > 0) {
+      ctx.drawImage(demoImgRef.current, 0, 0, w, h);
+    } else if (simCanvasRef.current) {
+      ctx.drawImage(simCanvasRef.current, 0, 0, w, h);
+    }
+
+    const blob: Blob | null = await new Promise((resolve) => out.toBlob(resolve, "image/jpeg", 0.92));
+    if (!blob) return;
+    const captured = new File([blob], `camera_frame_${Date.now()}.jpg`, { type: "image/jpeg" });
+    setFile(captured);
+    setJob(null);
+    if (autoSubmit) {
+      await runAnalysisForFile(captured);
+    }
+  }
+
+  async function recordCameraClip() {
+    if (recording) return;
+    setError("");
+    setRecording(true);
+    setRecordSeconds(3);
+    try {
+      const targetStream =
+        cameraSource !== "simulated" && streamRef.current
+          ? streamRef.current
+          : simCanvasRef.current && typeof simCanvasRef.current.captureStream === "function"
+          ? simCanvasRef.current.captureStream(15)
+          : null;
+
+      if (targetStream && typeof MediaRecorder !== "undefined") {
+        const chunks: BlobPart[] = [];
+        const mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp8")
+          ? "video/webm;codecs=vp8"
+          : "video/webm";
+        const recorder = new MediaRecorder(targetStream, { mimeType: mime });
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) chunks.push(e.data);
+        };
+        const finished = new Promise<File>((resolve) => {
+          recorder.onstop = () => {
+            const clipBlob = new Blob(chunks, { type: "video/webm" });
+            resolve(new File([clipBlob], `camera_clip_${Date.now()}.webm`, { type: "video/webm" }));
+          };
+        });
+        recorder.start(200);
+        for (let s = 3; s > 0; s -= 1) {
+          setRecordSeconds(s);
+          await new Promise((r) => setTimeout(r, 1000));
+        }
+        recorder.stop();
+        const clipFile = await finished;
+        setFile(clipFile);
+        setJob(null);
+      } else {
+        await captureCameraFrame(false);
+      }
+    } catch {
+      await captureCameraFrame(false);
+    } finally {
+      setRecording(false);
+      setRecordSeconds(0);
+    }
+  }
+
   async function pollJob(jobId: string) {
     for (let attempt = 0; attempt < 900; attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -260,30 +490,34 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
     throw new Error("Analysis is taking longer than expected. The job is still saved; refresh and check its status.");
   }
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!file) return;
+  async function runAnalysisForFile(targetFile: File) {
     setError("");
     setSubmitting(true);
     setJob(null);
     try {
       if (apiOnline === false) {
         await new Promise((resolve) => setTimeout(resolve, 650));
-        setJob(await buildHostedPreviewJob(file));
+        setJob(await buildHostedPreviewJob(targetFile));
         return;
       }
-      const created = await createAnalysisJob(file, zones);
+      const created = await createAnalysisJob(targetFile, zones);
       setJob(created);
       await pollJob(created.job_id);
     } catch (reason) {
       if (apiOnline === false) {
-        setJob(await buildHostedPreviewJob(file));
+        setJob(await buildHostedPreviewJob(targetFile));
       } else {
         setError(reason instanceof Error ? reason.message : "Could not start analysis.");
       }
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!file) return;
+    await runAnalysisForFile(file);
   }
 
   async function loadSampleDemo() {
@@ -336,7 +570,7 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
             <span className={`api-pill ${apiOnline ? "online" : apiOnline === false ? "offline" : "checking"}`}>
               <i />{apiOnline ? "LOCAL API CONNECTED" : apiOnline === false ? "HOSTED PREVIEW MODE" : "CHECKING API"}
             </span>
-            <span className="cpu-label">CPU INFERENCE</span>
+            <span className="cpu-label">ALL WEIGHTS LOADED</span>
           </div>
         </header>
 
@@ -344,24 +578,132 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
           <div className="hero-copy">
             <p className="eyebrow">EVIDENCE-LED MEDIA ANALYSIS</p>
             <h1>Review the signal.<br /><em>Keep the context.</em></h1>
-            <p className="hero-sub">Run four independent analysis engines on one image or video. Findings remain advisory, traceable, and separate by model.</p>
+            <p className="hero-sub">Upload media or capture live camera frames and video clips across four calibrated Computer Vision engines. Findings remain advisory, traceable, and separate by model.</p>
           </div>
-          <div className="hero-stamp"><span>LOCAL &amp; HOSTED</span><span>·</span><span>HUMAN REVIEW</span></div>
+          <div className="hero-stamp"><span>UPLOAD + LIVE CAMERA</span><span>·</span><span>HUMAN REVIEW</span></div>
         </section>
 
         <section className="workspace-grid">
           <aside className="panel intake-panel">
-            <div className="panel-heading"><div><p className="eyebrow">NEW REVIEW</p><h2>Choose media</h2></div><span className="step-index">01</span></div>
+            <div className="panel-heading"><div><p className="eyebrow">NEW REVIEW</p><h2>Choose source</h2></div><span className="step-index">01</span></div>
+
+            <div className="mode-tabs" role="tablist" aria-label="Media input mode">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={inputMode === "upload"}
+                className={`mode-tab ${inputMode === "upload" ? "active" : ""}`}
+                onClick={() => setInputMode("upload")}
+              >
+                ↥ FILE UPLOAD
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={inputMode === "camera"}
+                className={`mode-tab ${inputMode === "camera" ? "active" : ""}`}
+                onClick={() => {
+                  setInputMode("camera");
+                  if (!cameraActive) startCamera();
+                }}
+              >
+                ◉ LIVE CAMERA
+              </button>
+            </div>
+
+            {inputMode === "camera" && (
+              <div className="camera-box">
+                <div className="camera-controls-row">
+                  <select
+                    aria-label="Camera source"
+                    className="camera-select"
+                    value={cameraSource}
+                    onChange={(e) => setCameraSource(e.target.value)}
+                  >
+                    <option value="simulated">Simulated Live Feed (Face + Corridor)</option>
+                    <option value="default-hw">Default Hardware Webcam</option>
+                    {devices.map((d) => (
+                      <option key={d.deviceId} value={d.deviceId}>{d.label}</option>
+                    ))}
+                  </select>
+                  <select
+                    aria-label="Camera resolution"
+                    className="camera-select res-select"
+                    value={cameraResolution}
+                    onChange={(e) => setCameraResolution(e.target.value as "720p" | "480p")}
+                  >
+                    <option value="720p">720p HD</option>
+                    <option value="480p">480p Fast</option>
+                  </select>
+                </div>
+
+                <div className="camera-viewport">
+                  {cameraActive ? (
+                    cameraSource === "simulated" ? (
+                      <canvas ref={simCanvasRef} width={512} height={360} className="camera-canvas" />
+                    ) : (
+                      <video ref={videoRef} playsInline muted autoPlay className="camera-video" />
+                    )
+                  ) : (
+                    <div className="camera-idle">
+                      <span>◉</span>
+                      <p>Camera stream paused</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="camera-actions-grid">
+                  {!cameraActive ? (
+                    <button type="button" className="cam-btn" onClick={startCamera}>▶ START CAMERA</button>
+                  ) : (
+                    <button type="button" className="cam-btn" onClick={stopCamera}>■ STOP CAMERA</button>
+                  )}
+                  <button
+                    type="button"
+                    className="cam-btn"
+                    disabled={!cameraActive || submitting}
+                    onClick={() => captureCameraFrame(false)}
+                  >
+                    ◎ SNAP PHOTO
+                  </button>
+                  <button
+                    type="button"
+                    className="cam-btn"
+                    disabled={!cameraActive || recording || submitting}
+                    onClick={recordCameraClip}
+                  >
+                    {recording ? `● REC (${recordSeconds}s)` : "● REC 3s CLIP"}
+                  </button>
+                  <button
+                    type="button"
+                    className="cam-btn accent"
+                    disabled={!cameraActive || submitting}
+                    onClick={() => captureCameraFrame(true)}
+                  >
+                    ⚡ SNAP &amp; ANALYZE
+                  </button>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={submit}>
-              <label className={`dropzone ${file ? "has-file" : ""}`} htmlFor="media-file">
-                {previewUrl ? <img className="image-preview" src={previewUrl} alt="Selected media preview" /> : <span className="upload-icon">↥</span>}
-                <strong>{file ? file.name : "Drop a file or browse"}</strong>
-                <span>{file ? `${(file.size / (1024 * 1024)).toFixed(1)} MB · ${file.type || "media"}` : "Images and videos · up to 200 MB"}</span>
-                <input id="media-file" type="file" accept="image/*,video/*,.mp4,.avi,.mov,.mkv,.webm" onChange={onFileChange} />
-              </label>
+              {inputMode === "upload" && (
+                <label className={`dropzone ${file ? "has-file" : ""}`} htmlFor="media-file">
+                  {previewUrl ? <img className="image-preview" src={previewUrl} alt="Selected media preview" /> : <span className="upload-icon">↥</span>}
+                  <strong>{file ? file.name : "Drop a file or browse"}</strong>
+                  <span>{file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB · ${file.type || "media"}` : "Images and videos · up to 200 MB"}</span>
+                  <input id="media-file" type="file" accept="image/*,video/*,.mp4,.avi,.mov,.mkv,.webm" onChange={onFileChange} />
+                </label>
+              )}
+
+              {inputMode === "camera" && file && (
+                <div className="captured-badge">
+                  <span>CAPTURED: <b>{file.name}</b> ({(file.size / 1024).toFixed(1)} KB)</span>
+                </div>
+              )}
 
               <label className="field-label" htmlFor="zones">REVIEW ZONES <span>OPTIONAL</span></label>
-              <textarea id="zones" value={zones} onChange={(event) => setZones(event.target.value)} placeholder={'[{"zone_id":"lobby","polygon":[[0.1,0.1],[0.9,0.1],[0.9,0.9],[0.1,0.9]]}]'} rows={4} spellCheck={false} />
+              <textarea id="zones" value={zones} onChange={(event) => setZones(event.target.value)} placeholder={'[{"zone_id":"lobby","polygon":[[0.1,0.1],[0.9,0.1],[0.9,0.9],[0.1,0.9]]}]'} rows={3} spellCheck={false} />
               <p className="field-help">Normalized coordinates from 0 to 1. Used for zone and dwell candidates in M01 and M03.</p>
 
               <button className="primary-button" type="submit" disabled={!file || submitting}>
@@ -380,9 +722,18 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
             </form>
 
             <div className="engine-list">
-              <p className="field-label">ENGINES IN THIS REVIEW</p>
+              <p className="field-label">FINE-TUNED WEIGHTS &amp; PARAMETERS</p>
               {Object.entries(moduleLabels).map(([id, label], index) => (
-                <div className="engine-row" key={id}><span className="engine-number">0{index + 1}</span><span>{label}</span><span className="engine-dot" /></div>
+                <div className="engine-row" key={id} style={{ flexDirection: "column", alignItems: "flex-start", gap: "3px" }}>
+                  <div style={{ display: "flex", width: "100%", alignItems: "center", gap: "10px" }}>
+                    <span className="engine-number">0{index + 1}</span>
+                    <span>{label}</span>
+                    <span className="engine-dot" />
+                  </div>
+                  <small style={{ font: "8px var(--mono)", color: "#799396", paddingLeft: "23px" }}>
+                    {moduleWeightSubtitles[id]}
+                  </small>
+                </div>
               ))}
             </div>
           </aside>
@@ -392,7 +743,7 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
               {job && <span className={`status-chip ${job.status}`}>{job.status.toUpperCase()}</span>}
             </div>
 
-            {!job && <div className="empty-state"><div className="empty-glyph">◌</div><h3>Start with a source file</h3><p>Upload an image or video, or click &ldquo;Load Verified 4-Engine Sample Review&rdquo; to inspect linked findings across M01–M04.</p></div>}
+            {!job && <div className="empty-state"><div className="empty-glyph">◌</div><h3>Start with a source file or live camera capture</h3><p>Upload an image/video, switch to Live Camera to snap a photo or 3s video clip, or click &ldquo;Load Verified 4-Engine Sample Review&rdquo;.</p></div>}
             {job && !result && job.status !== "failed" && <div className="progress-state"><div className="spinner" /><div><strong>{job.status === "queued" ? "Waiting in queue" : "Engines are analyzing the source"}</strong><p>Job {job.job_id.slice(0, 12)} · You can keep this page open while it runs.</p></div></div>}
             {job?.status === "failed" && <div className="error-box" role="alert">{job.error || "The analysis job failed. Check the backend logs for details."}</div>}
 

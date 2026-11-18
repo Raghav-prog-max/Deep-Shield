@@ -19,7 +19,7 @@ from deep_shield.engines.threat.rules import (
     FrameSnapshot, RuleEvent, crowding_events, loitering_events,
     merge_intervals, running_events, zone_transition_events,
 )
-from .gru import TrackGRUObservation, score_tracks_gru
+from .gru import TrackGRUObservation, load_trained_gru, score_tracks_gru
 
 log = logging.getLogger("deep_shield.m03")
 
@@ -114,6 +114,10 @@ class VideoEventEngine:
                 "event_merge_gap_seconds": self.cfg.merge_gap_seconds,
             },
             "gru_enabled": self.cfg.gru_enabled,
+            "gru_model": (
+                {k: v for k, v in load_trained_gru().items() if k not in ("model", "mean", "std")}
+                if self.cfg.gru_enabled else None
+            ),
         }
 
     def analyze(
@@ -261,8 +265,8 @@ class VideoEventEngine:
 
     @staticmethod
     def _append_gru(result: ModuleResult, gru_obs: list[TrackGRUObservation], evidence_by_frame: dict) -> None:
-        gru_model = ModelInfo(model_id="temporal-gru-kinematic-v1", task=TASK_GRU, backend="pytorch-gru")
         for obs in gru_obs:
+            gru_model = ModelInfo(model_id=obs.model_id, revision=obs.revision, task=TASK_GRU, backend="pytorch-gru")
             ref = evidence_by_frame.get(obs.representative.frame_index)
             result.findings.append(Finding(
                 module=MODULE_NAME,
@@ -270,9 +274,10 @@ class VideoEventEngine:
                 level="track",
                 media_id=result.media_id,
                 media_type=MediaType.VIDEO,
-                classification="kinematic_anomaly_candidate" if obs.score >= 0.65 else "normal_kinematic_trajectory",
+                classification="kinematic_anomaly_candidate" if obs.score >= obs.threshold else "normal_kinematic_trajectory",
                 score=obs.score,
                 score_type=ScoreType.ANOMALY_SCORE,
+                thresholds={"high": obs.threshold},
                 frame_index=obs.representative.frame_index,
                 timestamp_s=obs.representative.timestamp_s,
                 time_start_s=obs.start_s,
@@ -282,7 +287,8 @@ class VideoEventEngine:
                 explanation={
                     "n_steps": obs.n_steps,
                     "peak_speed_body_lengths_per_s": obs.peak_speed_bls,
-                    "method": "single-layer PyTorch GRU over normalized track kinematics",
+                    "calibrated_threshold": obs.threshold,
+                    "method": "2-layer PyTorch Temporal GRU (models/m03_temporal_gru.pt) over normalized track kinematics",
                 },
                 model=gru_model,
                 evidence=[ref] if ref is not None else [],
@@ -319,16 +325,18 @@ class VideoEventEngine:
             ))
         if gru_enabled:
             obs_list = gru_obs or []
+            bundle = load_trained_gru()
             top_score = max((o.score for o in obs_list), default=None)
+            thr = float(bundle["threshold"])
             result.task_summaries.append(TaskSummary(
                 task=TASK_GRU,
                 classification=(
-                    "kinematic_anomaly_candidate" if (top_score is not None and top_score >= 0.65)
+                    "kinematic_anomaly_candidate" if (top_score is not None and top_score >= thr)
                     else "normal_kinematic_trajectory" if top_score is not None
                     else "no_tracks_scored"
                 ),
                 score=top_score,
                 score_type=ScoreType.ANOMALY_SCORE,
-                basis=f"PyTorch Temporal GRU evaluated {len(obs_list)} person track(s)",
-                model=ModelInfo(model_id="temporal-gru-kinematic-v1", task=TASK_GRU, backend="pytorch-gru"),
+                basis=f"PyTorch Temporal GRU ({bundle['model_id']}, {bundle['revision']}) evaluated {len(obs_list)} person track(s)",
+                model=ModelInfo(model_id=bundle["model_id"], revision=bundle["revision"], task=TASK_GRU, backend="pytorch-gru"),
             ))

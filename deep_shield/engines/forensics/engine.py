@@ -14,6 +14,7 @@ index / timestamp are kept so findings link to Modules 01-03 in the cross-module
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
 import time
@@ -63,11 +64,24 @@ RESAMPLING_NOTE = ("Resampling (resize) detection was evaluated and excluded: it
                    "from original images after JPEG compression in our checks.")
 
 
+ROOT = Path(__file__).resolve().parents[3]
+
+
+def _load_m04_params() -> dict:
+    p = ROOT / "models" / "m04_forensics_params.json"
+    if p.is_file():
+        try:
+            return json.loads(p.read_text())
+        except Exception:  # noqa: BLE001
+            pass
+    return {}
+
+
 @dataclass
 class ForensicsConfig:
     evidence_dir: Path = field(default_factory=lambda: Path(os.getenv("DEEPSHIELD_M04_EVIDENCE_DIR", "evidence_store/m04")))
-    keyframes: int = 3
-    ela_quality: int = 90
+    keyframes: int = field(default_factory=lambda: int(_load_m04_params().get("parameters", {}).get("video_keyframes", 3)))
+    ela_quality: int = field(default_factory=lambda: int(_load_m04_params().get("parameters", {}).get("ela_jpeg_quality", 90)))
     max_upload_mb: int = field(default_factory=lambda: int(os.getenv("DEEPSHIELD_MAX_UPLOAD_MB", "200")))
     keep_uploads: bool = field(default_factory=lambda: os.getenv("DEEPSHIELD_KEEP_UPLOADS", "0") == "1")
 
@@ -84,11 +98,14 @@ def _model(task: str, mid: str) -> ModelInfo:
 class VisualForensicsEngine:
     def __init__(self, cfg: Optional[ForensicsConfig] = None):
         self.cfg = cfg or ForensicsConfig()
+        self.params = _load_m04_params()
 
     def health(self):
         import cv2
         return {"module": MODULE_NAME, "engine_version": ENGINE_VERSION, "tasks": list(ALL_TASKS),
                 "copy_move_detector": "sift" if hasattr(cv2, "SIFT_create") else "orb",
+                "calibrated_parameters": self.params.get("parameters"),
+                "benchmark_metrics": self.params.get("benchmark_metrics"),
                 "note": RESAMPLING_NOTE}
 
     def analyze(self, path, tasks: Optional[Sequence[str]] = None, frames: Optional[Sequence[int]] = None,
