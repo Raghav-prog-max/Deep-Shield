@@ -1,6 +1,7 @@
 models/*
 !models/.gitkeep
 evidence_store/
+data/*.sqlite3*
 eval_out/
 __pycache__/
 .pytest_cache/

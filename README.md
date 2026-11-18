@@ -182,6 +182,8 @@ def run_m02_job(path, tasks=None):
 | `DEEPSHIELD_M03_CROWD_MIN_PEOPLE` · `_CROWD_SECONDS` | 4 · 5 | Minimum people and duration for a crowding candidate |
 | `DEEPSHIELD_M03_RUNNING_BODY_LENGTHS_PER_SECOND` | 2.5 | Rapid-movement threshold; requires camera-specific evaluation |
 | `DEEPSHIELD_M01_EVIDENCE_DIR` · `DEEPSHIELD_M03_EVIDENCE_DIR` | `evidence_store/m01` · `evidence_store/m03` | Separate derived-evidence paths |
+| `DEEPSHIELD_DATABASE_PATH` | `data/deep_shield.sqlite3` | SQLite job and integrated-result store |
+| `DEEPSHIELD_JOB_UPLOAD_DIR` | `evidence_store/jobs/uploads` | Temporary source uploads for queued jobs; removed after processing |
 
 ## 6. Evaluation (proposal §10)
 
@@ -274,7 +276,7 @@ Classical image forensics (proposal §4.4), with no model download. It shares Mo
 python scripts\make_m04_demo.py                       # demo\m04_original.jpg, m04_clone.jpg, m04_ghost.jpg
 python scripts\run_m04.py demo\m04_clone.jpg
 python scripts\run_m04.py demo\clip.mp4 --frames 120
-uvicorn deep_shield.api.main:app --host 0.0.0.0 --port 8002   # M02 + M04 in one API
+uvicorn deep_shield.api.main:app --host 0.0.0.0 --port 8002   # M01–M04 + linking API
 ```
 
 | Endpoint | Purpose |
@@ -335,3 +337,15 @@ M03 reuses the same M01 detector and ByteTrack tracks. It samples video at 2 fps
 | `DELETE /api/v1/m03/evidence/{media_id}` | Delete derived M03 evidence |
 
 This version uses explainable rules; the optional GRU is not included. Crowd and movement thresholds are starting values, not validated behavior. Evaluate event precision/recall and timestamp error on consented, representative video before relying on the output.
+
+## Cross-module evidence linking
+
+`POST /api/v1/intelligence/analyze` accepts one multipart `file` and optional normalized `zones`. It runs M01, M02 and M04 for images, and all four modules for video, sequentially on the same temporary upload. The response contains each original `ModuleResult` plus cross-module links, connected evidence groups and unlinked finding IDs. The temporary upload is removed after the request; each engine keeps its own derived evidence.
+
+For long clips, use `POST /api/v1/intelligence/jobs` with multipart `file` and optional `zones`. It returns a queued job record; poll `GET /api/v1/intelligence/jobs/{job_id}` and retrieve completed output from `GET /api/v1/intelligence/jobs/{job_id}/result`. Job state and result JSON are stored in SQLite. This prototype runs background work in the API process; use a durable worker queue before multi-process or production deployment.
+
+Download the human-readable report after completion from `GET /api/v1/intelligence/jobs/{job_id}/report.pdf`. It includes the media hash, per-module status, linked groups, findings, evidence references and limitations. The complete result remains available as JSON; reports list at most 300 findings.
+
+If modules were run separately, submit their `ModuleResult` objects to `POST /api/v1/intelligence/link` as `{"module_results": [ ... ]}`. This endpoint requires two to four distinct modules analyzing the same media ID and SHA-256.
+
+Links use timestamp/interval co-occurrence and/or bounding-box overlap. They are navigation aids only: module scores remain separate, track IDs are treated as module-local, and links do not establish identity, causation, authenticity, intent, or wrongdoing. The endpoint does not store jobs or findings; persistence and report generation remain later integration stages.
