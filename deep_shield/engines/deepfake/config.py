@@ -12,6 +12,12 @@ from typing import Optional, Tuple
 
 MODULE_NAME = "M02_deepfake_image_integrity"
 ENGINE_VERSION = "m02-0.3.0"
+ROOT = Path(__file__).resolve().parents[3]
+
+
+def _rooted(value: str) -> Path:
+    p = Path(value).expanduser()
+    return p if p.is_absolute() else (ROOT / p).resolve()
 
 TASK_FACE = "face_manipulation"      # model: face deepfake classifier (+ suspicious-region heatmap)
 TASK_SYNTH = "synthetic_image"       # model: whole-image AI-generation check (experimental, opt-in)
@@ -112,8 +118,8 @@ SPECS = {TASK_FACE: FACE_SPEC, TASK_SYNTH: SYNTH_SPEC}
 class EngineConfig:
     backend: str = field(default_factory=lambda: os.getenv("DEEPSHIELD_M02_BACKEND", "hf"))  # hf | stub
     device: str = field(default_factory=lambda: os.getenv("DEEPSHIELD_DEVICE", "auto"))      # auto | cpu | cuda | cuda:0
-    models_dir: Path = field(default_factory=lambda: Path(os.getenv("DEEPSHIELD_MODELS_DIR", "models")))
-    evidence_dir: Path = field(default_factory=lambda: Path(os.getenv("DEEPSHIELD_EVIDENCE_DIR", "evidence_store/m02")))
+    models_dir: Path = field(default_factory=lambda: _rooted(os.getenv("DEEPSHIELD_MODELS_DIR", "models")))
+    evidence_dir: Path = field(default_factory=lambda: _rooted(os.getenv("DEEPSHIELD_EVIDENCE_DIR", "evidence_store/m02")))
     yunet_path: Optional[Path] = field(default_factory=lambda: Path(p) if (p := os.getenv("DEEPSHIELD_YUNET_PATH")) else None)
     haar_path: Optional[Path] = field(default_factory=lambda: Path(p) if (p := os.getenv("DEEPSHIELD_HAAR_PATH")) else None)
 
