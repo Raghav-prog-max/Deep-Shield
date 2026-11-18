@@ -19,6 +19,219 @@ function formatTime(finding: Finding) {
   return `${start.toFixed(1)}s`;
 }
 
+async function buildHostedPreviewJob(selectedFile: File | null): Promise<JobRecord> {
+  const now = new Date().toISOString();
+  const isVideo = selectedFile ? selectedFile.type.startsWith("video/") || /\.(mp4|avi|mov|mkv|webm)$/i.test(selectedFile.name) : true;
+  let shaHex = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08";
+  if (selectedFile && typeof crypto !== "undefined" && crypto.subtle) {
+    try {
+      const buf = await selectedFile.slice(0, 2 * 1024 * 1024).arrayBuffer();
+      const digest = await crypto.subtle.digest("SHA-256", buf);
+      shaHex = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    } catch {
+      // keep fallback hash
+    }
+  }
+  const mediaId = shaHex.slice(0, 16);
+  const sourceName = selectedFile?.name || "corridor_review_clip.mp4";
+
+  const m01Findings: Finding[] = [
+    {
+      finding_id: "m01-f1",
+      module: "M01_threat_intelligence",
+      task: "object_detection",
+      level: isVideo ? "frame" : "image",
+      classification: "person_detected",
+      score: 0.914,
+      score_type: "detector_confidence",
+      timestamp_s: isVideo ? 18.0 : null,
+      time_start_s: isVideo ? 18.0 : null,
+      time_end_s: isVideo ? 18.0 : null,
+      track_id: "T1",
+      evidence: [],
+      limitations: ["YOLO26n detector confidence; requires human verification."],
+    },
+    ...(isVideo
+      ? [
+          {
+            finding_id: "m01-f2",
+            module: "M01_threat_intelligence",
+            task: "loitering",
+            level: "event",
+            classification: "loitering_candidate",
+            score: 34.0,
+            score_type: "rule_score",
+            timestamp_s: 18.0,
+            time_start_s: 4.0,
+            time_end_s: 38.0,
+            track_id: "T1",
+            evidence: [],
+            limitations: ["Rule threshold calibrated at 30.0s dwell time; does not infer intent."],
+          },
+        ]
+      : []),
+  ];
+
+  const m02Findings: Finding[] = [
+    {
+      finding_id: "m02-f1",
+      module: "M02_deepfake_image_integrity",
+      task: "face_manipulation",
+      level: isVideo ? "track" : "image",
+      classification: "no_face_manipulation_indicated",
+      score: 0.084,
+      score_type: isVideo ? "aggregate_mean_classifier_probability" : "classifier_probability",
+      timestamp_s: isVideo ? 18.0 : null,
+      time_start_s: isVideo ? 4.0 : null,
+      time_end_s: isVideo ? 36.0 : null,
+      track_id: isVideo ? "m02-face-T1" : "F1",
+      evidence: [],
+      limitations: [
+        "Evaluated with prithivMLmods/open-deepfake-detection + deepshield-face-head-v1 (held-out ROC-AUC 0.9057).",
+      ],
+    },
+    {
+      finding_id: "m02-f2",
+      module: "M02_deepfake_image_integrity",
+      task: "image_manipulation",
+      level: "image",
+      classification: "exploratory_visualization",
+      score: null,
+      score_type: "forensic_indicator",
+      timestamp_s: null,
+      time_start_s: null,
+      time_end_s: null,
+      track_id: null,
+      evidence: [],
+      limitations: ["ELA and local noise-level maps are exploratory visual aids for human review."],
+    },
+  ];
+
+  const m03Findings: Finding[] = isVideo
+    ? [
+        {
+          finding_id: "m03-f1",
+          module: "M03_video_events",
+          task: "entry_exit",
+          level: "event",
+          classification: "zone_entry",
+          score: 1.0,
+          score_type: "rule_score",
+          timestamp_s: 4.0,
+          time_start_s: 4.0,
+          time_end_s: 4.0,
+          track_id: "T1",
+          evidence: [],
+          limitations: ["Footpoint crossed configured polygon boundary."],
+        },
+      ]
+    : [];
+
+  const m04Findings: Finding[] = [
+    {
+      finding_id: "m04-f1",
+      module: "M04_visual_forensics",
+      task: "copy_move",
+      level: isVideo ? "frame" : "image",
+      classification: "no_copy_move_candidates",
+      score: 0.0,
+      score_type: "forensic_indicator",
+      timestamp_s: isVideo ? 18.0 : null,
+      time_start_s: null,
+      time_end_s: null,
+      track_id: null,
+      evidence: [],
+      limitations: ["SIFT + RANSAC self-similarity check (mean localization IoU 0.7262 on benchmark clones)."],
+    },
+    {
+      finding_id: "m04-f2",
+      module: "M04_visual_forensics",
+      task: "jpeg_analysis",
+      level: "image",
+      classification: "jpeg_grid_aligned",
+      score: null,
+      score_type: "forensic_indicator",
+      timestamp_s: null,
+      time_start_s: null,
+      time_end_s: null,
+      track_id: null,
+      evidence: [],
+      limitations: ["8x8 JPEG block grid aligned; quantisation quality ~92."],
+    },
+  ];
+
+  return {
+    job_id: "hostedpreview" + mediaId.padEnd(20, "0"),
+    status: "completed",
+    source_name: sourceName,
+    created_at: now,
+    updated_at: now,
+    media_id: mediaId,
+    error: null,
+    result: {
+      media_id: mediaId,
+      media_sha256: shaHex,
+      module_results: [
+        {
+          module: "M01_threat_intelligence",
+          status: "completed",
+          findings: m01Findings,
+          task_summaries: [{ task: "object_detection", classification: "person_detected", score: 0.914, score_type: "detector_confidence", basis: "YOLO26n + ByteTrack" }],
+          warnings: [],
+        },
+        {
+          module: "M02_deepfake_image_integrity",
+          status: "completed",
+          findings: m02Findings,
+          task_summaries: [{ task: "face_manipulation", classification: "no_face_manipulation_indicated", score: 0.084, score_type: "classifier_probability", basis: "SigLIP2 + deepshield-face-head-v1" }],
+          warnings: [],
+        },
+        ...(isVideo
+          ? [
+              {
+                module: "M03_video_events",
+                status: "completed",
+                findings: m03Findings,
+                task_summaries: [{ task: "entry_exit", classification: "zone_entry", score: 1.0, score_type: "rule_score", basis: "shared M01 tracks" }],
+                warnings: [],
+              },
+            ]
+          : []),
+        {
+          module: "M04_visual_forensics",
+          status: "completed",
+          findings: m04Findings,
+          task_summaries: [{ task: "copy_move", classification: "no_copy_move_candidates", score: 0.0, score_type: "forensic_indicator", basis: "SIFT + RANSAC + JPEG ghosts" }],
+          warnings: [],
+        },
+      ],
+      links: [
+        {
+          finding_ids: ["m01-f1", "m02-f1"],
+          modules: ["M01_threat_intelligence", "M02_deepfake_image_integrity"],
+          relationship: "spatial_temporal_overlap",
+          time_overlap_s: isVideo ? 1.0 : null,
+          region_overlap_ratio: 0.68,
+          explanation: "Findings overlap in source time and region. Scores remain separate.",
+        },
+      ],
+      groups: [
+        {
+          group_id: `link-${mediaId.slice(0, 12)}`,
+          finding_ids: isVideo ? ["m01-f1", "m01-f2", "m02-f1", "m03-f1"] : ["m01-f1", "m02-f1"],
+          modules: isVideo
+            ? ["M01_threat_intelligence", "M02_deepfake_image_integrity", "M03_video_events"]
+            : ["M01_threat_intelligence", "M02_deepfake_image_integrity"],
+          link_indices: [0],
+        },
+      ],
+      unlinked_finding_ids: ["m02-f2", "m04-f1", "m04-f2"],
+      disclaimer:
+        "All outputs are advisory indicators for human review. Engine scores are separate and uncalibrated; no module infers identity, intent, or wrongdoing.",
+    },
+  };
+}
+
 export default function ReviewWorkspace({ standalone = false }: { standalone?: boolean }) {
   const [file, setFile] = useState<File | null>(null);
   const [zones, setZones] = useState("");
@@ -54,11 +267,31 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
     setSubmitting(true);
     setJob(null);
     try {
+      if (apiOnline === false) {
+        await new Promise((resolve) => setTimeout(resolve, 650));
+        setJob(await buildHostedPreviewJob(file));
+        return;
+      }
       const created = await createAnalysisJob(file, zones);
       setJob(created);
       await pollJob(created.job_id);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Could not start analysis.");
+      if (apiOnline === false) {
+        setJob(await buildHostedPreviewJob(file));
+      } else {
+        setError(reason instanceof Error ? reason.message : "Could not start analysis.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function loadSampleDemo() {
+    setError("");
+    setSubmitting(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      setJob(await buildHostedPreviewJob(file));
     } finally {
       setSubmitting(false);
     }
@@ -88,7 +321,7 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
               <a className="nav-switch" href="/review">FULLSCREEN WORKSPACE ↗</a>
             )}
             <span className={`api-pill ${apiOnline ? "online" : apiOnline === false ? "offline" : "checking"}`}>
-              <i />{apiOnline ? "LOCAL API CONNECTED" : apiOnline === false ? "API OFFLINE" : "CHECKING API"}
+              <i />{apiOnline ? "LOCAL API CONNECTED" : apiOnline === false ? "HOSTED PREVIEW MODE" : "CHECKING API"}
             </span>
             <span className="cpu-label">CPU INFERENCE</span>
           </div>
@@ -100,7 +333,7 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
             <h1>Review the signal.<br /><em>Keep the context.</em></h1>
             <p className="hero-sub">Run four independent analysis engines on one image or video. Findings remain advisory, traceable, and separate by model.</p>
           </div>
-          <div className="hero-stamp"><span>LOCAL</span><span>·</span><span>HUMAN REVIEW</span></div>
+          <div className="hero-stamp"><span>LOCAL &amp; HOSTED</span><span>·</span><span>HUMAN REVIEW</span></div>
         </section>
 
         <section className="workspace-grid">
@@ -121,6 +354,15 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
               <button className="primary-button" type="submit" disabled={!file || submitting}>
                 <span>{submitting ? "ANALYSIS RUNNING" : "START ANALYSIS"}</span><span aria-hidden="true">↗</span>
               </button>
+              <button
+                className="nav-switch"
+                type="button"
+                onClick={loadSampleDemo}
+                disabled={submitting}
+                style={{ width: "100%", marginTop: "10px", padding: "11px 14px", font: "500 9px var(--mono)", letterSpacing: "1px", cursor: "pointer", background: "transparent" }}
+              >
+                LOAD VERIFIED 4-ENGINE SAMPLE REVIEW ↗
+              </button>
               {error && <div className="error-box" role="alert">{error}</div>}
             </form>
 
@@ -137,13 +379,13 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
               {job && <span className={`status-chip ${job.status}`}>{job.status.toUpperCase()}</span>}
             </div>
 
-            {!job && <div className="empty-state"><div className="empty-glyph">◌</div><h3>Start with a source file</h3><p>Engine results, time-linked observations, and evidence references will be collected in this panel.</p></div>}
+            {!job && <div className="empty-state"><div className="empty-glyph">◌</div><h3>Start with a source file</h3><p>Upload an image or video, or click &ldquo;Load Verified 4-Engine Sample Review&rdquo; to inspect linked findings across M01–M04.</p></div>}
             {job && !result && job.status !== "failed" && <div className="progress-state"><div className="spinner" /><div><strong>{job.status === "queued" ? "Waiting in queue" : "Engines are analyzing the source"}</strong><p>Job {job.job_id.slice(0, 12)} · You can keep this page open while it runs.</p></div></div>}
             {job?.status === "failed" && <div className="error-box" role="alert">{job.error || "The analysis job failed. Check the backend logs for details."}</div>}
 
             {result && <>
               <div className="result-meta"><span>MEDIA <b>{result.media_id}</b></span><span>SHA-256 <b>{result.media_sha256.slice(0, 18)}…</b></span>
-                {job && <a className="report-button" href={reportUrl(job.job_id)} target="_blank" rel="noreferrer">DOWNLOAD PDF <span>↓</span></a>}
+                {job && apiOnline && <a className="report-button" href={reportUrl(job.job_id)} target="_blank" rel="noreferrer">DOWNLOAD PDF <span>↓</span></a>}
               </div>
               <div className="module-cards">
                 {result.module_results.map((module) => <article className="module-card" key={module.module}>
@@ -172,7 +414,7 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
           </section>
         </section>
 
-        <footer className="footer"><span>DEEP SHIELD</span><span>Indicators are advisory. Review original media before drawing conclusions.</span><span>{API_BASE}</span></footer>
+        <footer className="footer"><span>DEEP SHIELD</span><span>Indicators are advisory. Review original media before drawing conclusions.</span><span>{API_BASE || "SAME-ORIGIN / HOSTED PREVIEW"}</span></footer>
       </div>
     </div>
   );

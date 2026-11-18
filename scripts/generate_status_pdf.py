@@ -74,7 +74,7 @@ def build_pdf(out_path: Path) -> None:
         [[
             Paragraph("CORE IMPLEMENTATION<br/>Complete and merged to main", banner_cell),
             Paragraph("MODEL EVALUATION &amp; HEAD<br/>Completed (ROC-AUC 0.9057)", banner_cell),
-            Paragraph("FRONTEND &amp; HARDENING<br/>Landing + Workspace + Retention Done", banner_cell),
+            Paragraph("PUBLIC HOSTING &amp; HARDENING<br/>Live at deep-shield-sooty.vercel.app", banner_cell),
         ]],
         colWidths=[55 * mm, 55 * mm, 56 * mm],
     )

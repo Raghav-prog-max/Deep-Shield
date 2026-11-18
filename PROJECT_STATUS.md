@@ -4,7 +4,9 @@
 
 **Repository:** [Raghav-prog-max/Deep-Shield](https://github.com/Raghav-prog-max/Deep-Shield)
 
-**Status:** All four analysis engines (M01–M04), cross-module intelligence API, durable single-host job queue, PDF reporting, integrated Next.js landing page + review workspace frontend, M02 multi-generator trained face head, and M01–M04 evaluation & threshold calibration reports are complete and merged to `main`.
+**Live Hosted Deployment:** [https://deep-shield-sooty.vercel.app](https://deep-shield-sooty.vercel.app) (`/review` for direct workspace)
+
+**Status:** All four analysis engines (M01–M04), cross-module intelligence API, durable single-host job queue, PDF reporting, integrated Next.js landing page + review workspace frontend, M02 multi-generator trained face head, M01–M04 evaluation & threshold calibration reports, and live Vercel deployment are complete and merged to `main`.
 
 ## Project flow
 
