@@ -211,9 +211,9 @@ def build_pdf(out_path: Path) -> None:
 if __name__ == "__main__":
     target = ROOT / "reports" / "Deep_Shield_Project_Status_2026-11-19.pdf"
     build_pdf(target)
-    downloads = Path(r"C:\Users\Dell\Downloads\Deep_Shield_Project_Status_2026-11-19_Updated.pdf")
-    try:
-        downloads.write_bytes(target.read_bytes())
-    except OSError:
-        pass
+    for dl_name in ("Deep_Shield_Project_Status_2026-11-19.pdf", "Deep_Shield_Project_Status_2026-11-19_Updated.pdf"):
+        try:
+            Path(r"C:\Users\Dell\Downloads", dl_name).write_bytes(target.read_bytes())
+        except OSError:
+            pass
     print(f"Generated {target} ({target.stat().st_size} bytes)")

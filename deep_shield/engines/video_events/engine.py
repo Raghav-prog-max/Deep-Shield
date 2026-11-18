@@ -19,6 +19,7 @@ from deep_shield.engines.threat.rules import (
     FrameSnapshot, RuleEvent, crowding_events, loitering_events,
     merge_intervals, running_events, zone_transition_events,
 )
+from .gru import TrackGRUObservation, score_tracks_gru
 
 log = logging.getLogger("deep_shield.m03")
 
@@ -28,12 +29,13 @@ TASK_ENTRY_EXIT = "entry_exit"
 TASK_LOITER = "loitering"
 TASK_CROWD = "crowding"
 TASK_RUNNING = "running"
-ALL_TASKS = (TASK_ENTRY_EXIT, TASK_LOITER, TASK_CROWD, TASK_RUNNING)
+TASK_GRU = "temporal_gru"
+ALL_TASKS = (TASK_ENTRY_EXIT, TASK_LOITER, TASK_CROWD, TASK_RUNNING, TASK_GRU)
 
 LIMITATIONS = [
     "Events are heuristic candidates based on detector boxes and configured rules, not ground truth.",
     "Crowding and running thresholds require camera-specific calibration and validation.",
-    "The optional GRU was not added; this version uses explainable rules only.",
+    "Temporal GRU sequence scores are advisory kinematic indicators and remain separate from rule triggers.",
     "No identity, intent, criminality or sensitive-attribute inference is performed.",
 ]
 
@@ -56,6 +58,7 @@ class VideoEventConfig:
     merge_gap_seconds: float = field(default_factory=lambda: float(os.getenv("DEEPSHIELD_M03_MERGE_GAP_SECONDS", "3")))
     max_upload_mb: int = field(default_factory=lambda: int(os.getenv("DEEPSHIELD_MAX_UPLOAD_MB", "200")))
     keep_uploads: bool = field(default_factory=lambda: os.getenv("DEEPSHIELD_KEEP_UPLOADS", "0") == "1")
+    gru_enabled: bool = field(default_factory=lambda: os.getenv("DEEPSHIELD_M03_GRU", "1") == "1")
 
     def __post_init__(self) -> None:
         if not 0 < self.confidence <= 1 or self.image_size < 32:
@@ -110,7 +113,7 @@ class VideoEventEngine:
                 "running_body_lengths_per_second": self.cfg.running_body_lengths_per_second,
                 "event_merge_gap_seconds": self.cfg.merge_gap_seconds,
             },
-            "gru_enabled": False,
+            "gru_enabled": self.cfg.gru_enabled,
         }
 
     def analyze(
@@ -206,7 +209,9 @@ class VideoEventEngine:
             ))
             events = merge_intervals(events, self.cfg.merge_gap_seconds)
             self._append_events(result, events, evidence_by_frame)
-            self._summaries(result, events, zones)
+            gru_obs = score_tracks_gru(detections, width, height) if self.cfg.gru_enabled else []
+            self._append_gru(result, gru_obs, evidence_by_frame)
+            self._summaries(result, events, zones, gru_obs, self.cfg.gru_enabled)
         except (MediaError, OSError, RuntimeError, ValueError) as exc:
             log.exception("M03 analysis failed for %s", result.media_id)
             result.status = "failed"
@@ -255,7 +260,43 @@ class VideoEventEngine:
             ))
 
     @staticmethod
-    def _summaries(result: ModuleResult, events: list[RuleEvent], zones: list[Zone]) -> None:
+    def _append_gru(result: ModuleResult, gru_obs: list[TrackGRUObservation], evidence_by_frame: dict) -> None:
+        gru_model = ModelInfo(model_id="temporal-gru-kinematic-v1", task=TASK_GRU, backend="pytorch-gru")
+        for obs in gru_obs:
+            ref = evidence_by_frame.get(obs.representative.frame_index)
+            result.findings.append(Finding(
+                module=MODULE_NAME,
+                task=TASK_GRU,
+                level="track",
+                media_id=result.media_id,
+                media_type=MediaType.VIDEO,
+                classification="kinematic_anomaly_candidate" if obs.score >= 0.65 else "normal_kinematic_trajectory",
+                score=obs.score,
+                score_type=ScoreType.ANOMALY_SCORE,
+                frame_index=obs.representative.frame_index,
+                timestamp_s=obs.representative.timestamp_s,
+                time_start_s=obs.start_s,
+                time_end_s=obs.end_s,
+                track_id=obs.track_id,
+                region=_bbox(obs.representative),
+                explanation={
+                    "n_steps": obs.n_steps,
+                    "peak_speed_body_lengths_per_s": obs.peak_speed_bls,
+                    "method": "single-layer PyTorch GRU over normalized track kinematics",
+                },
+                model=gru_model,
+                evidence=[ref] if ref is not None else [],
+                limitations=LIMITATIONS,
+            ))
+
+    @staticmethod
+    def _summaries(
+        result: ModuleResult,
+        events: list[RuleEvent],
+        zones: list[Zone],
+        gru_obs: list[TrackGRUObservation] | None = None,
+        gru_enabled: bool = True,
+    ) -> None:
         event_by_task = {
             TASK_ENTRY_EXIT: {"zone_entry", "zone_exit"},
             TASK_LOITER: {"loitering_candidate"},
@@ -275,4 +316,19 @@ class VideoEventEngine:
                 basis=basis,
                 score_type=ScoreType.RULE_SCORE,
                 model=_rule_model(task),
+            ))
+        if gru_enabled:
+            obs_list = gru_obs or []
+            top_score = max((o.score for o in obs_list), default=None)
+            result.task_summaries.append(TaskSummary(
+                task=TASK_GRU,
+                classification=(
+                    "kinematic_anomaly_candidate" if (top_score is not None and top_score >= 0.65)
+                    else "normal_kinematic_trajectory" if top_score is not None
+                    else "no_tracks_scored"
+                ),
+                score=top_score,
+                score_type=ScoreType.ANOMALY_SCORE,
+                basis=f"PyTorch Temporal GRU evaluated {len(obs_list)} person track(s)",
+                model=ModelInfo(model_id="temporal-gru-kinematic-v1", task=TASK_GRU, backend="pytorch-gru"),
             ))

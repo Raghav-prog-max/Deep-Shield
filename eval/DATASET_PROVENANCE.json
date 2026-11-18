@@ -1,0 +1,32 @@
+{
+  "dataset_name": "DEEP SHIELD Checked-In Consented & Synthetic Evaluation Benchmark",
+  "created_at": "2026-11-19",
+  "consent_and_usage_basis": "Public-domain NASA astronaut portrait (Eileen Collins, scikit-image) and procedural/synthetic manipulations and corridor video sequences. Contains zero unauthorized private surveillance or biometric identity data.",
+  "license": "Public Domain / CC0-1.0 (checked-in fixtures); multi-generator head trained on disjoint FFHQ/StyleGAN/StyleGAN2/DFF splits (non-commercial research, documented in reports/m02_training/report.md).",
+  "splits": {
+    "faces": {
+      "calibration": {
+        "real": 6,
+        "fake": 6
+      },
+      "test": {
+        "real": 8,
+        "fake": 8
+      }
+    },
+    "synthetic": {
+      "calibration": {
+        "real": 6,
+        "fake": 6
+      },
+      "test": {
+        "real": 8,
+        "fake": 8
+      }
+    },
+    "videos": {
+      "calibration": 1,
+      "test": 1
+    }
+  }
+}

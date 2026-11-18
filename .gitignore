@@ -7,8 +7,6 @@ eval_out/
 __pycache__/
 .pytest_cache/
 .venv/
-eval/
 demo/
 *.zip
-*.mp4
 .env.production

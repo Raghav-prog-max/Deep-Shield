@@ -1,0 +1,36 @@
+{
+  "verified_at": "2026-11-19T01:31:42",
+  "hosted_frontend": {
+    "root": {
+      "url": "https://deep-shield-sooty.vercel.app",
+      "reachable": false,
+      "error": "<urlopen error timed out>"
+    },
+    "review_workspace": {
+      "url": "https://deep-shield-sooty.vercel.app/review",
+      "reachable": false,
+      "error": "<urlopen error timed out>"
+    }
+  },
+  "engine_health": {
+    "m01": "M01_threat_intelligence",
+    "m02": "M02_deepfake_image_integrity",
+    "m03": "M03_video_events",
+    "m03_gru_enabled": true,
+    "m04": "M04_visual_forensics"
+  },
+  "job_flow": {
+    "job_id": "7f90e45d8fd647078e206c39bd53f60e",
+    "interrupted_worker_attempt": 1,
+    "recovered_worker_attempt": 2,
+    "final_status": "completed",
+    "modules_completed": [
+      "M01_threat_intelligence",
+      "M02_deepfake_image_integrity",
+      "M04_visual_forensics"
+    ],
+    "evidence_links_verified": 10,
+    "pdf_report_bytes": 5113,
+    "retention_cleanup_verified": true
+  }
+}
