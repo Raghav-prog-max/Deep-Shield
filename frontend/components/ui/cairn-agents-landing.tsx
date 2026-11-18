@@ -340,9 +340,33 @@ const DEFAULT_CTA = {
 const DEFAULT_FOOTER = {
   tagline: "Explainable media analysis for people who need to see what was measured before they decide what it means.",
   columns: [
-    { title: "Workflow", links: [{ label: "Upload media", href: "#product" }, { label: "Choose engines", href: "#product" }, { label: "Review incidents", href: "#demo" }, { label: "Reports" }] },
-    { title: "Engines", links: [{ label: "Threat & anomaly" }, { label: "Deepfake & integrity" }, { label: "Video events" }, { label: "Visual forensics" }] },
-    { title: "Principles", links: [{ label: "Human review" }, { label: "Visible caveats" }, { label: "Privacy" }, { label: "Limitations" }] },
+    {
+      title: "Workflow",
+      links: [
+        { label: "Upload media", href: "#workspace" },
+        { label: "Choose engines", href: "#product" },
+        { label: "Review incidents", href: "#demo" },
+        { label: "Reports", href: "#workspace" },
+      ],
+    },
+    {
+      title: "Engines",
+      links: [
+        { label: "Threat & anomaly", href: "#workspace" },
+        { label: "Deepfake & integrity", href: "#workspace" },
+        { label: "Video events", href: "#workspace" },
+        { label: "Visual forensics", href: "#workspace" },
+      ],
+    },
+    {
+      title: "Principles",
+      links: [
+        { label: "Human review", href: "#company" },
+        { label: "Visible caveats", href: "#demo" },
+        { label: "Privacy", href: "#company" },
+        { label: "Limitations", href: "#workspace" },
+      ],
+    },
   ],
   note: "Results are advisory. Reviewers decide.",
 }
@@ -2057,13 +2081,13 @@ function Canvas({ data, image, tones, reduced }: { data: CnlCanvas; image?: stri
         ))}
         <div className="cnl-range" data-st="">
           <div className="cnl-range-top">
-            <b>Hand-off sensitivity</b>
+            <b>Human-review sensitivity</b>
             <span>{sensitivityLabel(sensitivity)}</span>
           </div>
-          <input type="range" min={0} max={100} value={sensitivity} aria-label="Hand-off sensitivity" onChange={(e) => setSensitivity(Number(e.target.value))} />
+          <input type="range" min={0} max={100} value={sensitivity} aria-label="Human-review sensitivity" onChange={(e) => setSensitivity(Number(e.target.value))} />
         </div>
         <p className="cnl-rule" data-st="">
-          {policies.filter((p) => p.on).length} of {policies.length} rules active. <em>When a caller mentions a chargeback</em>, transfer to Tier 2 with a one-line summary.
+          {policies.filter((p) => p.on).length} of {policies.length} rules active. <em>When an engine flags a manipulation or zone candidate</em>, attach the evidence frame, score type, and limitations for human review.
         </p>
       </>
     )
@@ -2071,8 +2095,8 @@ function Canvas({ data, image, tones, reduced }: { data: CnlCanvas; image?: stri
     content = (
       <>
         <div className="cnl-lbl" data-st="" style={{ marginTop: 0 }}>
-          <b>Caller personas</b>
-          <span>Mix the callers your agent will face</span>
+          <b>Media edge cases</b>
+          <span>Preview how review policies handle challenging inputs</span>
         </div>
         <div className="cnl-chips" data-st="">
           {data.personas.map((p) => (
@@ -2083,11 +2107,11 @@ function Canvas({ data, image, tones, reduced }: { data: CnlCanvas; image?: stri
         </div>
         <button className="cnl-run" data-st="" onClick={run} disabled={sim.state === "running"}>
           <Icon name="bolt" size={14} />
-          {sim.state === "running" ? "Simulating…" : sim.state === "done" ? "Run again" : "Run 500 calls"}
+          {sim.state === "running" ? "Running workflow preview…" : sim.state === "done" ? "Run preview again" : "Preview 500 workflow checks"}
         </button>
         <div data-st="">
           <div className="cnl-sim-top">
-            <span>Calls simulated</span>
+            <span>Workflow checks previewed</span>
             <b>
               {t.done}
               <span style={{ fontSize: 12, color: "var(--cnl-card-mute)" }}> / 500</span>
@@ -2099,11 +2123,11 @@ function Canvas({ data, image, tones, reduced }: { data: CnlCanvas; image?: stri
           <div className="cnl-tiles">
             <div className="cnl-tile">
               <b>{t.done ? ((t.resolved / t.done) * 100).toFixed(1) + "%" : "–"}</b>
-              <span>Resolved</span>
+              <span>No indicator</span>
             </div>
             <div className="cnl-tile">
               <b>{t.handoff}</b>
-              <span>Handed off</span>
+              <span>Inconclusive</span>
             </div>
             <div className="cnl-tile">
               <b>{t.flagged}</b>

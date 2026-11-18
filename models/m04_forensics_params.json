@@ -4,16 +4,18 @@
   "calibrated_at": "2026-11-19",
   "parameters": {
     "sift_ratio_threshold": 0.55,
-    "min_keypoint_distance_px": 24,
-    "ransac_min_inliers": 6,
+    "min_keypoint_distance_px": 36,
+    "ransac_min_inliers": 8,
+    "sift_contrast_threshold": 0.01,
     "ela_jpeg_quality": 90,
     "noise_block_size_px": 16,
     "video_keyframes": 3
   },
   "benchmark_metrics": {
-    "copy_move_recall_120_175px": 1.0,
-    "mean_bbox_iou": 0.7262,
-    "mean_bbox_dice": 0.8395,
+    "diverse_real_photos_tested": 16,
+    "copy_move_recall_120_175px": 0.4375,
+    "mean_bbox_iou": 0.6871,
+    "mean_bbox_dice": 0.7941,
     "untouched_false_alarm_rate": 0.0,
     "jpeg_quality_exact_match_rate": 1.0
   }

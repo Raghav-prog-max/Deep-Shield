@@ -1,8 +1,20 @@
 {
-  "dataset_name": "DEEP SHIELD Checked-In Consented & Synthetic Evaluation Benchmark",
+  "dataset_name": "DEEP SHIELD Real Multi-Source Benchmark Suite",
   "created_at": "2026-11-19",
-  "consent_and_usage_basis": "Public-domain NASA astronaut portrait (Eileen Collins, scikit-image) and procedural/synthetic manipulations and corridor video sequences. Contains zero unauthorized private surveillance or biometric identity data.",
-  "license": "Public Domain / CC0-1.0 (checked-in fixtures); multi-generator head trained on disjoint FFHQ/StyleGAN/StyleGAN2/DFF splits (non-commercial research, documented in reports/m02_training/report.md).",
+  "sources": {
+    "faces": [
+      "TheKernel01/140k-Real-and-Fake-Faces (Kaggle 140k FFHQ vs StyleGAN, held-out test split)",
+      "juhi-neeved/deepfakeface-labeled (DeepFakeFace IMDB-WIKI vs FaceSwap/Diffusion, held-out test split)",
+      "javi22/this-person-does-not-exist-10k (StyleGAN2, files 8001-10000 held-out test split)",
+      "JamieWithofs/Deepfake-and-real-images (Kaggle 190k Deepfake & Real Images, held-out test split)"
+    ],
+    "synthetic": [
+      "Hemg/AI-Generated-vs-Real-Images-Datasets (real photographs vs real AI-generated images, disjoint offset ranges)"
+    ],
+    "videos": [
+      "OpenCV samples/data/vtest.avi (real outdoor pedestrian walkway surveillance, disjoint 0..8s calibration and 25..33s test segments)"
+    ]
+  },
   "splits": {
     "faces": {
       "calibration": {
@@ -28,5 +40,373 @@
       "calibration": 1,
       "test": 1
     }
-  }
+  },
+  "face_samples": [
+    {
+      "file": "eval/faces/calibration/real/calibration_real_01.jpg",
+      "split": "calibration",
+      "label": "real",
+      "source": "stylegan1",
+      "origin_file": "stylegan1_test_real_003904.jpg"
+    },
+    {
+      "file": "eval/faces/calibration/real/calibration_real_02.jpg",
+      "split": "calibration",
+      "label": "real",
+      "source": "dff",
+      "origin_file": "dff_test_real_000989.jpg"
+    },
+    {
+      "file": "eval/faces/calibration/real/calibration_real_03.jpg",
+      "split": "calibration",
+      "label": "real",
+      "source": "kaggle_deepfake",
+      "origin_file": "kaggle_deepfake_test_real_005596.jpg"
+    },
+    {
+      "file": "eval/faces/calibration/real/calibration_real_04.jpg",
+      "split": "calibration",
+      "label": "real",
+      "source": "stylegan1",
+      "origin_file": "stylegan1_test_real_003906.jpg"
+    },
+    {
+      "file": "eval/faces/calibration/real/calibration_real_05.jpg",
+      "split": "calibration",
+      "label": "real",
+      "source": "dff",
+      "origin_file": "dff_test_real_000990.jpg"
+    },
+    {
+      "file": "eval/faces/calibration/real/calibration_real_06.jpg",
+      "split": "calibration",
+      "label": "real",
+      "source": "kaggle_deepfake",
+      "origin_file": "kaggle_deepfake_test_real_005597.jpg"
+    },
+    {
+      "file": "eval/faces/calibration/fake/calibration_fake_01.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "source": "stylegan1",
+      "origin_file": "stylegan1_test_fake_003903.jpg"
+    },
+    {
+      "file": "eval/faces/calibration/fake/calibration_fake_02.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "source": "tpdne",
+      "origin_file": "tpdne_test_fake_08011.jpg"
+    },
+    {
+      "file": "eval/faces/calibration/fake/calibration_fake_03.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "source": "dff",
+      "origin_file": "dff_test_fake_000986.jpg"
+    },
+    {
+      "file": "eval/faces/calibration/fake/calibration_fake_04.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "source": "kaggle_deepfake",
+      "origin_file": "kaggle_deepfake_test_fake_005376.jpg"
+    },
+    {
+      "file": "eval/faces/calibration/fake/calibration_fake_05.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "source": "stylegan1",
+      "origin_file": "stylegan1_test_fake_003905.jpg"
+    },
+    {
+      "file": "eval/faces/calibration/fake/calibration_fake_06.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "source": "tpdne",
+      "origin_file": "tpdne_test_fake_08042.jpg"
+    },
+    {
+      "file": "eval/faces/test/real/test_real_01.jpg",
+      "split": "test",
+      "label": "real",
+      "source": "stylegan1",
+      "origin_file": "stylegan1_test_real_003908.jpg"
+    },
+    {
+      "file": "eval/faces/test/real/test_real_02.jpg",
+      "split": "test",
+      "label": "real",
+      "source": "dff",
+      "origin_file": "dff_test_real_000992.jpg"
+    },
+    {
+      "file": "eval/faces/test/real/test_real_03.jpg",
+      "split": "test",
+      "label": "real",
+      "source": "kaggle_deepfake",
+      "origin_file": "kaggle_deepfake_test_real_005598.jpg"
+    },
+    {
+      "file": "eval/faces/test/real/test_real_04.jpg",
+      "split": "test",
+      "label": "real",
+      "source": "stylegan1",
+      "origin_file": "stylegan1_test_real_003910.jpg"
+    },
+    {
+      "file": "eval/faces/test/real/test_real_05.jpg",
+      "split": "test",
+      "label": "real",
+      "source": "dff",
+      "origin_file": "dff_test_real_001006.jpg"
+    },
+    {
+      "file": "eval/faces/test/real/test_real_06.jpg",
+      "split": "test",
+      "label": "real",
+      "source": "kaggle_deepfake",
+      "origin_file": "kaggle_deepfake_test_real_005599.jpg"
+    },
+    {
+      "file": "eval/faces/test/real/test_real_07.jpg",
+      "split": "test",
+      "label": "real",
+      "source": "stylegan1",
+      "origin_file": "stylegan1_test_real_003912.jpg"
+    },
+    {
+      "file": "eval/faces/test/real/test_real_08.jpg",
+      "split": "test",
+      "label": "real",
+      "source": "dff",
+      "origin_file": "dff_test_real_001008.jpg"
+    },
+    {
+      "file": "eval/faces/test/fake/test_fake_01.jpg",
+      "split": "test",
+      "label": "fake",
+      "source": "dff",
+      "origin_file": "dff_test_fake_000988.jpg"
+    },
+    {
+      "file": "eval/faces/test/fake/test_fake_02.jpg",
+      "split": "test",
+      "label": "fake",
+      "source": "kaggle_deepfake",
+      "origin_file": "kaggle_deepfake_test_fake_005377.jpg"
+    },
+    {
+      "file": "eval/faces/test/fake/test_fake_03.jpg",
+      "split": "test",
+      "label": "fake",
+      "source": "stylegan1",
+      "origin_file": "stylegan1_test_fake_003907.jpg"
+    },
+    {
+      "file": "eval/faces/test/fake/test_fake_04.jpg",
+      "split": "test",
+      "label": "fake",
+      "source": "tpdne",
+      "origin_file": "tpdne_test_fake_08049.jpg"
+    },
+    {
+      "file": "eval/faces/test/fake/test_fake_05.jpg",
+      "split": "test",
+      "label": "fake",
+      "source": "dff",
+      "origin_file": "dff_test_fake_000991.jpg"
+    },
+    {
+      "file": "eval/faces/test/fake/test_fake_06.jpg",
+      "split": "test",
+      "label": "fake",
+      "source": "kaggle_deepfake",
+      "origin_file": "kaggle_deepfake_test_fake_005378.jpg"
+    },
+    {
+      "file": "eval/faces/test/fake/test_fake_07.jpg",
+      "split": "test",
+      "label": "fake",
+      "source": "stylegan1",
+      "origin_file": "stylegan1_test_fake_003909.jpg"
+    },
+    {
+      "file": "eval/faces/test/fake/test_fake_08.jpg",
+      "split": "test",
+      "label": "fake",
+      "source": "tpdne",
+      "origin_file": "tpdne_test_fake_08063.jpg"
+    }
+  ],
+  "synthetic_samples": [
+    {
+      "file": "eval/synthetic/calibration/fake/calibration_fake_01.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:17763"
+    },
+    {
+      "file": "eval/synthetic/calibration/fake/calibration_fake_02.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:17762"
+    },
+    {
+      "file": "eval/synthetic/calibration/fake/calibration_fake_03.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:17772"
+    },
+    {
+      "file": "eval/synthetic/calibration/fake/calibration_fake_04.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:17788"
+    },
+    {
+      "file": "eval/synthetic/calibration/fake/calibration_fake_05.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:17780"
+    },
+    {
+      "file": "eval/synthetic/calibration/fake/calibration_fake_06.jpg",
+      "split": "calibration",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:17770"
+    },
+    {
+      "file": "eval/synthetic/calibration/real/calibration_real_01.jpg",
+      "split": "calibration",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:87594"
+    },
+    {
+      "file": "eval/synthetic/calibration/real/calibration_real_02.jpg",
+      "split": "calibration",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:87605"
+    },
+    {
+      "file": "eval/synthetic/calibration/real/calibration_real_03.jpg",
+      "split": "calibration",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:87610"
+    },
+    {
+      "file": "eval/synthetic/calibration/real/calibration_real_04.jpg",
+      "split": "calibration",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:87606"
+    },
+    {
+      "file": "eval/synthetic/calibration/real/calibration_real_05.jpg",
+      "split": "calibration",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:87603"
+    },
+    {
+      "file": "eval/synthetic/calibration/real/calibration_real_06.jpg",
+      "split": "calibration",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:87618"
+    },
+    {
+      "file": "eval/synthetic/test/fake/test_fake_01.jpg",
+      "split": "test",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:37825"
+    },
+    {
+      "file": "eval/synthetic/test/fake/test_fake_02.jpg",
+      "split": "test",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:37813"
+    },
+    {
+      "file": "eval/synthetic/test/fake/test_fake_03.jpg",
+      "split": "test",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:37820"
+    },
+    {
+      "file": "eval/synthetic/test/fake/test_fake_04.jpg",
+      "split": "test",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:37831"
+    },
+    {
+      "file": "eval/synthetic/test/fake/test_fake_05.jpg",
+      "split": "test",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:37832"
+    },
+    {
+      "file": "eval/synthetic/test/fake/test_fake_06.jpg",
+      "split": "test",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:37828"
+    },
+    {
+      "file": "eval/synthetic/test/fake/test_fake_07.jpg",
+      "split": "test",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:37818"
+    },
+    {
+      "file": "eval/synthetic/test/fake/test_fake_08.jpg",
+      "split": "test",
+      "label": "fake",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:37809"
+    },
+    {
+      "file": "eval/synthetic/test/real/test_real_01.jpg",
+      "split": "test",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:125096"
+    },
+    {
+      "file": "eval/synthetic/test/real/test_real_02.jpg",
+      "split": "test",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:125107"
+    },
+    {
+      "file": "eval/synthetic/test/real/test_real_03.jpg",
+      "split": "test",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:125100"
+    },
+    {
+      "file": "eval/synthetic/test/real/test_real_04.jpg",
+      "split": "test",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:125098"
+    },
+    {
+      "file": "eval/synthetic/test/real/test_real_05.jpg",
+      "split": "test",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:125103"
+    },
+    {
+      "file": "eval/synthetic/test/real/test_real_06.jpg",
+      "split": "test",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:125123"
+    },
+    {
+      "file": "eval/synthetic/test/real/test_real_07.jpg",
+      "split": "test",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:125106"
+    },
+    {
+      "file": "eval/synthetic/test/real/test_real_08.jpg",
+      "split": "test",
+      "label": "real",
+      "origin": "Hemg/AI-Generated-vs-Real-Images-Datasets:train:125099"
+    }
+  ]
 }

@@ -167,13 +167,13 @@ def fit_head(X, y, w_sample, kind: str, reg: float, seed: int = 0):
                 return loss
             opt.step(closure)
             return [W.detach().numpy(), b.detach().numpy()], mean, std
-        H = 256
-        net = torch.nn.Sequential(torch.nn.Dropout(0.1), torch.nn.Linear(D, H), torch.nn.ReLU(),
-                                  torch.nn.Dropout(0.3), torch.nn.Linear(H, 1))
-        opt = torch.optim.AdamW(net.parameters(), lr=1e-3, weight_decay=reg)
+        H = 128
+        net = torch.nn.Sequential(torch.nn.Dropout(0.2), torch.nn.Linear(D, H), torch.nn.ReLU(),
+                                  torch.nn.Dropout(0.35), torch.nn.Linear(H, 1))
+        opt = torch.optim.AdamW(net.parameters(), lr=8e-4, weight_decay=reg)
         n = len(Xt)
         g = torch.Generator().manual_seed(seed)
-        for _ in range(60):
+        for _ in range(70):
             net.train()
             perm = torch.randperm(n, generator=g)
             for i in range(0, n, 128):
@@ -187,9 +187,41 @@ def fit_head(X, y, w_sample, kind: str, reg: float, seed: int = 0):
                 l2.weight.detach().numpy().T, l2.bias.detach().numpy()], mean, std
 
 
-def balanced_weights(y):
-    c = Counter(y.tolist())
-    return np.array([len(y) / (2.0 * c[v]) for v in y], dtype=np.float32)
+def balanced_weights(y, sources=None):
+    """Balance class totals 50/50 and equalize contribution across sources within each class."""
+    if sources is None:
+        c = Counter(y.tolist())
+        return np.array([len(y) / (2.0 * c[v]) for v in y], dtype=np.float32)
+    by_cls = defaultdict(Counter)
+    for yi, si in zip(y.tolist(), sources):
+        by_cls[yi][si] += 1
+    w = np.zeros(len(y), dtype=np.float32)
+    for i, (yi, si) in enumerate(zip(y.tolist(), sources)):
+        n_src = max(1, len(by_cls[yi]))
+        w[i] = 0.5 / (n_src * by_cls[yi][si])
+    return w * len(y)
+
+
+def calibrate_temperature(head: FaceHead, X_val: np.ndarray, y_val: np.ndarray) -> float:
+    """Guo et al. (ICML 2017) validation-split temperature scaling folded into the last linear layer."""
+    x = (X_val - head.mean) / head.std
+    if head.kind == "linear":
+        z = (x @ head.weights[0] + head.weights[1]).ravel()
+    else:
+        h = np.maximum(0.0, x @ head.weights[0] + head.weights[1])
+        z = (h @ head.weights[2] + head.weights[3]).ravel()
+    best_t, best_nll = 1.0, float("inf")
+    for t in np.geomspace(0.5, 8.0, 60):
+        p = 1.0 / (1.0 + np.exp(-np.clip(z / t, -40.0, 40.0)))
+        p = np.clip(p, 1e-6, 1.0 - 1e-6)
+        nll = float(-np.mean(y_val * np.log(p) + (1.0 - y_val) * np.log(1.0 - p)))
+        if nll < best_nll:
+            best_nll, best_t = nll, float(t)
+    if head.kind == "linear":
+        head.weights = [head.weights[0] / best_t, head.weights[1] / best_t]
+    else:
+        head.weights = [head.weights[0], head.weights[1], head.weights[2] / best_t, head.weights[3] / best_t]
+    return round(best_t, 4)
 
 
 def make_head(kind, layers, weights, mean, std, lo=0.35, hi=0.65, meta=None) -> FaceHead:
@@ -300,10 +332,11 @@ def main() -> int:
 
     # ---- candidate heads, chosen on validation AUC
     feature_sets = {"final": [FINAL], "multi": layers}
-    grid = [("linear", r) for r in ([1e-3, 1e-2] if a.quick else [1e-4, 1e-3, 1e-2, 1e-1])]
-    grid += [("mlp", r) for r in ([1e-2] if a.quick else [1e-3, 1e-2, 1e-1])]
+    grid = [("linear", r) for r in ([1e-3, 1e-2] if a.quick else [1e-3, 1e-2, 1e-1, 0.5, 2.0])]
+    grid += [("mlp", r) for r in ([1e-2] if a.quick else [1e-2, 5e-2, 2e-1, 5e-1])]
     cands = []
-    w_fit = balanced_weights(y[fit_idx])
+    fit_sources = [items[i]["source"] for i in fit_idx]
+    w_fit = balanced_weights(y[fit_idx], fit_sources)
     for fs_name, fs in feature_sets.items():
         cols = slice_cols(layers, fs, dim)
         for kind, reg in grid:
@@ -316,14 +349,16 @@ def main() -> int:
     best = max(cands, key=lambda c: (c["val_auc"], c["kind"] == "linear"))  # tie -> simpler head
     print(f"selected: {best}")
 
-    # ---- final head: fit on the fit split, thresholds on validation
+    # ---- final head: fit on the fit split, temperature-calibrate & set thresholds on validation
     fs = feature_sets[best["features"]]
     cols = slice_cols(layers, fs, dim)
     W, mu, sd = fit_head(X[fit_idx][:, cols], y[fit_idx], w_fit, best["kind"], best["reg"], a.seed)
     head = make_head(best["kind"], fs, W, mu, sd)
+    temp = calibrate_temperature(head, X[val_idx][:, cols], y[val_idx])
     s_val = head.predict_proba(X[val_idx][:, cols])
     lo, hi = thresholds_from_val(y[val_idx], s_val)
     head.threshold_low, head.threshold_high = lo, hi
+    print(f"temperature calibration on validation: T={temp:.4f} -> thresholds low={lo}, high={hi}")
     val_auc_head, val_auc_base = roc_auc(y[val_idx], s_val), roc_auc(y[val_idx], base[val_idx])
     activate = val_auc_head >= val_auc_base   # deployment gate decided on validation, never on test
     print(f"validation AUC: trained head {val_auc_head:.4f} vs original model {val_auc_base:.4f}"
@@ -342,7 +377,8 @@ def main() -> int:
         tr = np.array([i for i in tr_idx if items[i]["source"] != held])
         if len(set(y[tr].tolist())) < 2:
             continue
-        Wl, mul, sdl = fit_head(X[tr][:, cols], y[tr], balanced_weights(y[tr]), best["kind"], best["reg"], a.seed)
+        tr_sources = [items[i]["source"] for i in tr]
+        Wl, mul, sdl = fit_head(X[tr][:, cols], y[tr], balanced_weights(y[tr], tr_sources), best["kind"], best["reg"], a.seed)
         hl = make_head(best["kind"], fs, Wl, mul, sdl)
         real_src = PAIR_REALS.get(held, held)
         m = np.array([i for i in te_idx if (items[i]["source"] == held and items[i]["y"] == 1)
@@ -357,16 +393,18 @@ def main() -> int:
     pooled = res_head["pooled"]
     per_src = ", ".join(f"{k} {v['auc']:.3f}" for k, v in res_head.items() if ":" not in k and k != "pooled")
     loso_txt = ", ".join(f"{k} {v['head_trained_without_it']['auc']:.3f}" for k, v in loso.items())
+    src_list = sorted({it["source"] for it in items})
     head.meta = {
-        "name": "deepshield-face-head-v1", "base_model_id": FACE_SPEC.model_id, "base_source": source,
+        "name": "deepshield-face-head-v2", "base_model_id": FACE_SPEC.model_id, "base_source": source,
         "trained_at": datetime.now().isoformat(timespec="seconds"), "selection": best,
+        "temperature": temp, "sources": src_list,
         "n_train": int(len(fit_idx)), "n_val": int(len(val_idx)), "n_test": int(len(te_idx)),
         "test_auc": pooled["auc"], "summary": (
-            f"Classification head retrained by DEEP SHIELD on {len(fit_idx)} face crops from three generator "
-            f"families (StyleGAN, StyleGAN2/thispersondoesnotexist, DeepFakeFace swaps and diffusion); SigLIP "
-            f"backbone frozen. Held-out test ROC-AUC {pooled['auc']:.3f} (per source: {per_src}). "
-            f"Unseen-generator test (leave-one-out) ROC-AUC: {loso_txt}. "
-            f"Thresholds set on validation: <=5% of real faces above {hi}, <=5% of fakes below {lo}."),
+            f"Classification head retrained by DEEP SHIELD on {len(fit_idx)} face crops across {len(src_list)} "
+            f"real datasets ({', '.join(src_list)}); SigLIP2 backbone frozen, temperature-calibrated (T={temp}). "
+            f"Held-out test ROC-AUC {pooled['auc']:.3f} (per source: {per_src}). "
+            f"Unseen-generator (leave-one-out) ROC-AUC: {loso_txt}. "
+            f"Validation-calibrated thresholds: <=5% real above {hi}, <=5% fake below {lo}."),
     }
     out_head = Path(a.out_head)
     if not activate:

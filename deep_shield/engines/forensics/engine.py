@@ -77,11 +77,20 @@ def _load_m04_params() -> dict:
     return {}
 
 
+def _rooted(value: str) -> Path:
+    p = Path(value).expanduser()
+    return p if p.is_absolute() else (ROOT / p).resolve()
+
+
 @dataclass
 class ForensicsConfig:
-    evidence_dir: Path = field(default_factory=lambda: Path(os.getenv("DEEPSHIELD_M04_EVIDENCE_DIR", "evidence_store/m04")))
+    evidence_dir: Path = field(default_factory=lambda: _rooted(os.getenv("DEEPSHIELD_M04_EVIDENCE_DIR", "evidence_store/m04")))
     keyframes: int = field(default_factory=lambda: int(_load_m04_params().get("parameters", {}).get("video_keyframes", 3)))
     ela_quality: int = field(default_factory=lambda: int(_load_m04_params().get("parameters", {}).get("ela_jpeg_quality", 90)))
+    sift_ratio: float = field(default_factory=lambda: float(_load_m04_params().get("parameters", {}).get("sift_ratio_threshold", 0.65)))
+    min_keypoint_dist: float = field(default_factory=lambda: float(_load_m04_params().get("parameters", {}).get("min_keypoint_distance_px", 28.0)))
+    ransac_min_inliers: int = field(default_factory=lambda: int(_load_m04_params().get("parameters", {}).get("ransac_min_inliers", 6)))
+    sift_contrast: float = field(default_factory=lambda: float(_load_m04_params().get("parameters", {}).get("sift_contrast_threshold", 0.006)))
     max_upload_mb: int = field(default_factory=lambda: int(os.getenv("DEEPSHIELD_MAX_UPLOAD_MB", "200")))
     keep_uploads: bool = field(default_factory=lambda: os.getenv("DEEPSHIELD_KEEP_UPLOADS", "0") == "1")
 
@@ -157,7 +166,13 @@ class VisualForensicsEngine:
         extra = (["Video frame: codec compression makes ELA/noise maps less informative."] if fi is not None else [])
 
         if TASK_CM in tasks:
-            cm = copymove.detect(bgr)
+            cm = copymove.detect(
+                bgr,
+                ratio=self.cfg.sift_ratio,
+                min_dist=self.cfg.min_keypoint_dist,
+                min_inliers=self.cfg.ransac_min_inliers,
+                contrast=self.cfg.sift_contrast,
+            )
             ref = store.save_bgr(copymove.render(bgr, cm), f"{pre}copy_move.jpg", "copy_move_matches",
                                  f"Copy-move keypoint matches, {where} (green = source, red = target)")
             pub = copymove.public(cm)

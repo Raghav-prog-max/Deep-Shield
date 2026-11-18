@@ -1,6 +1,6 @@
 import type { JobRecord } from "@/lib/types";
 
-// Default configured base; dynamically falls back to local FastAPI (127.0.0.1:8002) when hosted on Vercel.
+// Default configured base; automatically checks same-origin and local FastAPI (127.0.0.1:8002).
 export const API_BASE = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/$/, "");
 
 let activeApiBase: string = API_BASE;
@@ -9,14 +9,26 @@ export function getActiveApiBase(): string {
   return activeApiBase;
 }
 
-export async function resolveApiBase(): Promise<{ online: boolean; base: string }> {
+export function setCustomApiBase(url: string): void {
+  activeApiBase = url.trim().replace(/\/$/, "");
+}
+
+export async function resolveApiBase(preferredBase?: string): Promise<{ online: boolean; base: string }> {
   const candidates = Array.from(
-    new Set([API_BASE, "", "http://127.0.0.1:8002", "http://localhost:8002"])
+    new Set(
+      [
+        preferredBase !== undefined ? preferredBase.trim().replace(/\/$/, "") : null,
+        API_BASE,
+        "",
+        "http://127.0.0.1:8002",
+        "http://localhost:8002",
+      ].filter((v): v is string => v !== null)
+    )
   );
   for (const base of candidates) {
     try {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 2200);
+      const timer = setTimeout(() => controller.abort(), 2500);
       const resp = await fetch(`${base}/api/v1/m01/health`, {
         signal: controller.signal,
         cache: "no-store",
@@ -34,6 +46,16 @@ export async function resolveApiBase(): Promise<{ online: boolean; base: string 
     }
   }
   return { online: false, base: activeApiBase };
+}
+
+export async function fetchLoadedModels(): Promise<Record<string, unknown> | null> {
+  try {
+    const resp = await fetch(`${activeApiBase}/api/v1/intelligence/models`, { cache: "no-store" });
+    if (!resp.ok) return null;
+    return (await resp.json()) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
 }
 
 async function readJson<T>(response: Response): Promise<T> {
@@ -70,9 +92,6 @@ export function reportUrl(jobId: string): string {
 
 export function evidenceUrl(module: string, path: string): string | null {
   if (!path) return null;
-  if (path.startsWith("data:") || path.startsWith("blob:") || path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
-  }
   const route = module.startsWith("M01") ? "m01" : module.startsWith("M02") ? "m02" :
     module.startsWith("M03") ? "m03" : module.startsWith("M04") ? "m04" : null;
   const parts = path.split("/").filter(Boolean);

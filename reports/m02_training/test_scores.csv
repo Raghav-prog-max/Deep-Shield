@@ -1,277 +1,652 @@
 file,source,category,label,original_score,trained_head_score
-stylegan1/test/real/stylegan1_test_real_003986.jpg,stylegan1,FFHQ,real,0.03874,0.0003
-stylegan1/test/fake/stylegan1_test_fake_003909.jpg,stylegan1,StyleGAN,fake,0.39212,0.344
-stylegan1/test/fake/stylegan1_test_fake_003983.jpg,stylegan1,StyleGAN,fake,0.97806,1.0
-stylegan1/test/real/stylegan1_test_real_003950.jpg,stylegan1,FFHQ,real,0.55979,0.99493
-stylegan1/test/fake/stylegan1_test_fake_003905.jpg,stylegan1,StyleGAN,fake,0.97713,0.99857
-stylegan1/test/fake/stylegan1_test_fake_003997.jpg,stylegan1,StyleGAN,fake,0.35139,0.01137
-stylegan1/test/fake/stylegan1_test_fake_003963.jpg,stylegan1,StyleGAN,fake,0.99092,0.99912
-stylegan1/test/real/stylegan1_test_real_003920.jpg,stylegan1,FFHQ,real,0.06665,0.0957
-stylegan1/test/fake/stylegan1_test_fake_003911.jpg,stylegan1,StyleGAN,fake,0.71474,0.99997
-stylegan1/test/fake/stylegan1_test_fake_003999.jpg,stylegan1,StyleGAN,fake,0.90237,0.99999
-stylegan1/test/fake/stylegan1_test_fake_003975.jpg,stylegan1,StyleGAN,fake,0.49175,0.99991
-stylegan1/test/fake/stylegan1_test_fake_004001.jpg,stylegan1,StyleGAN,fake,0.87934,0.99996
-stylegan1/test/real/stylegan1_test_real_003984.jpg,stylegan1,FFHQ,real,0.00262,8e-05
-stylegan1/test/fake/stylegan1_test_fake_003955.jpg,stylegan1,StyleGAN,fake,0.84731,0.99477
-stylegan1/test/fake/stylegan1_test_fake_003923.jpg,stylegan1,StyleGAN,fake,0.97488,0.99999
-stylegan1/test/real/stylegan1_test_real_003952.jpg,stylegan1,FFHQ,real,0.02587,0.005
-stylegan1/test/real/stylegan1_test_real_003958.jpg,stylegan1,FFHQ,real,0.10564,0.00807
-stylegan1/test/fake/stylegan1_test_fake_003961.jpg,stylegan1,StyleGAN,fake,0.82626,0.99969
-stylegan1/test/real/stylegan1_test_real_003918.jpg,stylegan1,FFHQ,real,0.36064,0.95614
-stylegan1/test/real/stylegan1_test_real_003998.jpg,stylegan1,FFHQ,real,0.76054,0.02324
-stylegan1/test/fake/stylegan1_test_fake_003957.jpg,stylegan1,StyleGAN,fake,0.90445,1.0
-stylegan1/test/real/stylegan1_test_real_003906.jpg,stylegan1,FFHQ,real,0.01269,0.0
-stylegan1/test/real/stylegan1_test_real_003924.jpg,stylegan1,FFHQ,real,0.01927,0.00104
-stylegan1/test/fake/stylegan1_test_fake_003991.jpg,stylegan1,StyleGAN,fake,0.62449,0.99994
-stylegan1/test/fake/stylegan1_test_fake_003925.jpg,stylegan1,StyleGAN,fake,0.12661,0.64828
-stylegan1/test/real/stylegan1_test_real_003942.jpg,stylegan1,FFHQ,real,0.01028,0.59088
-stylegan1/test/fake/stylegan1_test_fake_003937.jpg,stylegan1,StyleGAN,fake,0.17402,0.99636
-stylegan1/test/fake/stylegan1_test_fake_003907.jpg,stylegan1,StyleGAN,fake,0.9163,1.0
-stylegan1/test/fake/stylegan1_test_fake_003927.jpg,stylegan1,StyleGAN,fake,0.94239,0.99911
-stylegan1/test/fake/stylegan1_test_fake_003945.jpg,stylegan1,StyleGAN,fake,0.62271,0.99694
-stylegan1/test/fake/stylegan1_test_fake_003989.jpg,stylegan1,StyleGAN,fake,0.82665,0.99854
-stylegan1/test/fake/stylegan1_test_fake_003993.jpg,stylegan1,StyleGAN,fake,0.41255,0.9938
-stylegan1/test/fake/stylegan1_test_fake_003977.jpg,stylegan1,StyleGAN,fake,0.93941,1.0
-stylegan1/test/fake/stylegan1_test_fake_003987.jpg,stylegan1,StyleGAN,fake,0.85387,1.0
-stylegan1/test/real/stylegan1_test_real_003992.jpg,stylegan1,FFHQ,real,0.10766,2e-05
-stylegan1/test/fake/stylegan1_test_fake_003919.jpg,stylegan1,StyleGAN,fake,0.4347,0.56282
-stylegan1/test/real/stylegan1_test_real_003936.jpg,stylegan1,FFHQ,real,0.05016,0.74337
-stylegan1/test/fake/stylegan1_test_fake_003949.jpg,stylegan1,StyleGAN,fake,0.79041,0.84288
-stylegan1/test/real/stylegan1_test_real_003970.jpg,stylegan1,FFHQ,real,0.08584,0.01125
-stylegan1/test/fake/stylegan1_test_fake_003941.jpg,stylegan1,StyleGAN,fake,0.79802,0.97934
-stylegan1/test/real/stylegan1_test_real_003994.jpg,stylegan1,FFHQ,real,0.01478,0.25715
-stylegan1/test/fake/stylegan1_test_fake_003971.jpg,stylegan1,StyleGAN,fake,0.22829,0.23359
-stylegan1/test/real/stylegan1_test_real_003910.jpg,stylegan1,FFHQ,real,0.36953,0.0004
-stylegan1/test/real/stylegan1_test_real_003934.jpg,stylegan1,FFHQ,real,0.01354,7e-05
-stylegan1/test/real/stylegan1_test_real_003938.jpg,stylegan1,FFHQ,real,0.20497,0.04302
-stylegan1/test/real/stylegan1_test_real_003966.jpg,stylegan1,FFHQ,real,0.07798,0.00137
-stylegan1/test/real/stylegan1_test_real_003928.jpg,stylegan1,FFHQ,real,0.01389,0.00526
-stylegan1/test/real/stylegan1_test_real_003908.jpg,stylegan1,FFHQ,real,0.16626,0.45217
-stylegan1/test/real/stylegan1_test_real_003930.jpg,stylegan1,FFHQ,real,0.01614,0.0
-stylegan1/test/real/stylegan1_test_real_003964.jpg,stylegan1,FFHQ,real,0.22078,0.33421
-stylegan1/test/real/stylegan1_test_real_003954.jpg,stylegan1,FFHQ,real,0.04385,0.00125
-stylegan1/test/real/stylegan1_test_real_003926.jpg,stylegan1,FFHQ,real,0.05068,6e-05
-stylegan1/test/real/stylegan1_test_real_003962.jpg,stylegan1,FFHQ,real,0.00542,5e-05
-stylegan1/test/real/stylegan1_test_real_003996.jpg,stylegan1,FFHQ,real,0.45944,0.99148
-stylegan1/test/real/stylegan1_test_real_003922.jpg,stylegan1,FFHQ,real,0.05871,5e-05
-stylegan1/test/fake/stylegan1_test_fake_003995.jpg,stylegan1,StyleGAN,fake,0.76932,0.99998
-stylegan1/test/real/stylegan1_test_real_003980.jpg,stylegan1,FFHQ,real,0.01921,1e-05
-stylegan1/test/real/stylegan1_test_real_003972.jpg,stylegan1,FFHQ,real,0.31425,0.82658
-stylegan1/test/real/stylegan1_test_real_003944.jpg,stylegan1,FFHQ,real,0.39913,0.98395
-stylegan1/test/real/stylegan1_test_real_003988.jpg,stylegan1,FFHQ,real,0.30696,0.00461
-stylegan1/test/fake/stylegan1_test_fake_003969.jpg,stylegan1,StyleGAN,fake,0.33069,0.9938
-stylegan1/test/real/stylegan1_test_real_003932.jpg,stylegan1,FFHQ,real,0.00511,0.00506
-stylegan1/test/fake/stylegan1_test_fake_003921.jpg,stylegan1,StyleGAN,fake,0.73183,0.9961
-stylegan1/test/real/stylegan1_test_real_003940.jpg,stylegan1,FFHQ,real,0.07531,0.02043
-stylegan1/test/real/stylegan1_test_real_003914.jpg,stylegan1,FFHQ,real,0.10141,0.99956
-stylegan1/test/real/stylegan1_test_real_003946.jpg,stylegan1,FFHQ,real,0.00878,1e-05
-stylegan1/test/real/stylegan1_test_real_003912.jpg,stylegan1,FFHQ,real,0.07065,0.14653
-stylegan1/test/real/stylegan1_test_real_004000.jpg,stylegan1,FFHQ,real,0.00776,0.00427
-stylegan1/test/fake/stylegan1_test_fake_003951.jpg,stylegan1,StyleGAN,fake,0.84309,0.99541
-stylegan1/test/real/stylegan1_test_real_003948.jpg,stylegan1,FFHQ,real,0.0026,0.00078
-stylegan1/test/fake/stylegan1_test_fake_003947.jpg,stylegan1,StyleGAN,fake,0.93621,0.99996
-stylegan1/test/fake/stylegan1_test_fake_003935.jpg,stylegan1,StyleGAN,fake,0.77189,0.99925
-stylegan1/test/fake/stylegan1_test_fake_003953.jpg,stylegan1,StyleGAN,fake,0.84288,0.72631
-stylegan1/test/fake/stylegan1_test_fake_003929.jpg,stylegan1,StyleGAN,fake,0.97503,1.0
-stylegan1/test/real/stylegan1_test_real_004002.jpg,stylegan1,FFHQ,real,0.11996,0.00222
-stylegan1/test/real/stylegan1_test_real_003990.jpg,stylegan1,FFHQ,real,0.01331,0.09957
-stylegan1/test/real/stylegan1_test_real_003904.jpg,stylegan1,FFHQ,real,0.28819,0.00392
-stylegan1/test/real/stylegan1_test_real_003960.jpg,stylegan1,FFHQ,real,0.01262,0.02908
-stylegan1/test/fake/stylegan1_test_fake_003915.jpg,stylegan1,StyleGAN,fake,0.94123,0.95066
-stylegan1/test/fake/stylegan1_test_fake_003939.jpg,stylegan1,StyleGAN,fake,0.95931,1.0
-stylegan1/test/fake/stylegan1_test_fake_003917.jpg,stylegan1,StyleGAN,fake,0.50505,0.95109
-stylegan1/test/fake/stylegan1_test_fake_003913.jpg,stylegan1,StyleGAN,fake,0.85588,0.99827
-stylegan1/test/fake/stylegan1_test_fake_003981.jpg,stylegan1,StyleGAN,fake,0.52955,0.95294
-stylegan1/test/fake/stylegan1_test_fake_003903.jpg,stylegan1,StyleGAN,fake,0.20115,0.96507
-stylegan1/test/fake/stylegan1_test_fake_003933.jpg,stylegan1,StyleGAN,fake,0.41278,0.55407
-stylegan1/test/fake/stylegan1_test_fake_003959.jpg,stylegan1,StyleGAN,fake,0.73043,0.77254
-stylegan1/test/real/stylegan1_test_real_003978.jpg,stylegan1,FFHQ,real,0.4456,0.07732
-stylegan1/test/fake/stylegan1_test_fake_003965.jpg,stylegan1,StyleGAN,fake,0.98694,1.0
-stylegan1/test/fake/stylegan1_test_fake_003973.jpg,stylegan1,StyleGAN,fake,0.81526,0.9994
-stylegan1/test/real/stylegan1_test_real_003976.jpg,stylegan1,FFHQ,real,0.53054,0.06197
-stylegan1/test/real/stylegan1_test_real_003956.jpg,stylegan1,FFHQ,real,0.02618,0.00022
-stylegan1/test/real/stylegan1_test_real_003974.jpg,stylegan1,FFHQ,real,0.03987,0.00571
-stylegan1/test/real/stylegan1_test_real_003982.jpg,stylegan1,FFHQ,real,0.09115,0.15447
-stylegan1/test/fake/stylegan1_test_fake_003979.jpg,stylegan1,StyleGAN,fake,0.14028,0.99027
-stylegan1/test/fake/stylegan1_test_fake_003931.jpg,stylegan1,StyleGAN,fake,0.92139,0.99999
-stylegan1/test/real/stylegan1_test_real_003916.jpg,stylegan1,FFHQ,real,0.13441,0.0003
-stylegan1/test/fake/stylegan1_test_fake_003985.jpg,stylegan1,StyleGAN,fake,0.91581,0.00522
-stylegan1/test/real/stylegan1_test_real_003968.jpg,stylegan1,FFHQ,real,0.05749,0.0001
-stylegan1/test/fake/stylegan1_test_fake_003967.jpg,stylegan1,StyleGAN,fake,0.90964,0.99491
-stylegan1/test/fake/stylegan1_test_fake_003943.jpg,stylegan1,StyleGAN,fake,0.8247,0.96329
-stylegan1/test/fake/stylegan1_test_fake_006709.jpg,stylegan1,StyleGAN,fake,0.9574,1.0
-stylegan1/test/fake/stylegan1_test_fake_006647.jpg,stylegan1,StyleGAN,fake,0.4924,0.97323
-stylegan1/test/fake/stylegan1_test_fake_006663.jpg,stylegan1,StyleGAN,fake,0.69173,0.99951
-stylegan1/test/fake/stylegan1_test_fake_006689.jpg,stylegan1,StyleGAN,fake,0.66766,0.99704
-stylegan1/test/fake/stylegan1_test_fake_006679.jpg,stylegan1,StyleGAN,fake,0.8466,0.88687
-stylegan1/test/real/stylegan1_test_real_006722.jpg,stylegan1,FFHQ,real,0.01581,0.00643
-stylegan1/test/fake/stylegan1_test_fake_006665.jpg,stylegan1,StyleGAN,fake,0.43991,0.92935
-stylegan1/test/real/stylegan1_test_real_006646.jpg,stylegan1,FFHQ,real,0.02381,0.00128
-stylegan1/test/fake/stylegan1_test_fake_006733.jpg,stylegan1,StyleGAN,fake,0.14492,0.83579
-stylegan1/test/real/stylegan1_test_real_006674.jpg,stylegan1,FFHQ,real,0.0115,2e-05
-stylegan1/test/real/stylegan1_test_real_006642.jpg,stylegan1,FFHQ,real,0.02026,0.01329
-stylegan1/test/fake/stylegan1_test_fake_006639.jpg,stylegan1,StyleGAN,fake,0.81986,0.98336
-stylegan1/test/fake/stylegan1_test_fake_006671.jpg,stylegan1,StyleGAN,fake,0.84811,0.99988
-stylegan1/test/fake/stylegan1_test_fake_006727.jpg,stylegan1,StyleGAN,fake,0.79393,1.0
-stylegan1/test/real/stylegan1_test_real_006684.jpg,stylegan1,FFHQ,real,0.09886,0.00539
-stylegan1/test/real/stylegan1_test_real_006696.jpg,stylegan1,FFHQ,real,0.04663,0.0
-stylegan1/test/real/stylegan1_test_real_006724.jpg,stylegan1,FFHQ,real,0.07254,0.01972
-stylegan1/test/real/stylegan1_test_real_006654.jpg,stylegan1,FFHQ,real,0.01153,0.00068
-stylegan1/test/real/stylegan1_test_real_006716.jpg,stylegan1,FFHQ,real,0.29899,0.00547
-stylegan1/test/real/stylegan1_test_real_006652.jpg,stylegan1,FFHQ,real,0.0626,0.0015
-tpdne/test/fake/tpdne_test_fake_09181.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.18882,0.99997
-tpdne/test/fake/tpdne_test_fake_09918.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02089,1.0
-tpdne/test/fake/tpdne_test_fake_09757.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01501,0.99889
-tpdne/test/fake/tpdne_test_fake_08718.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.03909,1.0
-tpdne/test/fake/tpdne_test_fake_08646.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.19936,0.99999
-tpdne/test/fake/tpdne_test_fake_09597.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.03435,0.92754
-tpdne/test/fake/tpdne_test_fake_08934.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04707,1.0
-tpdne/test/fake/tpdne_test_fake_09244.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.07419,1.0
-tpdne/test/fake/tpdne_test_fake_09282.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.28356,0.99994
-tpdne/test/fake/tpdne_test_fake_09341.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.08091,1.0
-tpdne/test/fake/tpdne_test_fake_09463.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02852,1.0
-tpdne/test/fake/tpdne_test_fake_09260.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02298,0.98038
-tpdne/test/fake/tpdne_test_fake_08078.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.0545,0.93664
-tpdne/test/fake/tpdne_test_fake_09894.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.39062,1.0
-tpdne/test/fake/tpdne_test_fake_08828.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.06815,0.99798
-tpdne/test/fake/tpdne_test_fake_08648.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.68529,0.99709
-tpdne/test/fake/tpdne_test_fake_09245.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.79622,0.99987
-tpdne/test/fake/tpdne_test_fake_08442.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02829,1.0
-tpdne/test/fake/tpdne_test_fake_09217.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.06642,0.99994
-tpdne/test/fake/tpdne_test_fake_08948.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04068,0.87676
-tpdne/test/fake/tpdne_test_fake_08873.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01513,1.0
-tpdne/test/fake/tpdne_test_fake_09385.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02796,0.99521
-tpdne/test/fake/tpdne_test_fake_09799.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02705,0.9995
-tpdne/test/fake/tpdne_test_fake_08245.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01112,0.19901
-tpdne/test/fake/tpdne_test_fake_09406.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.0561,0.99998
-tpdne/test/fake/tpdne_test_fake_08767.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.13869,1.0
-tpdne/test/fake/tpdne_test_fake_09764.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.52816,0.99999
-tpdne/test/fake/tpdne_test_fake_09027.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04044,0.99999
-tpdne/test/fake/tpdne_test_fake_09396.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01866,0.99991
-tpdne/test/fake/tpdne_test_fake_09892.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.14384,1.0
-tpdne/test/fake/tpdne_test_fake_08516.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01363,0.99884
-tpdne/test/fake/tpdne_test_fake_08797.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04045,1.0
-tpdne/test/fake/tpdne_test_fake_08598.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04151,0.99975
-tpdne/test/fake/tpdne_test_fake_09940.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.5912,0.99931
-tpdne/test/fake/tpdne_test_fake_09673.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.58792,1.0
-tpdne/test/fake/tpdne_test_fake_08730.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01995,0.88618
-tpdne/test/fake/tpdne_test_fake_08119.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04114,0.99996
-tpdne/test/fake/tpdne_test_fake_09507.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.07027,0.9978
-tpdne/test/fake/tpdne_test_fake_09465.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01417,0.99999
-tpdne/test/fake/tpdne_test_fake_08895.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02309,0.99931
-tpdne/test/fake/tpdne_test_fake_08049.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.20156,0.99982
-tpdne/test/fake/tpdne_test_fake_08577.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.03669,0.99999
-tpdne/test/fake/tpdne_test_fake_09424.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01433,1.0
-tpdne/test/fake/tpdne_test_fake_08677.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.05576,0.99996
-tpdne/test/fake/tpdne_test_fake_08594.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.34082,1.0
-tpdne/test/fake/tpdne_test_fake_09490.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.29561,1.0
-tpdne/test/fake/tpdne_test_fake_09963.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.12172,0.99958
-tpdne/test/fake/tpdne_test_fake_09576.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.64644,1.0
-tpdne/test/fake/tpdne_test_fake_09639.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04386,0.99999
-tpdne/test/fake/tpdne_test_fake_09876.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01099,1.0
-tpdne/test/fake/tpdne_test_fake_08251.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.0717,0.99996
-tpdne/test/fake/tpdne_test_fake_08609.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01942,0.99999
-tpdne/test/fake/tpdne_test_fake_09573.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.03113,0.99985
-tpdne/test/fake/tpdne_test_fake_08854.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.39502,0.99939
-tpdne/test/fake/tpdne_test_fake_08654.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.07828,1.0
-tpdne/test/fake/tpdne_test_fake_09200.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.29688,0.99999
-tpdne/test/fake/tpdne_test_fake_09850.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.50243,0.99993
-tpdne/test/fake/tpdne_test_fake_08042.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.82631,1.0
-tpdne/test/fake/tpdne_test_fake_09111.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02051,0.99172
-dff/test/fake/dff_test_fake_009812.jpg,dff,FS,fake,0.93167,0.96344
-dff/test/fake/dff_test_fake_009770.jpg,dff,FS,fake,0.01822,0.99097
-dff/test/fake/dff_test_fake_009827.jpg,dff,FS,fake,0.27881,0.00135
-dff/test/fake/dff_test_fake_009803.jpg,dff,EFS,fake,0.27785,0.99092
-dff/test/fake/dff_test_fake_009800.jpg,dff,EFS,fake,0.95363,0.96347
-dff/test/fake/dff_test_fake_009777.jpg,dff,FS,fake,0.11541,0.99812
-dff/test/fake/dff_test_fake_009855.jpg,dff,FS,fake,0.05656,0.00754
-dff/test/real/dff_test_real_009797.jpg,dff,real,real,0.15804,0.00122
-dff/test/fake/dff_test_fake_009805.jpg,dff,EFS,fake,0.03122,0.9999
-dff/test/fake/dff_test_fake_009802.jpg,dff,FS,fake,0.59041,0.9922
-dff/test/real/dff_test_real_009824.jpg,dff,real,real,0.12169,0.00882
-dff/test/fake/dff_test_fake_009844.jpg,dff,EFS,fake,0.41332,0.13928
-dff/test/fake/dff_test_fake_009816.jpg,dff,EFS,fake,0.09189,0.7737
-dff/test/fake/dff_test_fake_009856.jpg,dff,EFS,fake,0.75118,0.2205
-dff/test/fake/dff_test_fake_009832.jpg,dff,EFS,fake,0.72145,0.97462
-dff/test/real/dff_test_real_009790.jpg,dff,real,real,0.30854,0.00949
-dff/test/fake/dff_test_fake_009831.jpg,dff,FS,fake,0.45285,0.0005
-dff/test/real/dff_test_real_009760.jpg,dff,real,real,0.29137,0.00067
-dff/test/fake/dff_test_fake_009813.jpg,dff,EFS,fake,0.55505,0.99435
-dff/test/fake/dff_test_fake_009857.jpg,dff,EFS,fake,0.2263,0.5234
-dff/test/fake/dff_test_fake_009779.jpg,dff,FS,fake,0.11238,0.04229
-dff/test/fake/dff_test_fake_009842.jpg,dff,FS,fake,0.46304,0.11945
-dff/test/real/dff_test_real_009840.jpg,dff,real,real,0.49052,0.98149
-dff/test/real/dff_test_real_009809.jpg,dff,real,real,0.08256,0.00112
-dff/test/real/dff_test_real_009839.jpg,dff,real,real,0.12829,6e-05
-dff/test/real/dff_test_real_009791.jpg,dff,real,real,0.07994,0.61145
-dff/test/fake/dff_test_fake_009788.jpg,dff,FS,fake,0.03963,0.00274
-dff/test/real/dff_test_real_009781.jpg,dff,real,real,0.02975,7e-05
-dff/test/real/dff_test_real_009801.jpg,dff,real,real,0.60514,0.00097
-dff/test/fake/dff_test_fake_009798.jpg,dff,EFS,fake,0.68171,0.86373
-dff/test/fake/dff_test_fake_009850.jpg,dff,EFS,fake,0.24204,0.61596
-dff/test/fake/dff_test_fake_009794.jpg,dff,FS,fake,0.89716,0.99741
-dff/test/real/dff_test_real_009837.jpg,dff,real,real,0.06282,0.01014
-dff/test/fake/dff_test_fake_009772.jpg,dff,EFS,fake,0.08511,0.00213
-dff/test/fake/dff_test_fake_009848.jpg,dff,FS,fake,0.40245,5e-05
-dff/test/real/dff_test_real_009845.jpg,dff,real,real,0.75512,0.97705
-dff/test/fake/dff_test_fake_009764.jpg,dff,FS,fake,0.65173,0.07603
-dff/test/fake/dff_test_fake_009858.jpg,dff,FS,fake,0.34721,0.02003
-dff/test/fake/dff_test_fake_009841.jpg,dff,FS,fake,0.45756,0.99763
-dff/test/fake/dff_test_fake_009792.jpg,dff,EFS,fake,0.24968,0.04786
-dff/test/fake/dff_test_fake_009769.jpg,dff,EFS,fake,0.18775,0.9323
-dff/test/fake/dff_test_fake_009851.jpg,dff,EFS,fake,0.26585,0.66396
-dff/test/fake/dff_test_fake_009775.jpg,dff,EFS,fake,0.02199,0.9978
-dff/test/fake/dff_test_fake_009771.jpg,dff,EFS,fake,0.93652,0.99832
-dff/test/fake/dff_test_fake_009828.jpg,dff,EFS,fake,0.94635,0.99637
-dff/test/fake/dff_test_fake_009759.jpg,dff,FS,fake,0.28782,0.00203
-dff/test/fake/dff_test_fake_009784.jpg,dff,FS,fake,0.03061,0.01134
-dff/test/fake/dff_test_fake_009785.jpg,dff,EFS,fake,0.01546,0.9987
-dff/test/fake/dff_test_fake_009853.jpg,dff,EFS,fake,0.4309,0.94594
-dff/test/real/dff_test_real_009765.jpg,dff,real,real,0.11817,0.00018
-dff/test/fake/dff_test_fake_009821.jpg,dff,FS,fake,0.00489,0.186
-dff/test/real/dff_test_real_009766.jpg,dff,real,real,0.04626,0.00507
-dff/test/fake/dff_test_fake_009817.jpg,dff,EFS,fake,0.99313,0.99999
-dff/test/fake/dff_test_fake_009830.jpg,dff,EFS,fake,0.74544,0.91713
-dff/test/fake/dff_test_fake_009768.jpg,dff,FS,fake,0.44603,0.94478
-dff/test/fake/dff_test_fake_009846.jpg,dff,EFS,fake,0.04,0.81833
-dff/test/real/dff_test_real_009806.jpg,dff,real,real,0.77131,0.97876
-dff/test/fake/dff_test_fake_009774.jpg,dff,FS,fake,0.14884,0.99497
-dff/test/fake/dff_test_fake_009843.jpg,dff,FS,fake,0.4212,0.05787
-dff/test/fake/dff_test_fake_009838.jpg,dff,EFS,fake,0.08504,0.61782
-dff/test/fake/dff_test_fake_009804.jpg,dff,FS,fake,0.05697,0.3599
-dff/test/fake/dff_test_fake_009762.jpg,dff,EFS,fake,0.4919,0.99813
-dff/test/real/dff_test_real_009793.jpg,dff,real,real,0.03451,0.00118
-dff/test/real/dff_test_real_009789.jpg,dff,real,real,0.07285,0.07279
-dff/test/real/dff_test_real_009818.jpg,dff,real,real,0.30252,0.41101
-dff/test/real/dff_test_real_009763.jpg,dff,real,real,0.49766,0.01806
-dff/test/real/dff_test_real_009786.jpg,dff,real,real,0.33462,0.92984
-dff/test/real/dff_test_real_009761.jpg,dff,real,real,0.21625,0.043
-dff/test/real/dff_test_real_009782.jpg,dff,real,real,0.96955,0.72283
-dff/test/real/dff_test_real_008963.jpg,dff,real,real,0.083,0.0
-dff/test/real/dff_test_real_008956.jpg,dff,real,real,0.56835,0.47965
-dff/test/real/dff_test_real_008943.jpg,dff,real,real,0.48006,0.00244
-dff/test/real/dff_test_real_008972.jpg,dff,real,real,0.84454,0.22569
-dff/test/real/dff_test_real_008936.jpg,dff,real,real,0.07328,0.02043
-dff/test/real/dff_test_real_008958.jpg,dff,real,real,0.74759,0.01761
-dff/test/real/dff_test_real_008916.jpg,dff,real,real,0.6602,0.11982
-dff/test/real/dff_test_real_008879.jpg,dff,real,real,0.6863,0.00465
-dff/test/real/dff_test_real_008882.jpg,dff,real,real,0.07329,0.02406
-dff/test/real/dff_test_real_008941.jpg,dff,real,real,0.1478,0.00877
-dff/test/real/dff_test_real_008893.jpg,dff,real,real,0.07082,0.00015
-dff/test/real/dff_test_real_008934.jpg,dff,real,real,0.33405,0.01278
-dff/test/real/dff_test_real_008917.jpg,dff,real,real,0.37371,0.01052
-dff/test/real/dff_test_real_008938.jpg,dff,real,real,0.42168,0.99121
-dff/test/real/dff_test_real_008957.jpg,dff,real,real,0.7448,0.08482
-dff/test/real/dff_test_real_008904.jpg,dff,real,real,0.70681,0.9994
-dff/test/real/dff_test_real_008945.jpg,dff,real,real,0.27503,0.00016
-dff/test/real/dff_test_real_008923.jpg,dff,real,real,0.76963,0.89553
-dff/test/real/dff_test_real_008875.jpg,dff,real,real,0.45679,0.03247
-dff/test/real/dff_test_real_008903.jpg,dff,real,real,0.13164,0.00891
-dff/test/real/dff_test_real_008919.jpg,dff,real,real,0.27534,0.97828
-dff/test/real/dff_test_real_010429.jpg,dff,real,real,0.2397,0.02753
-dff/test/real/dff_test_real_010427.jpg,dff,real,real,0.70881,0.81837
-dff/test/real/dff_test_real_010388.jpg,dff,real,real,0.27138,0.08532
-dff/test/real/dff_test_real_010441.jpg,dff,real,real,0.17384,0.84646
-dff/test/real/dff_test_real_010443.jpg,dff,real,real,0.16717,0.00087
-dff/test/real/dff_test_real_010412.jpg,dff,real,real,0.1604,0.8389
-dff/test/real/dff_test_real_010402.jpg,dff,real,real,0.81065,0.7903
+stylegan1/test/real/stylegan1_test_real_003986.jpg,stylegan1,FFHQ,real,0.03874,0.01761
+stylegan1/test/fake/stylegan1_test_fake_003909.jpg,stylegan1,StyleGAN,fake,0.39212,0.69686
+stylegan1/test/fake/stylegan1_test_fake_003983.jpg,stylegan1,StyleGAN,fake,0.97806,0.99885
+stylegan1/test/real/stylegan1_test_real_003950.jpg,stylegan1,FFHQ,real,0.55979,0.39967
+stylegan1/test/fake/stylegan1_test_fake_003905.jpg,stylegan1,StyleGAN,fake,0.97713,0.99193
+stylegan1/test/fake/stylegan1_test_fake_003997.jpg,stylegan1,StyleGAN,fake,0.35139,0.81687
+stylegan1/test/fake/stylegan1_test_fake_003963.jpg,stylegan1,StyleGAN,fake,0.99092,0.98863
+stylegan1/test/real/stylegan1_test_real_003920.jpg,stylegan1,FFHQ,real,0.06665,0.04284
+stylegan1/test/fake/stylegan1_test_fake_003911.jpg,stylegan1,StyleGAN,fake,0.71474,0.77587
+stylegan1/test/fake/stylegan1_test_fake_003999.jpg,stylegan1,StyleGAN,fake,0.90237,0.97091
+stylegan1/test/fake/stylegan1_test_fake_003975.jpg,stylegan1,StyleGAN,fake,0.49175,0.99035
+stylegan1/test/fake/stylegan1_test_fake_004001.jpg,stylegan1,StyleGAN,fake,0.87934,0.95016
+stylegan1/test/real/stylegan1_test_real_003984.jpg,stylegan1,FFHQ,real,0.00262,0.00977
+stylegan1/test/fake/stylegan1_test_fake_003955.jpg,stylegan1,StyleGAN,fake,0.84731,0.97538
+stylegan1/test/fake/stylegan1_test_fake_003923.jpg,stylegan1,StyleGAN,fake,0.97488,0.98452
+stylegan1/test/real/stylegan1_test_real_003952.jpg,stylegan1,FFHQ,real,0.02587,0.10161
+stylegan1/test/real/stylegan1_test_real_003958.jpg,stylegan1,FFHQ,real,0.10564,0.04234
+stylegan1/test/fake/stylegan1_test_fake_003961.jpg,stylegan1,StyleGAN,fake,0.82626,0.93758
+stylegan1/test/real/stylegan1_test_real_003918.jpg,stylegan1,FFHQ,real,0.36064,0.35219
+stylegan1/test/real/stylegan1_test_real_003998.jpg,stylegan1,FFHQ,real,0.76054,0.02181
+stylegan1/test/fake/stylegan1_test_fake_003957.jpg,stylegan1,StyleGAN,fake,0.90445,0.97824
+stylegan1/test/real/stylegan1_test_real_003906.jpg,stylegan1,FFHQ,real,0.01269,0.1032
+stylegan1/test/real/stylegan1_test_real_003924.jpg,stylegan1,FFHQ,real,0.01927,0.21655
+stylegan1/test/fake/stylegan1_test_fake_003991.jpg,stylegan1,StyleGAN,fake,0.62449,0.98396
+stylegan1/test/fake/stylegan1_test_fake_003925.jpg,stylegan1,StyleGAN,fake,0.12661,0.65514
+stylegan1/test/real/stylegan1_test_real_003942.jpg,stylegan1,FFHQ,real,0.01028,0.41411
+stylegan1/test/fake/stylegan1_test_fake_003937.jpg,stylegan1,StyleGAN,fake,0.17402,0.69969
+stylegan1/test/fake/stylegan1_test_fake_003907.jpg,stylegan1,StyleGAN,fake,0.9163,0.95889
+stylegan1/test/fake/stylegan1_test_fake_003927.jpg,stylegan1,StyleGAN,fake,0.94239,0.93664
+stylegan1/test/fake/stylegan1_test_fake_003945.jpg,stylegan1,StyleGAN,fake,0.62271,0.95663
+stylegan1/test/fake/stylegan1_test_fake_003989.jpg,stylegan1,StyleGAN,fake,0.82665,0.80418
+stylegan1/test/fake/stylegan1_test_fake_003993.jpg,stylegan1,StyleGAN,fake,0.41255,0.82653
+stylegan1/test/fake/stylegan1_test_fake_003977.jpg,stylegan1,StyleGAN,fake,0.93941,0.99456
+stylegan1/test/fake/stylegan1_test_fake_003987.jpg,stylegan1,StyleGAN,fake,0.85387,0.98849
+stylegan1/test/real/stylegan1_test_real_003992.jpg,stylegan1,FFHQ,real,0.10766,0.01057
+stylegan1/test/fake/stylegan1_test_fake_003919.jpg,stylegan1,StyleGAN,fake,0.4347,0.2406
+stylegan1/test/real/stylegan1_test_real_003936.jpg,stylegan1,FFHQ,real,0.05016,0.07775
+stylegan1/test/fake/stylegan1_test_fake_003949.jpg,stylegan1,StyleGAN,fake,0.79041,0.95625
+stylegan1/test/real/stylegan1_test_real_003970.jpg,stylegan1,FFHQ,real,0.08584,0.06738
+stylegan1/test/fake/stylegan1_test_fake_003941.jpg,stylegan1,StyleGAN,fake,0.79802,0.94031
+stylegan1/test/real/stylegan1_test_real_003994.jpg,stylegan1,FFHQ,real,0.01478,0.13969
+stylegan1/test/fake/stylegan1_test_fake_003971.jpg,stylegan1,StyleGAN,fake,0.22829,0.49508
+stylegan1/test/real/stylegan1_test_real_003910.jpg,stylegan1,FFHQ,real,0.36953,0.06474
+stylegan1/test/real/stylegan1_test_real_003934.jpg,stylegan1,FFHQ,real,0.01354,0.02845
+stylegan1/test/real/stylegan1_test_real_003938.jpg,stylegan1,FFHQ,real,0.20497,0.07793
+stylegan1/test/real/stylegan1_test_real_003966.jpg,stylegan1,FFHQ,real,0.07798,0.03067
+stylegan1/test/real/stylegan1_test_real_003928.jpg,stylegan1,FFHQ,real,0.01389,0.04077
+stylegan1/test/real/stylegan1_test_real_003908.jpg,stylegan1,FFHQ,real,0.16626,0.40983
+stylegan1/test/real/stylegan1_test_real_003930.jpg,stylegan1,FFHQ,real,0.01614,0.0222
+stylegan1/test/real/stylegan1_test_real_003964.jpg,stylegan1,FFHQ,real,0.22078,0.54178
+stylegan1/test/real/stylegan1_test_real_003954.jpg,stylegan1,FFHQ,real,0.04385,0.07609
+stylegan1/test/real/stylegan1_test_real_003926.jpg,stylegan1,FFHQ,real,0.05068,0.0383
+stylegan1/test/real/stylegan1_test_real_003962.jpg,stylegan1,FFHQ,real,0.00542,0.00388
+stylegan1/test/real/stylegan1_test_real_003996.jpg,stylegan1,FFHQ,real,0.45944,0.73047
+stylegan1/test/real/stylegan1_test_real_003922.jpg,stylegan1,FFHQ,real,0.05871,0.08602
+stylegan1/test/fake/stylegan1_test_fake_003995.jpg,stylegan1,StyleGAN,fake,0.76932,0.97389
+stylegan1/test/real/stylegan1_test_real_003980.jpg,stylegan1,FFHQ,real,0.01921,0.01155
+stylegan1/test/real/stylegan1_test_real_003972.jpg,stylegan1,FFHQ,real,0.31425,0.02298
+stylegan1/test/real/stylegan1_test_real_003944.jpg,stylegan1,FFHQ,real,0.39913,0.39183
+stylegan1/test/real/stylegan1_test_real_003988.jpg,stylegan1,FFHQ,real,0.30696,0.26878
+stylegan1/test/fake/stylegan1_test_fake_003969.jpg,stylegan1,StyleGAN,fake,0.33069,0.77788
+stylegan1/test/real/stylegan1_test_real_003932.jpg,stylegan1,FFHQ,real,0.00511,0.04954
+stylegan1/test/fake/stylegan1_test_fake_003921.jpg,stylegan1,StyleGAN,fake,0.73183,0.87511
+stylegan1/test/real/stylegan1_test_real_003940.jpg,stylegan1,FFHQ,real,0.07531,0.07507
+stylegan1/test/real/stylegan1_test_real_003914.jpg,stylegan1,FFHQ,real,0.10141,0.1762
+stylegan1/test/real/stylegan1_test_real_003946.jpg,stylegan1,FFHQ,real,0.00878,0.01879
+stylegan1/test/real/stylegan1_test_real_003912.jpg,stylegan1,FFHQ,real,0.07065,0.14189
+stylegan1/test/real/stylegan1_test_real_004000.jpg,stylegan1,FFHQ,real,0.00776,0.04009
+stylegan1/test/fake/stylegan1_test_fake_003951.jpg,stylegan1,StyleGAN,fake,0.84309,0.95865
+stylegan1/test/real/stylegan1_test_real_003948.jpg,stylegan1,FFHQ,real,0.0026,0.05157
+stylegan1/test/fake/stylegan1_test_fake_003947.jpg,stylegan1,StyleGAN,fake,0.93621,0.80399
+stylegan1/test/fake/stylegan1_test_fake_003935.jpg,stylegan1,StyleGAN,fake,0.77189,0.88379
+stylegan1/test/fake/stylegan1_test_fake_003953.jpg,stylegan1,StyleGAN,fake,0.84288,0.86077
+stylegan1/test/fake/stylegan1_test_fake_003929.jpg,stylegan1,StyleGAN,fake,0.97503,0.99595
+stylegan1/test/real/stylegan1_test_real_004002.jpg,stylegan1,FFHQ,real,0.11996,0.05454
+stylegan1/test/real/stylegan1_test_real_003990.jpg,stylegan1,FFHQ,real,0.01331,0.00739
+stylegan1/test/real/stylegan1_test_real_003904.jpg,stylegan1,FFHQ,real,0.28819,0.04635
+stylegan1/test/real/stylegan1_test_real_003960.jpg,stylegan1,FFHQ,real,0.01262,0.0353
+stylegan1/test/fake/stylegan1_test_fake_003915.jpg,stylegan1,StyleGAN,fake,0.94123,0.88639
+stylegan1/test/fake/stylegan1_test_fake_003939.jpg,stylegan1,StyleGAN,fake,0.95931,0.96186
+stylegan1/test/fake/stylegan1_test_fake_003917.jpg,stylegan1,StyleGAN,fake,0.50505,0.8428
+stylegan1/test/fake/stylegan1_test_fake_003913.jpg,stylegan1,StyleGAN,fake,0.85588,0.93998
+stylegan1/test/fake/stylegan1_test_fake_003981.jpg,stylegan1,StyleGAN,fake,0.52955,0.91171
+stylegan1/test/fake/stylegan1_test_fake_003903.jpg,stylegan1,StyleGAN,fake,0.20115,0.44001
+stylegan1/test/fake/stylegan1_test_fake_003933.jpg,stylegan1,StyleGAN,fake,0.41278,0.87969
+stylegan1/test/fake/stylegan1_test_fake_003959.jpg,stylegan1,StyleGAN,fake,0.73043,0.96079
+stylegan1/test/real/stylegan1_test_real_003978.jpg,stylegan1,FFHQ,real,0.4456,0.2153
+stylegan1/test/fake/stylegan1_test_fake_003965.jpg,stylegan1,StyleGAN,fake,0.98694,0.91032
+stylegan1/test/fake/stylegan1_test_fake_003973.jpg,stylegan1,StyleGAN,fake,0.81526,0.98092
+stylegan1/test/real/stylegan1_test_real_003976.jpg,stylegan1,FFHQ,real,0.53054,0.23952
+stylegan1/test/real/stylegan1_test_real_003956.jpg,stylegan1,FFHQ,real,0.02618,0.17299
+stylegan1/test/real/stylegan1_test_real_003974.jpg,stylegan1,FFHQ,real,0.03987,0.1849
+stylegan1/test/real/stylegan1_test_real_003982.jpg,stylegan1,FFHQ,real,0.09115,0.0502
+stylegan1/test/fake/stylegan1_test_fake_003979.jpg,stylegan1,StyleGAN,fake,0.14028,0.4159
+stylegan1/test/fake/stylegan1_test_fake_003931.jpg,stylegan1,StyleGAN,fake,0.92139,0.99138
+stylegan1/test/real/stylegan1_test_real_003916.jpg,stylegan1,FFHQ,real,0.13441,0.01239
+stylegan1/test/fake/stylegan1_test_fake_003985.jpg,stylegan1,StyleGAN,fake,0.91581,0.73272
+stylegan1/test/real/stylegan1_test_real_003968.jpg,stylegan1,FFHQ,real,0.05749,0.00474
+stylegan1/test/fake/stylegan1_test_fake_003967.jpg,stylegan1,StyleGAN,fake,0.90964,0.99162
+stylegan1/test/fake/stylegan1_test_fake_003943.jpg,stylegan1,StyleGAN,fake,0.8247,0.90968
+stylegan1/test/fake/stylegan1_test_fake_006709.jpg,stylegan1,StyleGAN,fake,0.9574,0.99817
+stylegan1/test/fake/stylegan1_test_fake_006647.jpg,stylegan1,StyleGAN,fake,0.4924,0.97461
+stylegan1/test/fake/stylegan1_test_fake_006663.jpg,stylegan1,StyleGAN,fake,0.69173,0.9411
+stylegan1/test/fake/stylegan1_test_fake_006689.jpg,stylegan1,StyleGAN,fake,0.66766,0.82831
+stylegan1/test/fake/stylegan1_test_fake_006679.jpg,stylegan1,StyleGAN,fake,0.8466,0.93407
+stylegan1/test/real/stylegan1_test_real_006722.jpg,stylegan1,FFHQ,real,0.01581,0.0067
+stylegan1/test/fake/stylegan1_test_fake_006665.jpg,stylegan1,StyleGAN,fake,0.43991,0.97325
+stylegan1/test/real/stylegan1_test_real_006646.jpg,stylegan1,FFHQ,real,0.02381,0.01051
+stylegan1/test/fake/stylegan1_test_fake_006733.jpg,stylegan1,StyleGAN,fake,0.14492,0.05313
+stylegan1/test/real/stylegan1_test_real_006674.jpg,stylegan1,FFHQ,real,0.0115,0.00632
+stylegan1/test/real/stylegan1_test_real_006642.jpg,stylegan1,FFHQ,real,0.02026,0.04518
+stylegan1/test/fake/stylegan1_test_fake_006639.jpg,stylegan1,StyleGAN,fake,0.81986,0.78248
+stylegan1/test/fake/stylegan1_test_fake_006671.jpg,stylegan1,StyleGAN,fake,0.84811,0.983
+stylegan1/test/fake/stylegan1_test_fake_006727.jpg,stylegan1,StyleGAN,fake,0.79393,0.91164
+stylegan1/test/real/stylegan1_test_real_006684.jpg,stylegan1,FFHQ,real,0.09886,0.01977
+stylegan1/test/real/stylegan1_test_real_006696.jpg,stylegan1,FFHQ,real,0.04663,0.22994
+stylegan1/test/real/stylegan1_test_real_006724.jpg,stylegan1,FFHQ,real,0.07254,0.93115
+stylegan1/test/real/stylegan1_test_real_006654.jpg,stylegan1,FFHQ,real,0.01153,0.20817
+stylegan1/test/real/stylegan1_test_real_006716.jpg,stylegan1,FFHQ,real,0.29899,0.16912
+stylegan1/test/real/stylegan1_test_real_006652.jpg,stylegan1,FFHQ,real,0.0626,0.10243
+tpdne/test/fake/tpdne_test_fake_09181.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.18882,0.99782
+tpdne/test/fake/tpdne_test_fake_09918.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02089,0.99816
+tpdne/test/fake/tpdne_test_fake_09757.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01501,0.99244
+tpdne/test/fake/tpdne_test_fake_08718.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.03909,0.9988
+tpdne/test/fake/tpdne_test_fake_08646.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.19936,0.99744
+tpdne/test/fake/tpdne_test_fake_09597.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.03435,0.99499
+tpdne/test/fake/tpdne_test_fake_08934.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04707,0.99129
+tpdne/test/fake/tpdne_test_fake_09244.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.07419,0.64669
+tpdne/test/fake/tpdne_test_fake_09282.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.28356,0.99871
+tpdne/test/fake/tpdne_test_fake_09341.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.08091,0.99978
+tpdne/test/fake/tpdne_test_fake_09463.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02852,0.98686
+tpdne/test/fake/tpdne_test_fake_09260.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02298,0.98257
+tpdne/test/fake/tpdne_test_fake_08078.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.0545,0.87977
+tpdne/test/fake/tpdne_test_fake_09894.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.39062,0.9994
+tpdne/test/fake/tpdne_test_fake_08828.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.06815,0.98575
+tpdne/test/fake/tpdne_test_fake_08648.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.68529,0.97084
+tpdne/test/fake/tpdne_test_fake_09245.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.79622,0.99668
+tpdne/test/fake/tpdne_test_fake_08442.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02829,0.98606
+tpdne/test/fake/tpdne_test_fake_09217.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.06642,0.99526
+tpdne/test/fake/tpdne_test_fake_08948.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04068,0.98865
+tpdne/test/fake/tpdne_test_fake_08873.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01513,0.96895
+tpdne/test/fake/tpdne_test_fake_09385.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02796,0.90533
+tpdne/test/fake/tpdne_test_fake_09799.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02705,0.9706
+tpdne/test/fake/tpdne_test_fake_08245.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01112,0.62429
+tpdne/test/fake/tpdne_test_fake_09406.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.0561,0.98827
+tpdne/test/fake/tpdne_test_fake_08767.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.13869,0.99946
+tpdne/test/fake/tpdne_test_fake_09764.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.52816,0.99638
+tpdne/test/fake/tpdne_test_fake_09027.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04044,0.99752
+tpdne/test/fake/tpdne_test_fake_09396.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01866,0.99116
+tpdne/test/fake/tpdne_test_fake_09892.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.14384,0.97222
+tpdne/test/fake/tpdne_test_fake_08516.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01363,0.99643
+tpdne/test/fake/tpdne_test_fake_08797.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04045,0.963
+tpdne/test/fake/tpdne_test_fake_08598.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04151,0.88992
+tpdne/test/fake/tpdne_test_fake_09940.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.5912,0.99135
+tpdne/test/fake/tpdne_test_fake_09673.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.58792,0.99762
+tpdne/test/fake/tpdne_test_fake_08730.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01995,0.9863
+tpdne/test/fake/tpdne_test_fake_08119.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04114,0.98078
+tpdne/test/fake/tpdne_test_fake_09507.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.07027,0.97119
+tpdne/test/fake/tpdne_test_fake_09465.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01417,0.99703
+tpdne/test/fake/tpdne_test_fake_08895.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02309,0.94479
+tpdne/test/fake/tpdne_test_fake_08049.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.20156,0.99455
+tpdne/test/fake/tpdne_test_fake_08577.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.03669,0.98916
+tpdne/test/fake/tpdne_test_fake_09424.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01433,0.99333
+tpdne/test/fake/tpdne_test_fake_08677.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.05576,0.99563
+tpdne/test/fake/tpdne_test_fake_08594.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.34082,0.99755
+tpdne/test/fake/tpdne_test_fake_09490.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.29561,0.99996
+tpdne/test/fake/tpdne_test_fake_09963.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.12172,0.99684
+tpdne/test/fake/tpdne_test_fake_09576.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.64644,0.99994
+tpdne/test/fake/tpdne_test_fake_09639.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04386,0.97557
+tpdne/test/fake/tpdne_test_fake_09876.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01099,0.98073
+tpdne/test/fake/tpdne_test_fake_08251.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.0717,0.99662
+tpdne/test/fake/tpdne_test_fake_08609.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.01942,0.97394
+tpdne/test/fake/tpdne_test_fake_09573.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.03113,0.98768
+tpdne/test/fake/tpdne_test_fake_08854.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.39502,0.99754
+tpdne/test/fake/tpdne_test_fake_08654.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.07828,0.9995
+tpdne/test/fake/tpdne_test_fake_09200.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.29688,0.99031
+tpdne/test/fake/tpdne_test_fake_09850.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.50243,0.98283
+tpdne/test/fake/tpdne_test_fake_08042.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.82631,0.9928
+tpdne/test/fake/tpdne_test_fake_09111.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02051,0.67987
+dff/test/fake/dff_test_fake_009812.jpg,dff,FS,fake,0.93167,0.81331
+dff/test/fake/dff_test_fake_009770.jpg,dff,FS,fake,0.01822,0.77911
+dff/test/fake/dff_test_fake_009827.jpg,dff,FS,fake,0.27881,0.66786
+dff/test/fake/dff_test_fake_009803.jpg,dff,EFS,fake,0.27785,0.99272
+dff/test/fake/dff_test_fake_009800.jpg,dff,EFS,fake,0.95363,0.49418
+dff/test/fake/dff_test_fake_009777.jpg,dff,FS,fake,0.11541,0.95576
+dff/test/fake/dff_test_fake_009855.jpg,dff,FS,fake,0.05656,0.45777
+dff/test/real/dff_test_real_009797.jpg,dff,real,real,0.15804,0.01223
+dff/test/fake/dff_test_fake_009805.jpg,dff,EFS,fake,0.03122,0.92135
+dff/test/fake/dff_test_fake_009802.jpg,dff,FS,fake,0.59041,0.92171
+dff/test/real/dff_test_real_009824.jpg,dff,real,real,0.12169,0.03818
+dff/test/fake/dff_test_fake_009844.jpg,dff,EFS,fake,0.41332,0.75061
+dff/test/fake/dff_test_fake_009816.jpg,dff,EFS,fake,0.09189,0.97656
+dff/test/fake/dff_test_fake_009856.jpg,dff,EFS,fake,0.75118,0.72984
+dff/test/fake/dff_test_fake_009832.jpg,dff,EFS,fake,0.72145,0.6571
+dff/test/real/dff_test_real_009790.jpg,dff,real,real,0.30854,0.53581
+dff/test/fake/dff_test_fake_009831.jpg,dff,FS,fake,0.45285,0.35473
+dff/test/real/dff_test_real_009760.jpg,dff,real,real,0.29137,0.02866
+dff/test/fake/dff_test_fake_009813.jpg,dff,EFS,fake,0.55505,0.79793
+dff/test/fake/dff_test_fake_009857.jpg,dff,EFS,fake,0.2263,0.54858
+dff/test/fake/dff_test_fake_009779.jpg,dff,FS,fake,0.11238,0.60358
+dff/test/fake/dff_test_fake_009842.jpg,dff,FS,fake,0.46304,0.03483
+dff/test/real/dff_test_real_009840.jpg,dff,real,real,0.49052,0.75112
+dff/test/real/dff_test_real_009809.jpg,dff,real,real,0.08256,0.12281
+dff/test/real/dff_test_real_009839.jpg,dff,real,real,0.12829,0.53927
+dff/test/real/dff_test_real_009791.jpg,dff,real,real,0.07994,0.3392
+dff/test/fake/dff_test_fake_009788.jpg,dff,FS,fake,0.03963,0.19072
+dff/test/real/dff_test_real_009781.jpg,dff,real,real,0.02975,0.10213
+dff/test/real/dff_test_real_009801.jpg,dff,real,real,0.60514,0.09756
+dff/test/fake/dff_test_fake_009798.jpg,dff,EFS,fake,0.68171,0.24049
+dff/test/fake/dff_test_fake_009850.jpg,dff,EFS,fake,0.24204,0.78215
+dff/test/fake/dff_test_fake_009794.jpg,dff,FS,fake,0.89716,0.1995
+dff/test/real/dff_test_real_009837.jpg,dff,real,real,0.06282,0.73299
+dff/test/fake/dff_test_fake_009772.jpg,dff,EFS,fake,0.08511,0.03447
+dff/test/fake/dff_test_fake_009848.jpg,dff,FS,fake,0.40245,0.48964
+dff/test/real/dff_test_real_009845.jpg,dff,real,real,0.75512,0.79731
+dff/test/fake/dff_test_fake_009764.jpg,dff,FS,fake,0.65173,0.23357
+dff/test/fake/dff_test_fake_009858.jpg,dff,FS,fake,0.34721,0.08736
+dff/test/fake/dff_test_fake_009841.jpg,dff,FS,fake,0.45756,0.74088
+dff/test/fake/dff_test_fake_009792.jpg,dff,EFS,fake,0.24968,0.4901
+dff/test/fake/dff_test_fake_009769.jpg,dff,EFS,fake,0.18775,0.44811
+dff/test/fake/dff_test_fake_009851.jpg,dff,EFS,fake,0.26585,0.9356
+dff/test/fake/dff_test_fake_009775.jpg,dff,EFS,fake,0.02199,0.93571
+dff/test/fake/dff_test_fake_009771.jpg,dff,EFS,fake,0.93652,0.97902
+dff/test/fake/dff_test_fake_009828.jpg,dff,EFS,fake,0.94635,0.85028
+dff/test/fake/dff_test_fake_009759.jpg,dff,FS,fake,0.28782,0.41273
+dff/test/fake/dff_test_fake_009784.jpg,dff,FS,fake,0.03061,0.26653
+dff/test/fake/dff_test_fake_009785.jpg,dff,EFS,fake,0.01546,0.74115
+dff/test/fake/dff_test_fake_009853.jpg,dff,EFS,fake,0.4309,0.73328
+dff/test/real/dff_test_real_009765.jpg,dff,real,real,0.11817,0.0227
+dff/test/fake/dff_test_fake_009821.jpg,dff,FS,fake,0.00489,0.53023
+dff/test/real/dff_test_real_009766.jpg,dff,real,real,0.04626,0.05937
+dff/test/fake/dff_test_fake_009817.jpg,dff,EFS,fake,0.99313,0.36879
+dff/test/fake/dff_test_fake_009830.jpg,dff,EFS,fake,0.74544,0.98578
+dff/test/fake/dff_test_fake_009768.jpg,dff,FS,fake,0.44603,0.69945
+dff/test/fake/dff_test_fake_009846.jpg,dff,EFS,fake,0.04,0.29621
+dff/test/real/dff_test_real_009806.jpg,dff,real,real,0.77131,0.33796
+dff/test/fake/dff_test_fake_009774.jpg,dff,FS,fake,0.14884,0.97438
+dff/test/fake/dff_test_fake_009843.jpg,dff,FS,fake,0.4212,0.6459
+dff/test/fake/dff_test_fake_009838.jpg,dff,EFS,fake,0.08504,0.78764
+dff/test/fake/dff_test_fake_009804.jpg,dff,FS,fake,0.05697,0.86977
+dff/test/fake/dff_test_fake_009762.jpg,dff,EFS,fake,0.4919,0.67884
+dff/test/real/dff_test_real_009793.jpg,dff,real,real,0.03451,0.1478
+dff/test/real/dff_test_real_009789.jpg,dff,real,real,0.07285,0.19691
+dff/test/real/dff_test_real_009818.jpg,dff,real,real,0.30252,0.05697
+dff/test/real/dff_test_real_009763.jpg,dff,real,real,0.49766,0.1084
+dff/test/real/dff_test_real_009786.jpg,dff,real,real,0.33462,0.30158
+dff/test/real/dff_test_real_009761.jpg,dff,real,real,0.21625,0.09223
+dff/test/real/dff_test_real_009782.jpg,dff,real,real,0.96955,0.25833
+dff/test/real/dff_test_real_008963.jpg,dff,real,real,0.083,0.00367
+dff/test/real/dff_test_real_008956.jpg,dff,real,real,0.56835,0.50217
+dff/test/real/dff_test_real_008943.jpg,dff,real,real,0.48006,0.04129
+dff/test/real/dff_test_real_008972.jpg,dff,real,real,0.84454,0.02592
+dff/test/real/dff_test_real_008936.jpg,dff,real,real,0.07328,0.13222
+dff/test/real/dff_test_real_008958.jpg,dff,real,real,0.74759,0.08298
+dff/test/real/dff_test_real_008916.jpg,dff,real,real,0.6602,0.06335
+dff/test/real/dff_test_real_008879.jpg,dff,real,real,0.6863,0.36175
+dff/test/real/dff_test_real_008882.jpg,dff,real,real,0.07329,0.03315
+dff/test/real/dff_test_real_008941.jpg,dff,real,real,0.1478,0.06151
+dff/test/real/dff_test_real_008893.jpg,dff,real,real,0.07082,0.2181
+dff/test/real/dff_test_real_008934.jpg,dff,real,real,0.33405,0.41803
+dff/test/real/dff_test_real_008917.jpg,dff,real,real,0.37371,0.8728
+dff/test/real/dff_test_real_008938.jpg,dff,real,real,0.42168,0.50024
+dff/test/real/dff_test_real_008957.jpg,dff,real,real,0.7448,0.04279
+dff/test/real/dff_test_real_008904.jpg,dff,real,real,0.70681,0.24688
+dff/test/real/dff_test_real_008945.jpg,dff,real,real,0.27503,0.68959
+dff/test/real/dff_test_real_008923.jpg,dff,real,real,0.76963,0.50543
+dff/test/real/dff_test_real_008875.jpg,dff,real,real,0.45679,0.46027
+dff/test/real/dff_test_real_008903.jpg,dff,real,real,0.13164,0.04678
+dff/test/real/dff_test_real_008919.jpg,dff,real,real,0.27534,0.27185
+dff/test/real/dff_test_real_010429.jpg,dff,real,real,0.2397,0.20515
+dff/test/real/dff_test_real_010427.jpg,dff,real,real,0.70881,0.80102
+dff/test/real/dff_test_real_010388.jpg,dff,real,real,0.27138,0.71273
+dff/test/real/dff_test_real_010441.jpg,dff,real,real,0.17384,0.10914
+dff/test/real/dff_test_real_010443.jpg,dff,real,real,0.16717,0.41179
+dff/test/real/dff_test_real_010412.jpg,dff,real,real,0.1604,0.19972
+dff/test/real/dff_test_real_010402.jpg,dff,real,real,0.81065,0.3903
+stylegan1/test/fake/stylegan1_test_fake_019393.jpg,stylegan1,StyleGAN,fake,0.35654,0.98862
+stylegan1/test/fake/stylegan1_test_fake_019421.jpg,stylegan1,StyleGAN,fake,0.67066,0.98963
+stylegan1/test/fake/stylegan1_test_fake_019403.jpg,stylegan1,StyleGAN,fake,0.22652,0.94177
+stylegan1/test/fake/stylegan1_test_fake_019413.jpg,stylegan1,StyleGAN,fake,0.99191,0.99647
+stylegan1/test/fake/stylegan1_test_fake_019405.jpg,stylegan1,StyleGAN,fake,0.70137,0.94529
+stylegan1/test/real/stylegan1_test_real_019396.jpg,stylegan1,FFHQ,real,0.17915,0.03666
+stylegan1/test/fake/stylegan1_test_fake_019385.jpg,stylegan1,StyleGAN,fake,0.70204,0.9182
+stylegan1/test/real/stylegan1_test_real_019390.jpg,stylegan1,FFHQ,real,0.76035,0.29471
+stylegan1/test/fake/stylegan1_test_fake_019351.jpg,stylegan1,StyleGAN,fake,0.94177,0.56289
+stylegan1/test/fake/stylegan1_test_fake_019377.jpg,stylegan1,StyleGAN,fake,0.55545,0.96398
+stylegan1/test/real/stylegan1_test_real_019378.jpg,stylegan1,FFHQ,real,0.07129,0.09827
+stylegan1/test/fake/stylegan1_test_fake_019337.jpg,stylegan1,StyleGAN,fake,0.74555,0.87257
+stylegan1/test/real/stylegan1_test_real_019402.jpg,stylegan1,FFHQ,real,0.29051,0.19218
+stylegan1/test/real/stylegan1_test_real_019360.jpg,stylegan1,FFHQ,real,0.02437,0.02024
+stylegan1/test/real/stylegan1_test_real_019356.jpg,stylegan1,FFHQ,real,0.35815,0.15311
+stylegan1/test/fake/stylegan1_test_fake_019333.jpg,stylegan1,StyleGAN,fake,0.77915,0.84074
+stylegan1/test/real/stylegan1_test_real_019352.jpg,stylegan1,FFHQ,real,0.00515,0.06173
+stylegan1/test/real/stylegan1_test_real_019366.jpg,stylegan1,FFHQ,real,0.21916,0.46513
+stylegan1/test/fake/stylegan1_test_fake_019375.jpg,stylegan1,StyleGAN,fake,0.94466,0.98196
+stylegan1/test/real/stylegan1_test_real_019338.jpg,stylegan1,FFHQ,real,0.17672,0.13242
+stylegan1/test/real/stylegan1_test_real_019332.jpg,stylegan1,FFHQ,real,0.04527,0.00383
+stylegan1/test/real/stylegan1_test_real_019422.jpg,stylegan1,FFHQ,real,0.01215,0.02551
+stylegan1/test/fake/stylegan1_test_fake_019415.jpg,stylegan1,StyleGAN,fake,0.40498,0.99011
+stylegan1/test/real/stylegan1_test_real_019398.jpg,stylegan1,FFHQ,real,0.08754,0.04131
+stylegan1/test/real/stylegan1_test_real_019334.jpg,stylegan1,FFHQ,real,0.02047,0.00151
+stylegan1/test/fake/stylegan1_test_fake_019389.jpg,stylegan1,StyleGAN,fake,0.19309,0.45218
+stylegan1/test/fake/stylegan1_test_fake_019359.jpg,stylegan1,StyleGAN,fake,0.97942,0.99886
+stylegan1/test/fake/stylegan1_test_fake_019373.jpg,stylegan1,StyleGAN,fake,0.9824,0.95547
+stylegan1/test/fake/stylegan1_test_fake_019419.jpg,stylegan1,StyleGAN,fake,0.74291,0.79419
+stylegan1/test/fake/stylegan1_test_fake_019395.jpg,stylegan1,StyleGAN,fake,0.98804,0.99581
+stylegan1/test/fake/stylegan1_test_fake_019425.jpg,stylegan1,StyleGAN,fake,0.87244,0.98778
+stylegan1/test/real/stylegan1_test_real_019364.jpg,stylegan1,FFHQ,real,0.11412,0.0212
+stylegan1/test/fake/stylegan1_test_fake_019407.jpg,stylegan1,StyleGAN,fake,0.97633,0.98358
+stylegan1/test/fake/stylegan1_test_fake_019341.jpg,stylegan1,StyleGAN,fake,0.97619,0.97422
+stylegan1/test/fake/stylegan1_test_fake_019329.jpg,stylegan1,StyleGAN,fake,0.94824,0.9938
+stylegan1/test/real/stylegan1_test_real_019348.jpg,stylegan1,FFHQ,real,0.03412,0.03856
+stylegan1/test/fake/stylegan1_test_fake_019381.jpg,stylegan1,StyleGAN,fake,0.80276,0.93252
+stylegan1/test/fake/stylegan1_test_fake_019335.jpg,stylegan1,StyleGAN,fake,0.79344,0.75983
+stylegan1/test/real/stylegan1_test_real_019342.jpg,stylegan1,FFHQ,real,0.07017,0.09046
+stylegan1/test/real/stylegan1_test_real_019410.jpg,stylegan1,FFHQ,real,0.03319,0.37695
+stylegan1/test/real/stylegan1_test_real_019382.jpg,stylegan1,FFHQ,real,0.49633,0.86343
+stylegan1/test/fake/stylegan1_test_fake_019427.jpg,stylegan1,StyleGAN,fake,0.70206,0.8842
+stylegan1/test/real/stylegan1_test_real_019394.jpg,stylegan1,FFHQ,real,0.20793,0.68921
+stylegan1/test/real/stylegan1_test_real_019358.jpg,stylegan1,FFHQ,real,0.01709,0.42522
+stylegan1/test/real/stylegan1_test_real_019392.jpg,stylegan1,FFHQ,real,0.05341,0.12818
+stylegan1/test/fake/stylegan1_test_fake_019367.jpg,stylegan1,StyleGAN,fake,0.69079,0.97599
+stylegan1/test/real/stylegan1_test_real_019388.jpg,stylegan1,FFHQ,real,0.19152,0.20341
+stylegan1/test/fake/stylegan1_test_fake_019401.jpg,stylegan1,StyleGAN,fake,0.70419,0.72726
+stylegan1/test/fake/stylegan1_test_fake_019387.jpg,stylegan1,StyleGAN,fake,0.92149,0.98141
+stylegan1/test/real/stylegan1_test_real_019336.jpg,stylegan1,FFHQ,real,0.01124,0.0775
+stylegan1/test/real/stylegan1_test_real_019420.jpg,stylegan1,FFHQ,real,0.09795,0.0727
+stylegan1/test/real/stylegan1_test_real_019372.jpg,stylegan1,FFHQ,real,0.07678,0.01803
+stylegan1/test/fake/stylegan1_test_fake_019363.jpg,stylegan1,StyleGAN,fake,0.8788,0.99483
+stylegan1/test/fake/stylegan1_test_fake_019345.jpg,stylegan1,StyleGAN,fake,0.795,0.92245
+stylegan1/test/real/stylegan1_test_real_019328.jpg,stylegan1,FFHQ,real,0.32286,0.05372
+stylegan1/test/fake/stylegan1_test_fake_019339.jpg,stylegan1,StyleGAN,fake,0.92277,0.99718
+stylegan1/test/real/stylegan1_test_real_019374.jpg,stylegan1,FFHQ,real,0.02875,0.47769
+stylegan1/test/fake/stylegan1_test_fake_019353.jpg,stylegan1,StyleGAN,fake,0.68686,0.80139
+stylegan1/test/fake/stylegan1_test_fake_019331.jpg,stylegan1,StyleGAN,fake,0.62934,0.99613
+stylegan1/test/fake/stylegan1_test_fake_019349.jpg,stylegan1,StyleGAN,fake,0.97604,0.99182
+stylegan1/test/fake/stylegan1_test_fake_019369.jpg,stylegan1,StyleGAN,fake,0.80005,0.98529
+stylegan1/test/real/stylegan1_test_real_019350.jpg,stylegan1,FFHQ,real,0.01228,0.186
+stylegan1/test/real/stylegan1_test_real_019426.jpg,stylegan1,FFHQ,real,0.12464,0.0338
+stylegan1/test/real/stylegan1_test_real_019354.jpg,stylegan1,FFHQ,real,0.00246,0.10715
+stylegan1/test/fake/stylegan1_test_fake_019391.jpg,stylegan1,StyleGAN,fake,0.83814,0.8901
+stylegan1/test/real/stylegan1_test_real_019340.jpg,stylegan1,FFHQ,real,0.14109,0.73075
+stylegan1/test/fake/stylegan1_test_fake_019371.jpg,stylegan1,StyleGAN,fake,0.68652,0.83521
+stylegan1/test/real/stylegan1_test_real_019380.jpg,stylegan1,FFHQ,real,0.07154,0.01481
+stylegan1/test/real/stylegan1_test_real_019406.jpg,stylegan1,FFHQ,real,0.05227,0.04512
+stylegan1/test/real/stylegan1_test_real_019330.jpg,stylegan1,FFHQ,real,0.16021,0.04622
+stylegan1/test/real/stylegan1_test_real_019404.jpg,stylegan1,FFHQ,real,0.02399,0.17454
+stylegan1/test/fake/stylegan1_test_fake_019379.jpg,stylegan1,StyleGAN,fake,0.16556,0.83228
+stylegan1/test/real/stylegan1_test_real_019386.jpg,stylegan1,FFHQ,real,0.00478,0.10539
+stylegan1/test/fake/stylegan1_test_fake_019365.jpg,stylegan1,StyleGAN,fake,0.61611,0.9164
+stylegan1/test/fake/stylegan1_test_fake_019409.jpg,stylegan1,StyleGAN,fake,0.93054,0.9965
+stylegan1/test/real/stylegan1_test_real_019416.jpg,stylegan1,FFHQ,real,0.11075,0.96401
+stylegan1/test/fake/stylegan1_test_fake_019399.jpg,stylegan1,StyleGAN,fake,0.56747,0.80759
+stylegan1/test/real/stylegan1_test_real_019414.jpg,stylegan1,FFHQ,real,0.3007,0.47679
+stylegan1/test/real/stylegan1_test_real_019408.jpg,stylegan1,FFHQ,real,0.43891,0.07766
+stylegan1/test/real/stylegan1_test_real_019346.jpg,stylegan1,FFHQ,real,0.64421,0.20567
+tpdne/test/fake/tpdne_test_fake_08606.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.03358,0.99415
+tpdne/test/fake/tpdne_test_fake_09943.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.05878,0.89397
+tpdne/test/fake/tpdne_test_fake_08309.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.82497,0.98888
+tpdne/test/fake/tpdne_test_fake_08781.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.07797,0.99479
+tpdne/test/fake/tpdne_test_fake_09298.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.1199,0.99956
+tpdne/test/fake/tpdne_test_fake_09281.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.1024,0.99577
+tpdne/test/fake/tpdne_test_fake_08011.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.33774,0.99614
+tpdne/test/fake/tpdne_test_fake_08910.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.30443,0.99589
+tpdne/test/fake/tpdne_test_fake_09203.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.82743,0.99856
+tpdne/test/fake/tpdne_test_fake_08249.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.0242,0.95021
+tpdne/test/fake/tpdne_test_fake_08198.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.39511,0.99679
+tpdne/test/fake/tpdne_test_fake_08466.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.27436,0.99964
+tpdne/test/fake/tpdne_test_fake_09704.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.33803,0.99858
+tpdne/test/fake/tpdne_test_fake_08666.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.62996,0.99701
+tpdne/test/fake/tpdne_test_fake_08909.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.28758,0.9955
+tpdne/test/fake/tpdne_test_fake_09659.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.67978,0.99379
+tpdne/test/fake/tpdne_test_fake_08140.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.03026,0.95591
+tpdne/test/fake/tpdne_test_fake_09733.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.06177,0.94518
+tpdne/test/fake/tpdne_test_fake_08789.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.6595,0.99536
+tpdne/test/fake/tpdne_test_fake_09953.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.03797,0.8089
+tpdne/test/fake/tpdne_test_fake_08561.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02936,0.99678
+tpdne/test/fake/tpdne_test_fake_08899.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.11816,0.99845
+tpdne/test/fake/tpdne_test_fake_09491.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.13729,0.99549
+tpdne/test/fake/tpdne_test_fake_09926.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04317,0.98212
+tpdne/test/fake/tpdne_test_fake_09702.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.64186,0.99989
+tpdne/test/fake/tpdne_test_fake_08610.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.13027,0.95115
+tpdne/test/fake/tpdne_test_fake_08514.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.02458,0.99857
+tpdne/test/fake/tpdne_test_fake_08914.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.53318,0.99689
+tpdne/test/fake/tpdne_test_fake_09515.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.04002,0.98933
+tpdne/test/fake/tpdne_test_fake_09274.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.38799,0.98279
+tpdne/test/fake/tpdne_test_fake_08841.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.11706,0.99516
+tpdne/test/fake/tpdne_test_fake_08962.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.98555,0.94073
+tpdne/test/fake/tpdne_test_fake_08608.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.82989,0.99948
+tpdne/test/fake/tpdne_test_fake_09762.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.24028,0.99845
+tpdne/test/fake/tpdne_test_fake_08642.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.64152,0.99992
+tpdne/test/fake/tpdne_test_fake_09676.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.0452,0.99947
+tpdne/test/fake/tpdne_test_fake_08345.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.08015,0.9887
+tpdne/test/fake/tpdne_test_fake_08209.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.5202,0.99253
+tpdne/test/fake/tpdne_test_fake_09255.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.93787,0.98944
+tpdne/test/fake/tpdne_test_fake_09123.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.53361,0.99349
+tpdne/test/fake/tpdne_test_fake_08063.jpg,tpdne,StyleGAN2 (thispersondoesnotexist),fake,0.38044,0.99836
+dff/test/fake/dff_test_fake_001018.jpg,dff,EFS,fake,0.45435,0.70669
+dff/test/fake/dff_test_fake_000991.jpg,dff,FS,fake,0.11052,0.97961
+dff/test/fake/dff_test_fake_000986.jpg,dff,FS,fake,0.77778,0.91816
+dff/test/fake/dff_test_fake_001064.jpg,dff,EFS,fake,0.22408,0.85636
+dff/test/fake/dff_test_fake_001050.jpg,dff,EFS,fake,0.03908,0.9706
+dff/test/fake/dff_test_fake_000995.jpg,dff,EFS,fake,0.04567,0.9036
+dff/test/fake/dff_test_fake_001082.jpg,dff,EFS,fake,0.07434,0.80447
+dff/test/fake/dff_test_fake_001022.jpg,dff,EFS,fake,0.37364,0.30768
+dff/test/fake/dff_test_fake_001005.jpg,dff,EFS,fake,0.02834,0.65741
+dff/test/fake/dff_test_fake_000993.jpg,dff,EFS,fake,0.69122,0.81702
+dff/test/fake/dff_test_fake_001047.jpg,dff,EFS,fake,0.12016,0.98503
+dff/test/fake/dff_test_fake_001038.jpg,dff,EFS,fake,0.60056,0.87283
+dff/test/real/dff_test_real_001039.jpg,dff,real,real,0.25224,0.09814
+dff/test/fake/dff_test_fake_001073.jpg,dff,EFS,fake,0.56523,0.90862
+dff/test/fake/dff_test_fake_001058.jpg,dff,FS,fake,0.74492,0.61357
+dff/test/fake/dff_test_fake_001027.jpg,dff,EFS,fake,0.06867,0.27203
+dff/test/real/dff_test_real_001006.jpg,dff,real,real,0.1322,0.04153
+dff/test/real/dff_test_real_001012.jpg,dff,real,real,0.09718,0.92189
+dff/test/fake/dff_test_fake_001056.jpg,dff,FS,fake,0.31832,0.90874
+dff/test/fake/dff_test_fake_001042.jpg,dff,EFS,fake,0.83265,0.62623
+dff/test/fake/dff_test_fake_001009.jpg,dff,FS,fake,0.81182,0.78902
+dff/test/real/dff_test_real_001059.jpg,dff,real,real,0.75758,0.77491
+dff/test/real/dff_test_real_001034.jpg,dff,real,real,0.24075,0.15808
+dff/test/real/dff_test_real_001033.jpg,dff,real,real,0.04478,0.4652
+dff/test/fake/dff_test_fake_001062.jpg,dff,FS,fake,0.23131,0.47284
+dff/test/real/dff_test_real_001016.jpg,dff,real,real,0.01636,0.29738
+dff/test/fake/dff_test_fake_001060.jpg,dff,FS,fake,0.87688,0.87817
+dff/test/real/dff_test_real_001065.jpg,dff,real,real,0.27684,0.0495
+dff/test/real/dff_test_real_001017.jpg,dff,real,real,0.459,0.4449
+dff/test/fake/dff_test_fake_001031.jpg,dff,EFS,fake,0.02769,0.23396
+dff/test/fake/dff_test_fake_001000.jpg,dff,EFS,fake,0.73078,0.25478
+dff/test/real/dff_test_real_001048.jpg,dff,real,real,0.09028,0.24764
+dff/test/fake/dff_test_fake_001007.jpg,dff,EFS,fake,0.09148,0.68029
+dff/test/fake/dff_test_fake_001076.jpg,dff,EFS,fake,0.11578,0.9869
+dff/test/fake/dff_test_fake_001028.jpg,dff,FS,fake,0.29937,0.98123
+dff/test/fake/dff_test_fake_001069.jpg,dff,FS,fake,0.90713,0.87031
+dff/test/fake/dff_test_fake_000994.jpg,dff,EFS,fake,0.08059,0.98631
+dff/test/fake/dff_test_fake_000996.jpg,dff,FS,fake,0.7991,0.89851
+dff/test/fake/dff_test_fake_000988.jpg,dff,EFS,fake,0.29162,0.92465
+dff/test/fake/dff_test_fake_001067.jpg,dff,EFS,fake,0.10538,0.89192
+dff/test/fake/dff_test_fake_001080.jpg,dff,EFS,fake,0.84905,0.70704
+dff/test/fake/dff_test_fake_001049.jpg,dff,FS,fake,0.60638,0.72609
+dff/test/fake/dff_test_fake_001078.jpg,dff,FS,fake,0.04965,0.87858
+dff/test/fake/dff_test_fake_000997.jpg,dff,EFS,fake,0.45755,0.17196
+dff/test/fake/dff_test_fake_001070.jpg,dff,EFS,fake,0.23148,0.9743
+dff/test/fake/dff_test_fake_001074.jpg,dff,FS,fake,0.63097,0.91134
+dff/test/fake/dff_test_fake_001011.jpg,dff,EFS,fake,0.09113,0.514
+dff/test/real/dff_test_real_001030.jpg,dff,real,real,0.26475,0.09687
+dff/test/real/dff_test_real_001083.jpg,dff,real,real,0.25345,0.26652
+dff/test/real/dff_test_real_001051.jpg,dff,real,real,0.05499,0.5747
+dff/test/real/dff_test_real_001072.jpg,dff,real,real,0.36503,0.36109
+dff/test/real/dff_test_real_000992.jpg,dff,real,real,0.33191,0.5574
+dff/test/real/dff_test_real_001057.jpg,dff,real,real,0.52784,0.41268
+dff/test/real/dff_test_real_001068.jpg,dff,real,real,0.09421,0.74546
+dff/test/real/dff_test_real_009109.jpg,dff,real,real,0.70644,0.26229
+dff/test/real/dff_test_real_009102.jpg,dff,real,real,0.04141,0.95489
+dff/test/real/dff_test_real_009147.jpg,dff,real,real,0.36378,0.75458
+dff/test/real/dff_test_real_009160.jpg,dff,real,real,0.22007,0.09362
+dff/test/real/dff_test_real_009158.jpg,dff,real,real,0.02367,0.04579
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005459.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.27346,0.99058
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005455.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.10496,0.26233
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005413.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.83419,0.9851
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005428.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.75877,0.75984
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005461.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.99447,0.62382
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005385.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.74107,0.97744
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005425.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.89068,0.97839
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005379.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.06476,0.99653
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005377.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.13725,0.57442
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005403.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.09712,0.50769
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005436.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.48278,0.96356
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005400.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.89468,0.99544
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005384.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.53938,0.62957
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005435.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.05174,0.69225
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005475.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.00402,0.87853
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005424.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.31449,0.52623
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005450.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.17153,0.98232
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005389.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.76525,0.94462
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005457.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.89501,0.95361
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005387.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.6239,0.693
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005401.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.17768,0.88346
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005383.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.36685,0.60266
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005420.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.85094,0.99031
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005445.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.70494,0.85535
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005452.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.45346,0.98757
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005437.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.17079,0.06546
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005467.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.23301,0.96998
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005439.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.40546,0.82424
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005464.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.71844,0.94798
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005446.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.09326,0.7867
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005409.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.77396,0.9753
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005448.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.97927,0.84767
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005417.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.00937,0.92863
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005378.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.12618,0.5013
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005472.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.23532,0.89421
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005422.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.66777,0.95363
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005449.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.93473,0.99529
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005386.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.06896,0.96787
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005421.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.66097,0.8523
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005388.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.44484,0.9823
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005416.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.51878,0.15559
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005415.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.83933,0.85717
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005399.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.83344,0.99767
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005438.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.17947,0.7908
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005412.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.96859,0.79002
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005414.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.42236,0.97334
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005381.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.09247,0.58726
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005473.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.21008,0.81031
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005418.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.86176,0.99473
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005434.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.1972,0.714
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005393.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.14433,0.94677
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005407.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.55553,0.70021
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005441.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.97319,0.64914
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005458.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.69945,0.75644
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005426.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.11705,0.43519
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005391.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.15241,0.04291
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005429.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.9789,0.4319
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005411.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.08193,0.38674
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005462.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.71955,0.98912
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005453.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.06759,0.50568
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005431.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.99084,0.92764
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005443.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.14688,0.74959
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005423.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.20777,0.86182
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005432.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.15456,0.87019
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005394.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.92151,0.89896
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005392.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.32946,0.96118
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005390.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.33633,0.98274
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005430.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.20405,0.9486
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005447.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.81473,0.87016
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005460.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.83206,0.89313
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005376.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.51965,0.9027
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005470.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.06856,0.69065
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005469.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.63471,0.91311
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005440.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.13376,0.50199
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005406.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.91766,0.5542
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005404.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.03518,0.64364
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005463.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.03792,0.74807
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005456.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.18944,0.93164
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005451.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.97714,0.27257
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005466.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.04592,0.43118
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005380.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.93723,0.99531
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005454.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.78918,0.95968
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005408.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.5171,0.92702
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005419.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.55846,0.99722
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005427.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.87367,0.9628
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005395.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.10973,0.9553
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005471.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.91221,0.98704
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005382.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.0762,0.95961
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005405.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.17861,0.96367
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005468.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.78961,0.95177
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005442.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.08698,0.95113
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005410.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.18489,0.41531
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005402.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.983,0.95167
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005397.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.12113,0.89756
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005465.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.6576,0.99484
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005398.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.40329,0.95467
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005474.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.02849,0.49216
+kaggle_deepfake/test/fake/kaggle_deepfake_test_fake_005433.jpg,kaggle_deepfake,KaggleDeepfake190k,fake,0.77762,0.9561
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005644.jpg,kaggle_deepfake,KaggleReal190k,real,0.09721,0.2564
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005683.jpg,kaggle_deepfake,KaggleReal190k,real,0.17956,0.45184
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005643.jpg,kaggle_deepfake,KaggleReal190k,real,0.84771,0.56333
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005638.jpg,kaggle_deepfake,KaggleReal190k,real,0.61134,0.5116
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005632.jpg,kaggle_deepfake,KaggleReal190k,real,0.35826,0.20901
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005676.jpg,kaggle_deepfake,KaggleReal190k,real,0.97098,0.40806
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005636.jpg,kaggle_deepfake,KaggleReal190k,real,0.04962,0.07731
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005658.jpg,kaggle_deepfake,KaggleReal190k,real,0.16595,0.20385
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005615.jpg,kaggle_deepfake,KaggleReal190k,real,0.23604,0.12205
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005673.jpg,kaggle_deepfake,KaggleReal190k,real,0.628,0.65358
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005608.jpg,kaggle_deepfake,KaggleReal190k,real,0.9749,0.86734
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005681.jpg,kaggle_deepfake,KaggleReal190k,real,0.58099,0.66107
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005629.jpg,kaggle_deepfake,KaggleReal190k,real,0.12924,0.1764
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005693.jpg,kaggle_deepfake,KaggleReal190k,real,0.98579,0.12643
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005634.jpg,kaggle_deepfake,KaggleReal190k,real,0.23543,0.33458
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005611.jpg,kaggle_deepfake,KaggleReal190k,real,0.15288,0.07561
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005610.jpg,kaggle_deepfake,KaggleReal190k,real,0.86301,0.89179
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005596.jpg,kaggle_deepfake,KaggleReal190k,real,0.64337,0.49045
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005623.jpg,kaggle_deepfake,KaggleReal190k,real,0.55609,0.77717
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005651.jpg,kaggle_deepfake,KaggleReal190k,real,0.54618,0.94056
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005657.jpg,kaggle_deepfake,KaggleReal190k,real,0.48356,0.04681
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005663.jpg,kaggle_deepfake,KaggleReal190k,real,0.08347,0.13658
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005641.jpg,kaggle_deepfake,KaggleReal190k,real,0.02907,0.01774
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005682.jpg,kaggle_deepfake,KaggleReal190k,real,0.39446,0.11855
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005647.jpg,kaggle_deepfake,KaggleReal190k,real,0.99042,0.17208
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005607.jpg,kaggle_deepfake,KaggleReal190k,real,0.70542,0.77497
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005628.jpg,kaggle_deepfake,KaggleReal190k,real,0.93024,0.20828
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005635.jpg,kaggle_deepfake,KaggleReal190k,real,0.16356,0.20252
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005625.jpg,kaggle_deepfake,KaggleReal190k,real,0.18433,0.54422
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005694.jpg,kaggle_deepfake,KaggleReal190k,real,0.64601,0.14288
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005648.jpg,kaggle_deepfake,KaggleReal190k,real,0.29034,0.68449
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005691.jpg,kaggle_deepfake,KaggleReal190k,real,0.85371,0.13017
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005680.jpg,kaggle_deepfake,KaggleReal190k,real,0.12528,0.69804
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005622.jpg,kaggle_deepfake,KaggleReal190k,real,0.10785,0.01585
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005675.jpg,kaggle_deepfake,KaggleReal190k,real,0.03144,0.7884
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005618.jpg,kaggle_deepfake,KaggleReal190k,real,0.89513,0.52383
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005662.jpg,kaggle_deepfake,KaggleReal190k,real,0.18902,0.76069
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005666.jpg,kaggle_deepfake,KaggleReal190k,real,0.5309,0.19169
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005692.jpg,kaggle_deepfake,KaggleReal190k,real,0.20863,0.47242
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005642.jpg,kaggle_deepfake,KaggleReal190k,real,0.09708,0.03718
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005661.jpg,kaggle_deepfake,KaggleReal190k,real,0.2762,0.36887
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005687.jpg,kaggle_deepfake,KaggleReal190k,real,0.64034,0.50391
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005605.jpg,kaggle_deepfake,KaggleReal190k,real,0.92467,0.42166
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005665.jpg,kaggle_deepfake,KaggleReal190k,real,0.21102,0.09024
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005652.jpg,kaggle_deepfake,KaggleReal190k,real,0.24755,0.21522
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005617.jpg,kaggle_deepfake,KaggleReal190k,real,0.02198,0.19793
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005604.jpg,kaggle_deepfake,KaggleReal190k,real,0.92634,0.15871
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005646.jpg,kaggle_deepfake,KaggleReal190k,real,0.14465,0.13819
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005690.jpg,kaggle_deepfake,KaggleReal190k,real,0.89895,0.53007
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005613.jpg,kaggle_deepfake,KaggleReal190k,real,0.17186,0.43466
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005601.jpg,kaggle_deepfake,KaggleReal190k,real,0.41098,0.49993
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005621.jpg,kaggle_deepfake,KaggleReal190k,real,0.04289,0.10469
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005606.jpg,kaggle_deepfake,KaggleReal190k,real,0.41058,0.24254
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005627.jpg,kaggle_deepfake,KaggleReal190k,real,0.94314,0.30429
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005677.jpg,kaggle_deepfake,KaggleReal190k,real,0.2342,0.11728
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005685.jpg,kaggle_deepfake,KaggleReal190k,real,0.32527,0.40157
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005640.jpg,kaggle_deepfake,KaggleReal190k,real,0.01186,0.00955
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005614.jpg,kaggle_deepfake,KaggleReal190k,real,0.0347,0.69206
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005598.jpg,kaggle_deepfake,KaggleReal190k,real,0.14072,0.02683
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005603.jpg,kaggle_deepfake,KaggleReal190k,real,0.88904,0.08972
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005609.jpg,kaggle_deepfake,KaggleReal190k,real,0.74149,0.00501
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005630.jpg,kaggle_deepfake,KaggleReal190k,real,0.02192,0.06651
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005679.jpg,kaggle_deepfake,KaggleReal190k,real,0.98625,0.19966
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005669.jpg,kaggle_deepfake,KaggleReal190k,real,0.56901,0.61115
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005671.jpg,kaggle_deepfake,KaggleReal190k,real,0.84196,0.27488
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005633.jpg,kaggle_deepfake,KaggleReal190k,real,0.52738,0.09969
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005659.jpg,kaggle_deepfake,KaggleReal190k,real,0.53172,0.28071
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005674.jpg,kaggle_deepfake,KaggleReal190k,real,0.88155,0.92844
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005688.jpg,kaggle_deepfake,KaggleReal190k,real,0.21232,0.35406
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005678.jpg,kaggle_deepfake,KaggleReal190k,real,0.42415,0.10702
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005631.jpg,kaggle_deepfake,KaggleReal190k,real,0.25132,0.15949
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005649.jpg,kaggle_deepfake,KaggleReal190k,real,0.22852,0.03262
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005612.jpg,kaggle_deepfake,KaggleReal190k,real,0.04257,0.2011
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005624.jpg,kaggle_deepfake,KaggleReal190k,real,0.42162,0.46327
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005655.jpg,kaggle_deepfake,KaggleReal190k,real,0.21994,0.09998
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005653.jpg,kaggle_deepfake,KaggleReal190k,real,0.8478,0.45816
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005616.jpg,kaggle_deepfake,KaggleReal190k,real,0.91026,0.2312
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005645.jpg,kaggle_deepfake,KaggleReal190k,real,0.26089,0.3739
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005664.jpg,kaggle_deepfake,KaggleReal190k,real,0.0497,0.01362
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005602.jpg,kaggle_deepfake,KaggleReal190k,real,0.89974,0.27333
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005668.jpg,kaggle_deepfake,KaggleReal190k,real,0.10723,0.27871
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005597.jpg,kaggle_deepfake,KaggleReal190k,real,0.90519,0.59169
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005660.jpg,kaggle_deepfake,KaggleReal190k,real,0.83176,0.16429
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005599.jpg,kaggle_deepfake,KaggleReal190k,real,0.26635,0.02921
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005620.jpg,kaggle_deepfake,KaggleReal190k,real,0.23126,0.29055
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005689.jpg,kaggle_deepfake,KaggleReal190k,real,0.9519,0.36242
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005600.jpg,kaggle_deepfake,KaggleReal190k,real,0.61768,0.62556
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005654.jpg,kaggle_deepfake,KaggleReal190k,real,0.06071,0.03039
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005695.jpg,kaggle_deepfake,KaggleReal190k,real,0.84492,0.23812
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005684.jpg,kaggle_deepfake,KaggleReal190k,real,0.70947,0.79757
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005637.jpg,kaggle_deepfake,KaggleReal190k,real,0.70341,0.28448
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005656.jpg,kaggle_deepfake,KaggleReal190k,real,0.02393,0.01109
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005619.jpg,kaggle_deepfake,KaggleReal190k,real,0.22379,0.00894
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005686.jpg,kaggle_deepfake,KaggleReal190k,real,0.35173,0.519
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005667.jpg,kaggle_deepfake,KaggleReal190k,real,0.88397,0.19514
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005670.jpg,kaggle_deepfake,KaggleReal190k,real,0.12909,0.24438
+kaggle_deepfake/test/real/kaggle_deepfake_test_real_005626.jpg,kaggle_deepfake,KaggleReal190k,real,0.18513,0.58216
