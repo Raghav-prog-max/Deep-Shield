@@ -1,0 +1,17 @@
+# Install PyTorch FIRST:
+#   Windows laptop (CPU) : pip install torch
+#   Linux CPU            : pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   NVIDIA GPU / DGX     : pip install torch --index-url https://download.pytorch.org/whl/cu128
+torch>=2.2
+transformers>=4.40          # image-classification pipeline only (stable across 4.x/5.x)
+huggingface_hub>=0.23
+opencv-python-headless>=4.8,<5   # 4.x bundles the Haar face cascade (fallback face detector)
+numpy>=1.24
+pillow>=10.0
+pydantic>=2.5
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+matplotlib>=3.7              # score-timeline evidence image (optional; skipped if missing)
+pytest>=8.0
+httpx>=0.27                  # FastAPI TestClient
