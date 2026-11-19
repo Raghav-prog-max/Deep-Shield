@@ -32,7 +32,7 @@ _cors_origins = [
     o.strip()
     for o in os.getenv(
         "DEEPSHIELD_CORS_ORIGINS",
-        "http://localhost:3000,http://127.0.0.1:3000,https://deep-shield-sooty.vercel.app,*",
+        "http://localhost:3000,http://127.0.0.1:3000,https://deep-shield-sooty.vercel.app",
     ).split(",")
     if o.strip()
 ]
@@ -42,15 +42,8 @@ app.add_middleware(
     allow_origins=["*"] if "*" in _cors_origins else _cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_private_network=True,
 )
-
-
-@app.middleware("http")
-async def allow_private_network(request, call_next):
-    response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Private-Network"] = "true"
-    return response
 
 
 app.include_router(m02_router)

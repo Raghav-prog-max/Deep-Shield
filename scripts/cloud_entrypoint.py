@@ -44,6 +44,12 @@ def _ensure_models() -> None:
 
 
 def main() -> int:
+    # Keep queued uploads and evidence on the mounted database volume.
+    data_dir = Path(os.getenv("DEEPSHIELD_DATABASE_PATH", str(ROOT / "data" / "deep_shield.sqlite3"))).parent
+    os.environ.setdefault("DEEPSHIELD_JOB_UPLOAD_DIR", str(data_dir / "uploads"))
+    for module, setting in (("m01", "DEEPSHIELD_M01_EVIDENCE_DIR"), ("m02", "DEEPSHIELD_EVIDENCE_DIR"),
+                            ("m03", "DEEPSHIELD_M03_EVIDENCE_DIR"), ("m04", "DEEPSHIELD_M04_EVIDENCE_DIR")):
+        os.environ.setdefault(setting, str(data_dir / "evidence" / module))
     _ensure_models()
 
     host = os.getenv("HOST", "0.0.0.0")

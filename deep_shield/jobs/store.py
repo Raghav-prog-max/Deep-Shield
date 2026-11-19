@@ -249,5 +249,10 @@ class AnalysisJobStore:
         if not media_id or "/" in media_id or "\\" in media_id or ".." in media_id:
             return
         base = evidence_root or (ROOT / "evidence_store")
-        for mod in ("m01", "m02", "m03", "m04"):
-            shutil.rmtree(base / mod / media_id, ignore_errors=True)
+        directories = {"m01": "DEEPSHIELD_M01_EVIDENCE_DIR", "m02": "DEEPSHIELD_EVIDENCE_DIR",
+                       "m03": "DEEPSHIELD_M03_EVIDENCE_DIR", "m04": "DEEPSHIELD_M04_EVIDENCE_DIR"}
+        for module, setting in directories.items():
+            directory = base / module
+            if evidence_root is None and os.getenv(setting):
+                directory = ROOT / Path(os.environ[setting]).expanduser()
+            shutil.rmtree(directory / media_id, ignore_errors=True)

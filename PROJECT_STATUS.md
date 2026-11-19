@@ -6,6 +6,8 @@
 
 ## Executive summary
 
+**Release check, 19 November.** The full CPU suite passed all 36 tests with real inference enabled. An image and a video completed through the local production frontend proxy and a separate API and worker. The runs served 33 evidence files and both PDF reports. See the [release acceptance record](reports/RELEASE_ACCEPTANCE.md) for commands, image evaluation coverage, and outstanding hosted checks.
+
 The four analysis engines, API, durable SQLite worker, PDF reporting, frontend, evaluation assets, and deployment configuration are present in the repository. The Vercel landing page and review workspace are reachable. **The project is not yet verified as a hosted end-to-end service:** the public Vercel API health route returns 404, and no public backend URL is configured in the repository. Deploy and connect a backend before claiming hosted analysis works.
 
 The latest GitHub Actions run for the reviewed commit passed both configured jobs. That CI run uses an M02 stub and excludes the deep-model media tests, so it does not verify every model with real inference. Benchmark figures below are recorded in the linked project reports; they were not rerun as part of this status review.
@@ -58,7 +60,7 @@ Dataset composition, splits, and caveats are documented in [EVALUATION.md](EVALU
 1. **Deploy a backend** using one documented target in [DEPLOYMENT.md](DEPLOYMENT.md); confirm that API and worker start, model weights load, persistent storage is configured, and health endpoints respond.
 2. **Connect the frontend** by setting `NEXT_PUBLIC_API_BASE_URL` in Vercel to the deployed API URL and redeploying the frontend.
 3. **Verify hosted analysis** from `/review` with consented representative images and videos. Confirm queued jobs, engine outputs, evidence links, PDF download, retention, and useful failure messages. Record the backend URL and exact verification time.
-4. **Run and report release acceptance evaluation** on representative, consented media. Reproduce the claimed model tests in a real-model configuration; update CI/reporting so its test counts and skipped/excluded tests are explicit.
+4. **Evaluate on representative, consented deployment media.** The repository fixtures and the full CPU suite have been exercised locally. Collect the intended operating sample and document the acceptable error rates.
 5. **Tune thresholds and document operating limits** from evaluation results. Keep all output advisory and require human review.
 
 ## Safety and scope

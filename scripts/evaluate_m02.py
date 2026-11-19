@@ -65,6 +65,7 @@ def main() -> int:
     cfg.evidence_plots = False     # spectrum charts are not needed for metrics
     eng = DeepfakeImageIntegrityEngine(cfg)
     rows, y, s, skipped = [], [], [], 0
+    thresholds = {}
     t0 = time.perf_counter()
     for n, (p, label) in enumerate(items, 1):
         r = eng.analyze(p, tasks=[a.task], assume_face_crop=a.assume_face_crop)
@@ -73,7 +74,9 @@ def main() -> int:
             skipped += 1
             rows.append({"file": str(p), "label": label, "score": "", "note": r.error or "no face / no finding"})
             continue
-        score = max(f.score for f in fs)  # multi-face images: most concerning face
+        finding = max(fs, key=lambda f: f.score)
+        score = finding.score
+        thresholds = finding.thresholds
         y.append(label); s.append(score)
         rows.append({"file": str(p), "label": label, "score": round(score, 5), "note": ""})
         if n % 50 == 0:
@@ -90,7 +93,7 @@ def main() -> int:
         "ms_per_image": round(1000 * secs / max(1, len(items)), 1),
         "roc_auc": roc_auc(y, s) if s else None,
         "at_0.5": binary_metrics(y, s, 0.5) if s else None,
-        "three_band": three_band(y, s, spec.threshold_low, spec.threshold_high) if (s and spec) else None,
+        "three_band": three_band(y, s, thresholds["low"], thresholds["high"]) if (s and spec) else None,
         "sweep": sweep(y, s) if s else None,
     }
     (out / "metrics.json").write_text(json.dumps(metrics, indent=2))
