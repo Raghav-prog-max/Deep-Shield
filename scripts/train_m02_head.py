@@ -368,17 +368,27 @@ def main() -> int:
     dim = X.shape[1] // len(layers)
     print(f"faces used: {len(items)}   no face detected (skipped, as the engine would): {dict(no_face)}")
 
-    # ---- train / validation split of the train pool (stratified by source+label)
+    # ---- train / validation split of the train pool (stratified by source+label, grouped by video ID!)
+    import re as _re
     tr_idx = np.where(split == "train")[0]
     te_idx = np.where(split == "test")[0]
-    strata = defaultdict(list)
+    strata = defaultdict(lambda: defaultdict(list))
     for i in tr_idx:
-        strata[(items[i]["source"], items[i]["y"])].append(i)
+        it = items[i]
+        stem = Path(it["file"]).stem
+        grp = _re.sub(r"_f\d+$", "", stem) if it["source"].endswith("_video") else it["file"]
+        strata[(it["source"], it["y"])][grp].append(i)
     val_idx, fit_idx = [], []
-    for k, v in strata.items():
-        v = rng.permutation(v)
-        nv = max(1, int(round(0.2 * len(v))))
-        val_idx += v[:nv].tolist(); fit_idx += v[nv:].tolist()
+    for k, grp_map in strata.items():
+        grps = list(grp_map.keys())
+        order = rng.permutation(len(grps))
+        nv = max(1, int(round(0.2 * len(grps))))
+        val_g = {grps[j] for j in order[:nv]}
+        for g, idxs in grp_map.items():
+            if g in val_g:
+                val_idx.extend(idxs)
+            else:
+                fit_idx.extend(idxs)
     fit_idx, val_idx = np.array(fit_idx), np.array(val_idx)
 
     # ---- deep candidate sweep (linear, MLP, L2-normalised 5-member MLP ensemble)
@@ -463,7 +473,7 @@ def main() -> int:
     loso_txt = ", ".join(f"{k} {v['head_trained_without_it']['auc']:.3f}" for k, v in loso.items())
     src_list = sorted({it["source"] for it in items})
     head.meta = {
-        "name": "deepshield-face-head-v3",
+        "name": "deepshield-face-head-v4",
         "base_model_id": FACE_SPEC.model_id,
         "base_source": source,
         "trained_at": datetime.now().isoformat(timespec="seconds"),

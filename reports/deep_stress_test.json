@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-11-19T06:25:33",
+  "created_at": "2026-11-19T08:43:32",
   "m01_threat": {
     "model": {
       "model_id": "hustvl/yolos-tiny",
@@ -10,7 +10,7 @@
       "backend": "transformers/pytorch"
     },
     "real_video_status": "completed",
-    "real_video_ms": 12486.2,
+    "real_video_ms": 15077.1,
     "real_video_detections": 82,
     "unique_tracks": 21,
     "max_track_length_frames": 8,
@@ -22,74 +22,74 @@
   },
   "m02_face_robustness": {
     "model": {
-      "model_id": "prithivMLmods/open-deepfake-detection + deepshield-face-head-v3",
-      "revision": "aaa680d8ff799424ba5d092b6d5e0b999f0e0ab6+head:b12bda01ed0c",
+      "model_id": "prithivMLmods/open-deepfake-detection + deepshield-face-head-v4",
+      "revision": "aaa680d8ff799424ba5d092b6d5e0b999f0e0ab6+head:f12a651f67ec",
       "task": "face_manipulation",
       "license": "apache-2.0",
       "source_url": "https://huggingface.co/prithivMLmods/open-deepfake-detection",
       "backend": "transformers+trained_head"
     },
     "thresholds": {
-      "low": 0.207,
-      "high": 0.777
+      "low": 0.156,
+      "high": 0.804
     },
     "n_faces_tested": 107,
     "robustness_matrix": {
       "clean": {
         "n": 107,
-        "roc_auc": 0.9472,
-        "acc@0.5": 0.8505,
-        "f1@0.5": 0.871,
-        "precision@0.5": 0.8182,
+        "roc_auc": 0.9493,
+        "acc@0.5": 0.8785,
+        "f1@0.5": 0.8926,
+        "precision@0.5": 0.8571,
         "recall@0.5": 0.931
       },
       "jpeg_q60": {
         "n": 107,
-        "roc_auc": 0.9215,
-        "acc@0.5": 0.8411,
-        "f1@0.5": 0.8496,
-        "precision@0.5": 0.8727,
-        "recall@0.5": 0.8276
+        "roc_auc": 0.9324,
+        "acc@0.5": 0.8131,
+        "f1@0.5": 0.8214,
+        "precision@0.5": 0.8519,
+        "recall@0.5": 0.7931
       },
       "jpeg_q40": {
         "n": 107,
-        "roc_auc": 0.8649,
-        "acc@0.5": 0.757,
-        "f1@0.5": 0.7547,
-        "precision@0.5": 0.8333,
-        "recall@0.5": 0.6897
+        "roc_auc": 0.8543,
+        "acc@0.5": 0.7664,
+        "f1@0.5": 0.7706,
+        "precision@0.5": 0.8235,
+        "recall@0.5": 0.7241
       },
       "downscale_0.5x": {
         "n": 107,
-        "roc_auc": 0.8645,
-        "acc@0.5": 0.7383,
-        "f1@0.5": 0.8,
-        "precision@0.5": 0.6829,
-        "recall@0.5": 0.9655
+        "roc_auc": 0.8666,
+        "acc@0.5": 0.785,
+        "f1@0.5": 0.8244,
+        "precision@0.5": 0.7397,
+        "recall@0.5": 0.931
       },
       "gaussian_blur": {
         "n": 107,
-        "roc_auc": 0.8895,
-        "acc@0.5": 0.7103,
-        "f1@0.5": 0.7832,
-        "precision@0.5": 0.6588,
+        "roc_auc": 0.8944,
+        "acc@0.5": 0.7757,
+        "f1@0.5": 0.8235,
+        "precision@0.5": 0.7179,
         "recall@0.5": 0.9655
       },
       "brightness_contrast": {
         "n": 107,
-        "roc_auc": 0.9356,
+        "roc_auc": 0.9391,
         "acc@0.5": 0.8411,
-        "f1@0.5": 0.8595,
-        "precision@0.5": 0.8254,
-        "recall@0.5": 0.8966
+        "f1@0.5": 0.8547,
+        "precision@0.5": 0.8475,
+        "recall@0.5": 0.8621
       }
     },
     "download_webp_check": {
-      "score": 0.9266,
+      "score": 0.8614,
       "classification": "face_manipulation_indicated",
       "thresholds": {
-        "low": 0.207,
-        "high": 0.777
+        "low": 0.156,
+        "high": 0.804
       }
     }
   },

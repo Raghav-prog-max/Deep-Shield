@@ -14,3 +14,5 @@ demo/
 *.zip
 .env.production
 .vercel
+eval/deepfake_videos/
+eval/surveillance_ucf/

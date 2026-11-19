@@ -1,42 +1,74 @@
-# Single-host deployment
+# Deployment Guide — Local, Cloud Backend & Single-Host HTTPS
 
-This deployment runs the API, a separate SQLite-backed worker, the Next.js review app, model downloads, and Caddy HTTPS on one Docker host. The web app is protected with Caddy Basic Auth; the API and worker are private to the Compose network. The SQLite database, uploaded job files, evidence, downloaded models, Hugging Face cache, and Caddy certificates use persistent Docker volumes.
+DEEP SHIELD supports two production deployment modes:
 
-## Requirements
+1. **Cloud Single-Container Backend (Railway, Render, HuggingFace Spaces) + Vercel Frontend** — fastest way to let any remote browser/device run real M01–M04 PyTorch inference through `https://deep-shield-sooty.vercel.app`.
+2. **Single-Host Docker Compose + Caddy HTTPS** — self-hosted Linux server serving both frontend and backend behind Basic Auth + automatic TLS.
 
+---
+
+## Option A: Cloud Backend (Railway / Render / HuggingFace Spaces) + Vercel
+
+Because single-container cloud hosts run one container per service, `Dockerfile` defaults to `python scripts/cloud_entrypoint.py`, which:
+- Downloads missing local weights (`hustvl/yolos-tiny`, SigLIP2, YuNet) automatically on first boot if not already baked in.
+- Launches and supervises the durable SQLite background worker (`python -m deep_shield.jobs.worker`).
+- Serves FastAPI on `0.0.0.0:$PORT` (handles Railway/Render dynamic `PORT` and HuggingFace Spaces port `7860`).
+
+### 1. Railway (`railway.json` included)
+1. Create a new Railway project from `Raghav-prog-max/Deep-Shield` — Railway automatically detects `railway.json` + `Dockerfile`.
+2. Attach a persistent volume at `/app/data` (recommended `5 GB`) and set environment variables `DEEPSHIELD_DEVICE=cpu`, `DEEPSHIELD_M02_BACKEND=hf`, `DEEPSHIELD_RETENTION_HOURS=168`.
+3. Copy the generated `https://<your-app>.up.railway.app` URL and verify `GET /api/v1/intelligence/models`.
+
+### 2. Render (`render.yaml` included)
+1. In Render, choose **New → Blueprint** and select `Raghav-prog-max/Deep-Shield` — Render reads `render.yaml` (Docker runtime, `/api/v1/m01/health` check, persistent `/app/data` disk).
+2. Verify `GET https://<your-service>.onrender.com/api/v1/intelligence/models`.
+
+### 3. HuggingFace Spaces (Free 16 GB RAM CPU Tier — `Dockerfile.hf` included)
+1. Create a new HuggingFace Space with SDK **Docker** (blank template).
+2. Push this repo using `Dockerfile.hf` as `Dockerfile` (bakes M01 + M02 weights at build time and listens on port `7860`).
+3. Verify `GET https://<your-user>-<space>.hf.space/api/v1/intelligence/models`.
+
+### 4. Connect Vercel Frontend (`https://deep-shield-sooty.vercel.app`)
+Set `NEXT_PUBLIC_API_BASE_URL` in Vercel Project Settings → Environment Variables to your cloud backend URL (e.g. `https://<your-app>.up.railway.app`), then redeploy `frontend/` — or paste the URL directly into the workspace's `CONNECT / RETRY` bar at runtime.
+
+---
+
+## Option B: Single-Host Docker Compose + Caddy HTTPS
+
+Runs separate `api`, `worker`, `frontend`, `model-setup`, and `caddy` containers on one Linux host behind HTTPS + Basic Auth.
+
+### Requirements
 - A Linux host with Docker Engine and Docker Compose v2.
-- A DNS name pointed at the host, with inbound ports 80 and 443 available.
-- Enough disk for Python/PyTorch, model downloads, uploaded media and generated evidence. Give the host several GB of free space and monitor it.
-- Review the repository's AGPL-3.0-only terms and the Ultralytics licensing terms before deployment.
+- A DNS name pointed at the host, with inbound ports `80` and `443` available.
+- At least `5–10 GB` free disk space for PyTorch, checkpoints, uploaded media, and evidence.
+- Review [LICENSE](LICENSE) (AGPL-3.0-only) before deployment.
 
-## Configure and start
+### Configure and start
 
 1. Copy `.env.production.example` to `.env.production`.
-2. Set `SITE_ADDRESS` to the DNS name, choose a unique `SITE_USER`, and generate `SITE_PASSWORD_HASH` with the command in the env file. Double each `$` in the generated hash when putting it in `.env.production` so Compose passes the full hash through. Keep `.env.production` private.
+2. Set `SITE_ADDRESS`, `SITE_USER`, and `SITE_PASSWORD_HASH` (generate with `docker run --rm caddy:2-alpine caddy hash-password --plaintext '<password>'`, doubling each `$` in `.env.production`).
 3. Start the services from the repository root:
 
    ```sh
    docker compose --env-file .env.production up -d --build
    ```
 
-4. The first startup downloads the model checkpoints. Follow it with `docker compose logs -f model-setup api worker caddy`; model setup must complete before the API and worker start.
-5. Open `https://<SITE_ADDRESS>`, sign in with the configured Basic Auth credentials, and submit a small consented image before using video.
-6. Check `https://<SITE_ADDRESS>/api/v1/m01/health` and `docker compose ps`. A completed analysis job confirms the API, worker, shared volumes, evidence routes and report generation work together.
+4. Follow first-boot checkpoint downloads with `docker compose logs -f model-setup api worker caddy`.
+5. Open `https://<SITE_ADDRESS>`, sign in, and verify `GET https://<SITE_ADDRESS>/api/v1/intelligence/models`.
 
-## Operations and limits
+---
 
-- This queue is durable across API/worker restarts when the Docker volumes remain intact. Run one API replica against the SQLite database. Multiple workers can claim jobs safely, but each loads the inference models into memory; begin with one worker on CPU.
-- Back up the `application-data`, `evidence-store`, and `model-store` volumes together. Keep Caddy's data volume for certificate renewal. Test a restore before relying on backups.
-- Uploaded source files are deleted immediately after a job finishes. Derived evidence (`evidence_store/m01..m04`) and completed SQLite job records are automatically purged by the worker after `DEEPSHIELD_RETENTION_HOURS` (default `168` hours / 7 days), and can also be removed on demand via `DELETE /api/v1/intelligence/jobs/{job_id}` or `POST /api/v1/intelligence/retention/purge`. Adjust `DEEPSHIELD_RETENTION_HOURS` to match your operational retention policy before storing sensitive media.
-- The default upload limit is 200 MB. Tune `DEEPSHIELD_MAX_UPLOAD_MB` and proxy limits together if this changes.
-- The single-host SQLite design is not a multi-host/high-availability queue. For multiple API hosts, move job state to PostgreSQL and use a broker such as Redis/RQ or Celery with shared object storage.
-- Basic Auth protects the whole site over HTTPS. Add organization identity, access logs and formal retention controls if the deployment will handle sensitive media or multiple reviewers.
-- Thresholds remain unvalidated until evaluated against representative, consented, labeled data. Deployment does not make the outputs operationally validated.
+## Operations, Retention & Limits
 
-## Stop
+- **Retention:** Uploaded source files are deleted immediately after worker processing. Derived evidence (`evidence_store/m01..m04`) and completed SQLite job records are automatically purged by the worker after `DEEPSHIELD_RETENTION_HOURS` (default `168` hours / 7 days), and can be deleted immediately via `DELETE /api/v1/intelligence/jobs/{job_id}` or `POST /api/v1/intelligence/retention/purge`.
+- **Upload Limit:** Default `200 MB` (`DEEPSHIELD_MAX_UPLOAD_MB`).
+- **Scaling:** SQLite is durable for a single host; for multi-replica API scaling, switch job storage to PostgreSQL + Redis/RQ or Celery + shared object storage.
+- **Advisory Policy:** Deployment does not make outputs operationally validated; all results remain separate and advisory for human review.
+
+### Stop Docker Compose
 
 ```sh
 docker compose --env-file .env.production down
 ```
 
-This preserves data volumes. `docker compose down -v` permanently deletes the volumes and all stored job/evidence/model data.
+(`docker compose down -v` permanently removes all stored volumes.)

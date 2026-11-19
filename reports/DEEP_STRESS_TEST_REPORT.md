@@ -1,24 +1,24 @@
 # DEEP SHIELD — Deep Robustness & Stress-Test Report
 
-**Generated:** 2026-11-19T06:25:33
+**Generated:** 2026-11-19T08:43:32
 
 ## 1. M01 Neural Object Detector & Multi-Object Tracker (`hustvl/yolos-tiny`)
-- **Real Surveillance Video (`vtest.avi` test clip):** `completed`, **82** detections, **21** persistent tracks (max track length **8** frames), mean confidence **0.8958** (12486.2 ms).
+- **Real Surveillance Video (`vtest.avi` test clip):** `completed`, **82** detections, **21** persistent tracks (max track length **8** frames), mean confidence **0.8958** (15077.1 ms).
 - **Negative Non-Person False-Positive Stress Test:** **0/4** false-positive persons on non-person scenes.
 
-## 2. M02 Face Manipulation Robustness Matrix (`prithivMLmods/open-deepfake-detection + deepshield-face-head-v3` · rev `aaa680d8ff799424ba5d092b6d5e0b999f0e0ab6+head:b12bda01ed0c`)
+## 2. M02 Face Manipulation Robustness Matrix (`prithivMLmods/open-deepfake-detection + deepshield-face-head-v4` · rev `aaa680d8ff799424ba5d092b6d5e0b999f0e0ab6+head:f12a651f67ec`)
 Tested across **107 balanced real held-out faces** from all 4 Kaggle/HF sources under social-media degradations:
 
 | Degradation Condition | Held-Out ROC-AUC | Accuracy @ 0.5 | F1 @ 0.5 | Precision | Recall |
 |---|---:|---:|---:|---:|---:|
-| `clean` | **0.9472** | 0.8505 | 0.871 | 0.8182 | 0.931 |
-| `jpeg_q60` | **0.9215** | 0.8411 | 0.8496 | 0.8727 | 0.8276 |
-| `jpeg_q40` | **0.8649** | 0.757 | 0.7547 | 0.8333 | 0.6897 |
-| `downscale_0.5x` | **0.8645** | 0.7383 | 0.8 | 0.6829 | 0.9655 |
-| `gaussian_blur` | **0.8895** | 0.7103 | 0.7832 | 0.6588 | 0.9655 |
-| `brightness_contrast` | **0.9356** | 0.8411 | 0.8595 | 0.8254 | 0.8966 |
+| `clean` | **0.9493** | 0.8785 | 0.8926 | 0.8571 | 0.931 |
+| `jpeg_q60` | **0.9324** | 0.8131 | 0.8214 | 0.8519 | 0.7931 |
+| `jpeg_q40` | **0.8543** | 0.7664 | 0.7706 | 0.8235 | 0.7241 |
+| `downscale_0.5x` | **0.8666** | 0.785 | 0.8244 | 0.7397 | 0.931 |
+| `gaussian_blur` | **0.8944** | 0.7757 | 0.8235 | 0.7179 | 0.9655 |
+| `brightness_contrast` | **0.9391** | 0.8411 | 0.8547 | 0.8475 | 0.8621 |
 
-- **User Face-Swap Check (`download.webp`):** `face_manipulation_indicated` · score **0.9266** (thresholds `{'low': 0.207, 'high': 0.777}`).
+- **User Face-Swap Check (`download.webp`):** `face_manipulation_indicated` · score **0.8614** (thresholds `{'low': 0.156, 'high': 0.804}`).
 
 ## 3. M02 Whole-Image AI Generation (`prithivMLmods/open-deepfake-detection + deepshield-synth-head-v1` · rev `aaa680d8ff799424ba5d092b6d5e0b999f0e0ab6+head:382a7a930175`)
 - **`eval/synthetic/test` (16 real vs AI images):** ROC-AUC **1.0**, Acc@0.5 **1.0**, F1 **1.0**.

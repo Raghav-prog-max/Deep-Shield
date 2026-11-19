@@ -8,7 +8,7 @@ Live hosted web application: **[https://deep-shield-sooty.vercel.app](https://de
 | Module | Capability | Current implementation |
 |---|---|---|
 | 01 | Threat and anomaly intelligence | Local MS-COCO 2017 `hustvl/yolos-tiny` (Apache-2.0) + velocity-predicted `MultiObjectIoUTracker` (optional Ultralytics `yolo26n` + ByteTrack); zone entry, dwell (30s) and unattended-object (60s) candidates |
-| 02 | Deepfake and image integrity | Frozen SigLIP2 + deep-trained `deepshield-face-head-v3` (ROC-AUC **0.9439**, 4 real datasets) + `deepshield-synth-head-v1` (ROC-AUC **0.9409**, enabled by default on images), occlusion heatmaps, frequency plots, ELA/noise maps & metadata |
+| 02 | Deepfake and image integrity | Frozen SigLIP2 + 6-dataset `deepshield-face-head-v4` (real images + Celeb-DF v2 + FF++/DFD videos, `92.86%` Decided Acc) + `deepshield-synth-head-v1` (ROC-AUC **0.9409**, enabled by default on images), occlusion heatmaps, frequency plots, ELA/noise maps & metadata |
 | 03 | Video event understanding | Reuses M01 neural tracks for calibrated rules (zone entry/exit, loitering, crowding, rapid movement) + PyTorch Temporal Kinematic GRU v4 (`models/m03_temporal_gru.pt`, 6,265 params, trained on 53 real tracks) |
 | 04 | Visual forensics | Calibrated SIFT + RANSAC copy-move (`models/m04_forensics_params.json`), ELA q90 / noise maps, JPEG quantization/grid/ghosts and metadata observations |
 
@@ -33,7 +33,7 @@ This project is licensed under AGPL-3.0-only. Default M01 weights (`hustvl/yolos
 
 | Task | Input to model | Default model + trained head | Licence | Verdicts |
 |---|---|---|---|---|
-| `face_manipulation` | Square face crop (detected face + 25% context) | [`prithivMLmods/open-deepfake-detection`](https://huggingface.co/prithivMLmods/open-deepfake-detection) (frozen SigLIP2) + `models/m02_face_head.npz` (`deepshield-face-head-v3`, SHA `b12bda01ed0c`); calibrated thresholds `0.207 / 0.777` | Apache-2.0 | `face_manipulation_indicated` · `inconclusive` · `no_face_manipulation_indicated` |
+| `face_manipulation` | Square face crop (detected face + 25% context) | [`prithivMLmods/open-deepfake-detection`](https://huggingface.co/prithivMLmods/open-deepfake-detection) (frozen SigLIP2) + `models/m02_face_head.npz` (`deepshield-face-head-v4`, SHA `f12a651f67ec`); calibrated thresholds `0.156 / 0.804` | Apache-2.0 | `face_manipulation_indicated` · `inconclusive` · `no_face_manipulation_indicated` |
 | `synthetic_image` | Whole image (default on images; opt-in & capped on video) | Frozen SigLIP2 + `models/m02_synth_head.npz` (`deepshield-synth-head-v1`, SHA `382a7a930175`); calibrated thresholds `0.406 / 0.750` | Apache-2.0 | `ai_generation_indicated` · `inconclusive` · `no_ai_generation_indicated` |
 
 **Model selection (internal check, 17 Nov 2026, 25 real + 25 fake each — not a formal benchmark):**
@@ -50,7 +50,7 @@ This project is licensed under AGPL-3.0-only. Default M01 weights (`hustvl/yolos
 
 | Task | Default | Method | Output type |
 |---|---|---|---|
-| `face_manipulation` | images + videos | YuNet/Haar face detection → frozen SigLIP2 + `deepshield-face-head-v3` (multi-layer L2-norm MLP, Guo `T=1.6`) → **occlusion heatmap** for faces scoring ≥ `low` | Verdict (three-band) + calibrated score + region map |
+| `face_manipulation` | images + videos | YuNet/Haar face detection → frozen SigLIP2 + `deepshield-face-head-v4` (5-member multi-layer L2-norm MLP ensemble, `alpha=0.1`, Guo `T=1.9768`) → **occlusion heatmap** for faces scoring ≥ `low` | Verdict (three-band) + calibrated score + region map |
 | `synthetic_image` | images (opt-in on video) | Frozen SigLIP2 + `deepshield-synth-head-v1` (5-member L2-norm MLP ensemble, `T=0.8047`) on the whole image | Verdict (three-band) + calibrated score; capped at `inconclusive` on video |
 | `frequency_analysis` | images | Windowed FFT → azimuthal power spectrum → high-frequency excess vs a 1/f fit (Durall et al., CVPR 2020) | **Spectrum plot only**: the indicator scored ROC-AUC 0.52 on our 50-face check, so no score or verdict is reported |
 | `image_manipulation` | images | ELA (JPEG q90 re-compression) + local noise-level map (Immerkær kernel, ratio to image median) + EXIF review | **Visual maps only**, no score, no verdict |
@@ -177,7 +177,7 @@ def run_m02_job(path, tasks=None):
 | `DEEPSHIELD_M02_BATCH` · `DEEPSHIELD_MAX_UPLOAD_MB` | 16 · 200 | Inference batch size; upload size limit |
 | `DEEPSHIELD_M02_DEFAULT_TASKS` | `face_manipulation,synthetic_image,image_manipulation,frequency_analysis` | Tasks run when none are requested (videos keep only `face_manipulation`) |
 | `DEEPSHIELD_M02_EXPLAIN` | `1` | `0` disables the occlusion heatmap (saves about 25 extra classifier passes per face) |
-| `DEEPSHIELD_M02_FACE_HEAD` | `models/m02_face_head.npz` | Trained 4-dataset face head (`deepshield-face-head-v3`, §6b). Loaded automatically; `none` restores original head |
+| `DEEPSHIELD_M02_FACE_HEAD` | `models/m02_face_head.npz` | Trained 6-dataset image+video face head (`deepshield-face-head-v4`, §6b). Loaded automatically; `none` restores original head |
 | `DEEPSHIELD_M02_SYNTH_HEAD` | `models/m02_synth_head.npz` | Trained whole-image AI head (`deepshield-synth-head-v1`, §6b). Loaded automatically; `none` restores original head |
 | `DEEPSHIELD_M01_MODEL` | `models/hustvl__yolos-tiny` (or optional `models/yolo26n.pt`) | Local MS-COCO detector; download with `scripts/download_m01_model.py` (`--yolo` for Ultralytics) |
 | `DEEPSHIELD_M01_ZONES` | empty | Optional JSON array of normalized polygon zones |
@@ -203,19 +203,21 @@ The script outputs `metrics.json` with ROC-AUC, accuracy, precision, recall, F1 
 ### 6b. Deep-trained M02 heads, M03 Temporal GRU v4 & consolidated M01–M04 evaluation
 
 Module 02 ships two calibrated classification heads on top of the frozen SigLIP2 backbone:
-- **Face Manipulation (`models/m02_face_head.npz`, `deepshield-face-head-v3`, SHA `b12bda01ed0c`):** Trained on **2,800** real images (`2,596` faces) across **4 real Kaggle/HF datasets** (`stylegan1`, `tpdne`, `dff`, `kaggle_deepfake`). Held-out test (`651` faces): ROC-AUC **`0.9439`** (vs `0.6269` baseline), Acc@0.5 `87.25%`, ECE `0.0306`, Decided Acc **`94.49%`**.
+- **Face Manipulation (`models/m02_face_head.npz`, `deepshield-face-head-v4`, SHA `f12a651f67ec`):** Trained on **3,504** real image + video items (`3,283` faces) across **6 real datasets** (`stylegan1`, `tpdne`, `dff`, `kaggle_deepfake`, pair-matched `Celeb-DF v2`, actor-disjoint `FF++/Google DFD`). Held-out test (`966` faces): ROC-AUC **`0.8561`** (vs `0.5750` baseline), ECE `0.0490`, Decided Acc **`92.86%`**; **40 real held-out `.mp4` videos**: FF++/DFD **`0.7200` AUC** (`90%` recall), Celeb-DF v2 **`0.6200` AUC** (`83.33%` Decided Acc), pooled **`80.0%`** Decided Acc.
 - **Whole-Image AI Generation (`models/m02_synth_head.npz`, `deepshield-synth-head-v1`, SHA `382a7a930175`):** Trained on **960** real AI-vs-Photo images (`Hemg` + `CIFAKE`). Held-out test (`240` images): ROC-AUC **`0.9409`** (vs `0.4741` baseline), Acc@0.5 `87.50%`, Decided Acc **`90.61%`**.
 
 ```bash
 python scripts/fetch_train_faces.py          # fetch disjoint 4-source train/test face splits
-python scripts/train_m02_head.py             # train & calibrate M02 face head (Guo temperature T)
+python scripts/fetch_real_videos.py          # fetch actor-disjoint Celeb-DF v2, FF++/DFD & UCF-Crime MP4s
+python scripts/train_m02_head.py             # train & calibrate M02 face head v4 across all 6 real datasets
 python scripts/train_m02_synth_head.py       # fetch Hemg + CIFAKE and train M02 synthetic_image head
 python scripts/train_m03_gru.py              # train M03 PyTorch Temporal GRU v4 on 53 real vtest.avi tracks
-python scripts/evaluate_all.py --out reports # run consolidated M01-M04 evaluation & threshold calibration
+python scripts/benchmark_real_videos.py      # benchmark M01-M03 on 40 real deepfake + 12 UCF-Crime videos
 python scripts/deep_stress_test.py           # run degradation, negative-scene & 30-photo copy-move stress test
+python scripts/evaluate_all.py --out reports # run consolidated M01-M04 evaluation & threshold calibration
 ```
 
-Full evaluation and stress-test outputs are committed under [reports/EVALUATION_REPORT.md](reports/EVALUATION_REPORT.md), [reports/DEEP_STRESS_TEST_REPORT.md](reports/DEEP_STRESS_TEST_REPORT.md), [reports/m02_training/report.md](reports/m02_training/report.md), [reports/m02_synth_training/report.md](reports/m02_synth_training/report.md), and [reports/m03_gru_training/report.json](reports/m03_gru_training/report.json).
+Full evaluation, video benchmark, and stress-test outputs are committed under [reports/VIDEO_BENCHMARK_REPORT.md](reports/VIDEO_BENCHMARK_REPORT.md), [reports/DEEP_STRESS_TEST_REPORT.md](reports/DEEP_STRESS_TEST_REPORT.md), [reports/EVALUATION_REPORT.md](reports/EVALUATION_REPORT.md), [reports/m02_training/report.md](reports/m02_training/report.md), [reports/m02_synth_training/report.md](reports/m02_synth_training/report.md), and [reports/m03_gru_training/report.json](reports/m03_gru_training/report.json).
 
 ## 7. Known limitations — show these in the report
 

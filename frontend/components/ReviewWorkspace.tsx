@@ -492,8 +492,8 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
     if (finding.classification === "copy_move_candidate") {
       return "⚠ Copy-Move Cloned Region Candidate";
     }
-    if (finding.classification === "anomalous_motion_candidate") {
-      return "⚠ Anomalous Motion Candidate (Temporal GRU)";
+    if (finding.classification === "kinematic_anomaly_candidate" || finding.classification === "anomalous_motion_candidate") {
+      return "⚠ Kinematic Anomaly Candidate (Temporal GRU)";
     }
     if (finding.classification === "inconclusive") {
       return "◐ Inconclusive (Calibrated Uncertain Band)";

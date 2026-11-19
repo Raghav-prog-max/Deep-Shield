@@ -1,0 +1,31 @@
+# HuggingFace Spaces Docker SDK Dockerfile (free 16 GB RAM CPU container, port 7860)
+# Deploy by creating a Docker Space and pointing it at this repo / Dockerfile.hf,
+# then set NEXT_PUBLIC_API_BASE_URL=https://<your-space>.hf.space in Vercel.
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    DEEPSHIELD_DEVICE=cpu \
+    DEEPSHIELD_M02_BACKEND=hf \
+    PORT=7860 \
+    HOME=/home/user
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ffmpeg libgl1 libglib2.0-0 libgomp1 ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -m -u 1000 user
+
+WORKDIR /app
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+COPY requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY --chown=user:user . .
+RUN mkdir -p /app/data /app/evidence_store /app/models && chown -R user:user /app
+
+USER user
+RUN python scripts/download_m01_model.py && python scripts/download_models.py
+
+EXPOSE 7860
+CMD ["python", "scripts/cloud_entrypoint.py"]

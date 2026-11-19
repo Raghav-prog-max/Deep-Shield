@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: deep-shield-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: standard
+    healthCheckPath: /api/v1/m01/health
+    envVars:
+      - key: DEEPSHIELD_DEVICE
+        value: cpu
+      - key: DEEPSHIELD_M02_BACKEND
+        value: hf
+      - key: DEEPSHIELD_RETENTION_HOURS
+        value: "168"
+      - key: DEEPSHIELD_DATABASE_PATH
+        value: /app/data/deep_shield.sqlite3
+    disk:
+      name: deep-shield-storage
+      mountPath: /app/data
+      sizeGB: 5
