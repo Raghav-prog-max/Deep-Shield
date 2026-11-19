@@ -89,21 +89,10 @@ def load_trained_gru(checkpoint_path: str = str(DEFAULT_GRU_PATH)) -> dict:
             "loaded_from": str(path),
         }
 
-    # Deterministic fallback if checkpoint has not been built yet
-    torch.manual_seed(2026)
-    model = TemporalKinematicGRU()
-    model.eval()
-    return {
-        "model": model,
-        "mean": np.zeros(6, dtype=np.float32),
-        "std": np.ones(6, dtype=np.float32),
-        "threshold": 0.65,
-        "model_id": "temporal-gru-kinematic-v1",
-        "revision": "untrained-init",
-        "n_parameters": sum(p.numel() for p in model.parameters()),
-        "test_auc": None,
-        "loaded_from": "memory-init",
-    }
+    raise FileNotFoundError(
+        f"Trained M03 Temporal GRU checkpoint not found at {path}. "
+        "Run `python scripts/train_m03_gru.py` to build models/m03_temporal_gru.pt."
+    )
 
 
 def _extract_track_features(sequence: list[Detection], width: int, height: int) -> tuple[np.ndarray, float]:

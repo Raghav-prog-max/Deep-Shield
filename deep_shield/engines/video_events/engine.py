@@ -100,6 +100,13 @@ class VideoEventEngine:
         self.detector = detector_for(threat_cfg)
 
     def health(self) -> dict:
+        gru_model = None
+        gru_error = None
+        if self.cfg.gru_enabled:
+            try:
+                gru_model = {k: v for k, v in load_trained_gru().items() if k not in ("model", "mean", "std")}
+            except FileNotFoundError as exc:
+                gru_error = str(exc)
         return {
             "module": MODULE_NAME,
             "engine_version": ENGINE_VERSION,
@@ -113,11 +120,9 @@ class VideoEventEngine:
                 "running_body_lengths_per_second": self.cfg.running_body_lengths_per_second,
                 "event_merge_gap_seconds": self.cfg.merge_gap_seconds,
             },
-            "gru_enabled": self.cfg.gru_enabled,
-            "gru_model": (
-                {k: v for k, v in load_trained_gru().items() if k not in ("model", "mean", "std")}
-                if self.cfg.gru_enabled else None
-            ),
+            "gru_enabled": self.cfg.gru_enabled and gru_model is not None,
+            "gru_model": gru_model,
+            **({"gru_error": gru_error} if gru_error else {}),
         }
 
     def analyze(

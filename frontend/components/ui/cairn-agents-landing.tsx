@@ -165,11 +165,6 @@ export interface CairnAgentsLandingProps {
   style?: React.CSSProperties
 }
 
-type CnlFile = { id: number; name: string; size: number; progress: number }
-
-type CnlSimCall = { id: number; persona: string; intent: string; outcome: "resolved" | "handoff" | "flagged"; ms: number }
-
-type CnlSimResult = { calls: CnlSimCall[]; resolved: number; handoff: number; flagged: number }
 
 type CnlMark = { start: number; end: number }
 
@@ -284,7 +279,7 @@ const DEFAULT_CALL = {
     outcome: "3 findings grouped · reviewer decision pending",
     lines: [
       { who: "caller", mood: -0.75, text: "The clip shows a person near the service door. What exactly did the system measure?" },
-      { who: "agent", mood: -0.55, memory: "Detector confidence · model 0.8.4", text: "It detected person track 7 and an entry into the restricted polygon at 00:18. This is a detector and rule result, not a verdict about intent." },
+      { who: "agent", mood: -0.55, memory: "Detector confidence · hustvl/yolos-tiny", text: "It detected person track 7 and an entry into the restricted polygon at 00:18. This is a detector and rule result, not a verdict about intent." },
       { who: "caller", mood: -0.6, text: "Is the person definitely doing something wrong?" },
       { who: "agent", mood: -0.1, memory: "Caveat attached · tracking dependent", text: "No. The system cannot know intent. Review the evidence frame and tracking quality before choosing a status." },
       { who: "caller", mood: 0.25, text: "What else is connected to this finding?" },
@@ -388,26 +383,8 @@ function formatClock(sec: number) {
   return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0")
 }
 
-function formatBytes(n: number) {
-  if (n < 1024) return Math.round(n) + " B"
-  if (n < 1024 * 1024) return Math.round(n / 1024) + " KB"
-  return (n / 1048576).toFixed(1) + " MB"
-}
-
 function formatStat(v: number, decimals: number) {
   return v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
-}
-
-function chunksFor(bytes: number) {
-  return Math.max(1, Math.ceil(bytes / 1800))
-}
-
-function fileKind(name: string) {
-  const ext = (name.split(".").pop() || "").toLowerCase()
-  if (/^(png|jpe?g|gif|webp|svg|heic|avif)$/.test(ext)) return "image"
-  if (/^(mp3|wav|m4a|ogg|flac|aac)$/.test(ext)) return "music"
-  if (/^(zip|tar|gz|rar|7z)$/.test(ext)) return "folder"
-  return "doc"
 }
 
 function splitTitle(t: string) {
@@ -442,12 +419,6 @@ function stepLocal(p: number, n: number, i: number) {
   return clamp(p * n - i, 0, 1)
 }
 
-function sensitivityLabel(v: number) {
-  if (v < 34) return "Calm: hands off rarely"
-  if (v < 67) return "Balanced"
-  return "Careful: hands off early"
-}
-
 function mulberry32(seed: number) {
   let a = seed | 0
   return function () {
@@ -456,48 +427,6 @@ function mulberry32(seed: number) {
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
-}
-
-/** A deterministic batch of simulated calls. More policies flag fewer calls; more sensitivity hands off more. */
-function simulateCalls(count: number, o: { seed: number; personas: string[]; intents: string[]; policies: number; sensitivity: number }) {
-  const rnd = mulberry32(o.seed)
-  const pool = o.personas.length ? o.personas : ["Typical"]
-  const intents = o.intents.length ? o.intents : ["General question"]
-  const hard = (p: string) => (/frustrat|angry/i.test(p) ? 0.035 : /interrupt/i.test(p) ? 0.02 : /second|elder|hurry/i.test(p) ? 0.012 : 0)
-  const handoffBase = 0.02 + (clamp(o.sensitivity, 0, 100) / 100) * 0.08
-  const flagBase = Math.max(0.004, 0.05 - clamp(o.policies, 0, 8) * 0.011)
-  const calls: CnlSimCall[] = []
-  let resolved = 0
-  let handoff = 0
-  let flagged = 0
-  for (let i = 0; i < count; i++) {
-    const persona = pool[Math.floor(rnd() * pool.length)]
-    const intent = intents[Math.floor(rnd() * intents.length)]
-    const r = rnd()
-    const h = hard(persona)
-    let outcome: CnlSimCall["outcome"] = "resolved"
-    if (r < flagBase + h * 0.3) outcome = "flagged"
-    else if (r < flagBase + h * 0.3 + handoffBase + h) outcome = "handoff"
-    if (outcome === "resolved") resolved++
-    else if (outcome === "handoff") handoff++
-    else flagged++
-    calls.push({ id: i + 1, persona, intent, outcome, ms: Math.round(280 + rnd() * 520) })
-  }
-  return { calls, resolved, handoff, flagged }
-}
-
-function tally(calls: CnlSimCall[], upto: number) {
-  let resolved = 0
-  let handoff = 0
-  let flagged = 0
-  const n = clamp(Math.floor(upto), 0, calls.length)
-  for (let i = 0; i < n; i++) {
-    const o = calls[i].outcome
-    if (o === "resolved") resolved++
-    else if (o === "handoff") handoff++
-    else flagged++
-  }
-  return { done: n, resolved, handoff, flagged }
 }
 
 /** When each transcript line is spoken, from its length. */
@@ -1521,7 +1450,6 @@ function Nav({
 function HeroChat({ scenarios, brand, reduced, liveCalls, onNav }: { scenarios: CnlScenario[]; brand: string; reduced: boolean; liveCalls: number | null; onNav: (href: string | undefined, e?: React.MouseEvent) => void }) {
   const [i, setI] = React.useState(0)
   const [hover, setHover] = React.useState(false)
-  const [live, setLive] = React.useState(liveCalls || 0)
   const wrap = React.useRef(null as HTMLDivElement | null)
   const alert = React.useRef(null as HTMLDivElement | null)
   const agent = React.useRef(null as HTMLDivElement | null)
@@ -1585,17 +1513,11 @@ function HeroChat({ scenarios, brand, reduced, liveCalls, onNav }: { scenarios: 
     else x.resume()
   }, [hover, visible, i, reduced])
 
-  React.useEffect(() => {
-    if (liveCalls == null || reduced || !visible) return
-    const id = window.setInterval(() => setLive((v) => Math.max(0, v + Math.round(Math.random() * 15 - 4))), 1400)
-    return () => window.clearInterval(id)
-  }, [liveCalls, reduced, visible])
-
   return (
     <div className="cnl-chat" ref={wrap} onPointerEnter={() => setHover(true)} onPointerLeave={() => setHover(false)} onFocus={() => setHover(true)} onBlur={() => setHover(false)} data-chat="">
       {liveCalls != null ? (
-        <p className="cnl-live" aria-label={live.toLocaleString("en-US") + " analysis engines available"}>
-          <b>{live.toLocaleString("en-US")}</b> engines available
+        <p className="cnl-live" aria-label={liveCalls.toLocaleString("en-US") + " analysis engines available"}>
+          <b>{liveCalls.toLocaleString("en-US")}</b> engines available
         </p>
       ) : null}
       <div className="cnl-b cnl-b-alert" ref={alert} data-depth="1.4">
@@ -1818,17 +1740,10 @@ function Canvas({ data, image, tones, reduced }: { data: CnlCanvas; image?: stri
   const trig = React.useRef(null as ScrollTrigger | null)
   const prevH = React.useRef(0)
 
-  // the app's own state, shared by every panel
-  const [mode, setMode] = React.useState(1)
-  const [files, setFiles] = React.useState([] as CnlFile[])
-  const [over, setOver] = React.useState(false)
+  // authentic Deep Shield workflow panels (zero fake simulations or mock indexing)
+  const [mode, setMode] = React.useState(0)
   const [policies, setPolicies] = React.useState(() => data.policies.map((p) => ({ ...p, on: p.on !== false })))
-  const [sensitivity, setSensitivity] = React.useState(45)
-  const [personas, setPersonas] = React.useState(() => data.personas.slice(0, 2))
-  const [sim, setSim] = React.useState({ state: "idle", done: 0, runs: 0, result: null as CnlSimResult | null })
   const [channels, setChannels] = React.useState(() => data.channels.map((c) => ({ ...c, on: c.on !== false })))
-  const [live, setLive] = React.useState(0)
-  const fileId = React.useRef(1)
 
   useIso(() => {
     const s = sec.current
@@ -1874,57 +1789,6 @@ function Canvas({ data, image, tones, reduced }: { data: CnlCanvas; image?: stri
     return () => ctx.revert()
   }, [active])
 
-  // indexing progress for uploaded files
-  React.useEffect(() => {
-    if (!files.some((f) => f.progress < 1)) return
-    if (reduced) {
-      setFiles((fs) => fs.map((f) => ({ ...f, progress: 1 })))
-      return
-    }
-    let raf = 0
-    let last = performance.now()
-    const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000)
-      last = now
-      setFiles((fs) => fs.map((f) => (f.progress >= 1 ? f : { ...f, progress: Math.min(1, f.progress + dt / (0.8 + Math.min(2.4, f.size / 300000))) })))
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [files.some((f) => f.progress < 1), reduced])
-
-  // the simulation streams its calls in
-  React.useEffect(() => {
-    if (sim.state !== "running" || !sim.result) return
-    const total = sim.result.calls.length
-    if (reduced) {
-      setSim((s) => ({ ...s, state: "done", done: total }))
-      return
-    }
-    let raf = 0
-    let last = performance.now()
-    const tick = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000)
-      last = now
-      let fin = false
-      setSim((s) => {
-        const done = Math.min(total, s.done + dt * total * 0.45)
-        fin = done >= total
-        return { ...s, done, state: fin ? "done" : "running" }
-      })
-      if (!fin) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [sim.state, sim.runs, reduced])
-
-  // go-live sequence
-  React.useEffect(() => {
-    if (live < 1 || live > 4) return
-    const id = window.setTimeout(() => setLive((l) => l + 1), reduced ? 0 : 700)
-    return () => window.clearTimeout(id)
-  }, [live, reduced])
-
   const choose = (k: number) => {
     const t = trig.current
     if (t) {
@@ -1935,41 +1799,30 @@ function Canvas({ data, image, tones, reduced }: { data: CnlCanvas; image?: stri
     setActive(k)
   }
 
-  const addFiles = (list: { name: string; size: number }[]) => {
-    if (!list.length) return
-    setFiles((fs) => fs.concat(list.map((f) => ({ id: fileId.current++, name: f.name, size: f.size, progress: 0 }))).slice(-3))
-  }
-
-  const run = () => {
-    const result = simulateCalls(500, {
-      seed: 7 + sim.runs * 101,
-      personas,
-      intents: data.intents,
-      policies: policies.filter((p) => p.on).length,
-      sensitivity,
-    })
-    setSim((s) => ({ state: "running", done: 0, runs: s.runs + 1, result }))
-  }
-
   const tabs = [
-    { label: "Chat", icon: "chat" as CnlIconName },
-    { label: "Voice", icon: "mic" as CnlIconName },
-    { label: "Multi-modal", icon: "multi" as CnlIconName },
+    { label: "Images", icon: "image" as CnlIconName, formats: "PNG · JPEG · WebP · BMP · TIFF (up to 200 MB)", engines: "M01 Detection · M02 Face v4 + Synth v1 + ELA/FFT · M04 Copy-Move + JPEG" },
+    { label: "Videos", icon: "chat" as CnlIconName, formats: "MP4 · AVI · MOV · MKV · WebM (sampled up to 120s)", engines: "M01 Tracking · M02 Temporal Face Tracks · M03 Rules + GRU v4 · M04 Keyframes" },
+    { label: "Webcam", icon: "mic" as CnlIconName, formats: "Hardware getUserMedia · Photo snap or 3s WebM clip", engines: "Captures real camera frames directly into the backend SQLite job queue" },
   ]
+  const activeTab = tabs[mode] || tabs[0]
   const step = steps[active] || steps[0]
   const panel = step ? step.panel : "create"
-  const heads = { create: "Create new agent", policies: "Policies", simulate: "Simulation lab", deploy: "Go live" }
-  const t = sim.result ? tally(sim.result.calls, sim.done) : { done: 0, resolved: 0, handoff: 0, flagged: 0 }
-  const feed = sim.result ? sim.result.calls.slice(Math.max(0, t.done - 4), t.done).reverse() : []
-  const anyOn = channels.some((c) => c.on)
-  const checks = ["Provisioning numbers", "Syncing " + Math.max(1, files.length) + " knowledge source" + (files.length === 1 ? "" : "s"), "Warming up voices", "Routing live traffic"]
+  const heads = { create: "Supported media inputs", policies: "Review guardrails", simulate: "Verified benchmarks", deploy: "Live workspace channels" }
   const lines = splitTitle(data.heading || "")
+
+  const verifiedBenchmarks = [
+    { engine: "M02 Face v4", scope: "6 real image+video sets (966 test faces)", metric: "92.86% Decided Acc" },
+    { engine: "M02 Synth v1", scope: "Hemg + CIFAKE (240 held-out images)", metric: "0.9409 ROC-AUC" },
+    { engine: "M02 Real Videos", scope: "40 actor-disjoint Celeb-DF & FF++/DFD MP4s", metric: "80.0% Decided Acc" },
+    { engine: "M03 GRU v4", scope: "53 real vtest.avi tracks (5-fold CV)", metric: "0/11 Walk FPs" },
+    { engine: "M04 Forensics", scope: "30 diverse real photos (rot/scale/q75)", metric: "0/30 Untouched FP" },
+  ]
 
   let content: React.ReactNode = null
   if (panel === "create")
     content = (
       <>
-        <div className="cnl-seg" role="tablist" aria-label="Agent type" style={{ "--cnl-i": mode } as React.CSSProperties} data-st="">
+        <div className="cnl-seg" role="tablist" aria-label="Supported media types" style={{ "--cnl-i": mode } as React.CSSProperties} data-st="">
           {tabs.map((tb, k) => (
             <button
               key={tb.label}
@@ -1993,78 +1846,16 @@ function Canvas({ data, image, tones, reduced }: { data: CnlCanvas; image?: stri
           ))}
         </div>
         <div className="cnl-lbl" data-st="">
-          <b>Add training documents</b>
-          <span>Attach files to give your agent business context</span>
+          <b>{activeTab.label} pipeline</b>
+          <span>{activeTab.formats}</span>
         </div>
-        <label
-          className={"cnl-drop" + (over ? " is-over" : "")}
-          data-st=""
-          onDragOver={(e) => {
-            e.preventDefault()
-            setOver(true)
-          }}
-          onDragLeave={() => setOver(false)}
-          onDrop={(e) => {
-            e.preventDefault()
-            setOver(false)
-            addFiles(Array.from(e.dataTransfer.files))
-          }}
-        >
-          <input
-            type="file"
-            multiple
-            className="cnl-sr"
-            onChange={(e) => {
-              addFiles(Array.from(e.target.files || []))
-              e.target.value = ""
-            }}
-          />
-          <span className="cnl-drop-icons" aria-hidden="true">
-            <span>
-              <Icon name="folder" size={13} />
-            </span>
-            <em />
-            <span>
-              <Icon name="doc" size={13} />
-            </span>
-            <span>
-              <Icon name="image" size={13} />
-            </span>
-            <span>
-              <Icon name="music" size={13} />
-            </span>
-          </span>
-          <span>
-            Drag files here or <u>click to browse</u>
-          </span>
-        </label>
-        {files.length ? (
-          <ul className="cnl-files" aria-live="polite">
-            {files.map((f) => (
-              <li key={f.id} className="cnl-file">
-                <span aria-hidden="true">
-                  <Icon name={fileKind(f.name) as CnlIconName} size={13} />
-                </span>
-                <span className="cnl-file-name">
-                  <b>{f.name}</b>
-                  <span>{f.progress < 1 ? "Indexing… " + Math.round(f.progress * 100) + "%" : chunksFor(f.size) + " chunks · " + formatBytes(f.size)}</span>
-                  {f.progress < 1 ? (
-                    <span className="cnl-file-bar">
-                      <i style={{ transform: "scaleX(" + f.progress + ")" }} />
-                    </span>
-                  ) : null}
-                </span>
-                <button className="cnl-x" aria-label={"Remove " + f.name} onClick={() => setFiles((fs) => fs.filter((x) => x.id !== f.id))}>
-                  <Icon name="x" size={13} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <button className="cnl-sample" data-st="" onClick={() => addFiles(data.samples)}>
-            Use sample files
-          </button>
-        )}
+        <p className="cnl-rule" data-st="">
+          Active engines: <em>{activeTab.engines}</em>. Uploads are processed by the backend worker and removed immediately after completion.
+        </p>
+        <a className="cnl-run" data-st="" href="#workspace" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+          <Icon name="bolt" size={14} />
+          Open Live Upload Workspace ↓
+        </a>
       </>
     )
   else if (panel === "policies")
@@ -2079,15 +1870,8 @@ function Canvas({ data, image, tones, reduced }: { data: CnlCanvas; image?: stri
             <button className="cnl-switch" role="switch" aria-checked={p.on} aria-label={p.title} onClick={() => setPolicies((ps) => ps.map((x) => (x.id === p.id ? { ...x, on: !x.on } : x)))} />
           </div>
         ))}
-        <div className="cnl-range" data-st="">
-          <div className="cnl-range-top">
-            <b>Human-review sensitivity</b>
-            <span>{sensitivityLabel(sensitivity)}</span>
-          </div>
-          <input type="range" min={0} max={100} value={sensitivity} aria-label="Human-review sensitivity" onChange={(e) => setSensitivity(Number(e.target.value))} />
-        </div>
         <p className="cnl-rule" data-st="">
-          {policies.filter((p) => p.on).length} of {policies.length} rules active. <em>When an engine flags a manipulation or zone candidate</em>, attach the evidence frame, score type, and limitations for human review.
+          {policies.filter((p) => p.on).length} of {policies.length} review principles enabled. <em>All detector, classifier, GRU, and forensic outputs remain separate and advisory</em> — every finding carries its exact model ID, calibrated thresholds, and limitations.
         </p>
       </>
     )
@@ -2095,60 +1879,38 @@ function Canvas({ data, image, tones, reduced }: { data: CnlCanvas; image?: stri
     content = (
       <>
         <div className="cnl-lbl" data-st="" style={{ marginTop: 0 }}>
-          <b>Media edge cases</b>
-          <span>Preview how review policies handle challenging inputs</span>
+          <b>Committed real-dataset evaluation</b>
+          <span>Verified in reports/EVALUATION_REPORT.md &amp; reports/VIDEO_BENCHMARK_REPORT.md</span>
         </div>
-        <div className="cnl-chips" data-st="">
-          {data.personas.map((p) => (
-            <button key={p} className="cnl-chip" aria-pressed={personas.includes(p)} onClick={() => setPersonas((ps) => (ps.includes(p) ? ps.filter((x) => x !== p) : ps.concat(p)))}>
-              {p}
-            </button>
-          ))}
-        </div>
-        <button className="cnl-run" data-st="" onClick={run} disabled={sim.state === "running"}>
-          <Icon name="bolt" size={14} />
-          {sim.state === "running" ? "Running workflow preview…" : sim.state === "done" ? "Run preview again" : "Preview 500 workflow checks"}
-        </button>
-        <div data-st="">
-          <div className="cnl-sim-top">
-            <span>Workflow checks previewed</span>
-            <b>
-              {t.done}
-              <span style={{ fontSize: 12, color: "var(--cnl-card-mute)" }}> / 500</span>
-            </b>
+        <div className="cnl-tiles" data-st="">
+          <div className="cnl-tile">
+            <b>36 / 36</b>
+            <span>Real-model tests</span>
           </div>
-          <div className="cnl-sim-bar">
-            <i style={{ transform: "scaleX(" + t.done / 500 + ")" }} />
+          <div className="cnl-tile">
+            <b>52</b>
+            <span>Real benchmark MP4s</span>
           </div>
-          <div className="cnl-tiles">
-            <div className="cnl-tile">
-              <b>{t.done ? ((t.resolved / t.done) * 100).toFixed(1) + "%" : "–"}</b>
-              <span>No indicator</span>
-            </div>
-            <div className="cnl-tile">
-              <b>{t.handoff}</b>
-              <span>Inconclusive</span>
-            </div>
-            <div className="cnl-tile">
-              <b>{t.flagged}</b>
-              <span>Flagged</span>
-            </div>
+          <div className="cnl-tile">
+            <b>0</b>
+            <span>Mock fallbacks</span>
           </div>
         </div>
         <ul className="cnl-feed" data-st="" aria-live="off">
-          {feed.map((c) => (
-            <li key={c.id}>
-              <code>#{String(c.id).padStart(3, "0")}</code>
-              <span>
-                {c.persona} · {c.intent}
-              </span>
-              <em className="cnl-tag" data-o={c.outcome}>
-                {c.outcome === "handoff" ? "hand-off" : c.outcome}
+          {verifiedBenchmarks.map((b) => (
+            <li key={b.engine}>
+              <code>{b.engine}</code>
+              <span>{b.scope}</span>
+              <em className="cnl-tag" data-o="resolved">
+                {b.metric}
               </em>
-              <code>{(c.ms / 1000).toFixed(1)}s</code>
             </li>
           ))}
         </ul>
+        <a className="cnl-run" data-st="" href="#workspace" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+          <Icon name="bolt" size={14} />
+          Run Live Analysis Below ↓
+        </a>
       </>
     )
   else
@@ -2165,30 +1927,17 @@ function Canvas({ data, image, tones, reduced }: { data: CnlCanvas; image?: stri
                 <span>{c.detail}</span>
               </div>
             </div>
-            <button className="cnl-switch" role="switch" aria-checked={c.on} aria-label={c.label} disabled={live > 0 && live < 5} onClick={() => setChannels((cs) => cs.map((x) => (x.id === c.id ? { ...x, on: !x.on } : x)))} />
+            <button className="cnl-switch" role="switch" aria-checked={c.on} aria-label={c.label} onClick={() => setChannels((cs) => cs.map((x) => (x.id === c.id ? { ...x, on: !x.on } : x)))} />
           </div>
         ))}
-        {live === 0 ? (
-          <button className="cnl-run" data-st="" disabled={!anyOn} onClick={() => setLive(1)}>
-            <Icon name="bolt" size={14} />
-            {anyOn ? "Go live on " + channels.filter((c) => c.on).length + " channel" + (channels.filter((c) => c.on).length === 1 ? "" : "s") : "Pick a channel"}
-          </button>
-        ) : (
-          <ul className="cnl-checks" aria-live="polite" data-st="">
-            {checks.map((c, k) => (
-              <li key={c} className={live > k + 1 ? "is-done" : live === k + 1 ? "is-busy" : ""}>
-                <i aria-hidden="true">{live > k + 1 ? <Icon name="check" size={11} stroke={2.6} /> : null}</i>
-                {c}
-              </li>
-            ))}
-          </ul>
-        )}
-        {live >= 5 ? (
-          <div className="cnl-golive" role="status">
-            <b>Live · answering in 0.4s</b>
-            <button onClick={() => setLive(0)}>Pause</button>
-          </div>
-        ) : null}
+        <a className="cnl-run" data-st="" href="#workspace" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+          <Icon name="bolt" size={14} />
+          Launch Live Workspace ↓
+        </a>
+        <div className="cnl-golive" role="status" data-st="">
+          <b>Real FastAPI + SQLite worker required · Zero mock results</b>
+          <a href="/review" style={{ textDecoration: "underline" }}>Fullscreen /review ↗</a>
+        </div>
       </>
     )
 
@@ -2608,23 +2357,7 @@ function Quotes({ kicker, items }: { kicker?: string; items: CnlQuote[] }) {
 
 /* ------------------------------------------------------------------ cta */
 
-function Cta({ data, image, tones, onSubscribe, onTalk, reduced }: { data: NonNullable<CairnAgentsLandingProps["cta"]>; image?: string; tones: string[]; onSubscribe?: (email: string) => unknown; onTalk: () => void; reduced: boolean }) {
-  const [email, setEmail] = React.useState("")
-  const [state, setState] = React.useState("idle")
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!isEmail(email)) {
-      setState("error")
-      return
-    }
-    setState("busy")
-    try {
-      if (onSubscribe) await onSubscribe(email.trim())
-      setState("sent")
-    } catch {
-      setState("failed")
-    }
-  }
+function Cta({ data, image, tones, onNav }: { data: NonNullable<CairnAgentsLandingProps["cta"]>; image?: string; tones: string[]; onNav?: (href: string | undefined, e?: React.MouseEvent) => void }) {
   const lines = splitTitle(data.title)
   return (
     <section className="cnl-cta" data-sec="talk">
@@ -2645,44 +2378,65 @@ function Cta({ data, image, tones, onSubscribe, onTalk, reduced }: { data: NonNu
               {data.text}
             </p>
           ) : null}
-          {state === "sent" ? (
-            <div className="cnl-sent" role="status">
-              <Icon name="check" size={16} stroke={2.2} />
-              We'll call {email.trim()} within one business day.
-            </div>
-          ) : (
-            <>
-              <form className={"cnl-form" + (state === "error" ? " is-error" : "")} onSubmit={submit} noValidate data-reveal="">
-                <label className="cnl-sr" htmlFor="cnl-cta-email">
-                  Work email
-                </label>
-                <input
-                  id="cnl-cta-email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@company.com"
-                  value={email}
-                  aria-invalid={state === "error"}
-                  aria-describedby="cnl-cta-msg"
-                  onChange={(e) => {
-                    setEmail(e.target.value)
-                    if (state === "error" || state === "failed") setState("idle")
-                  }}
-                />
-                <Pill label={state === "busy" ? "Sending…" : data.action || "Talk to us"} type="submit" tone="light" disabled={state === "busy"} reduced={reduced} />
-              </form>
-              <p className="cnl-form-msg" id="cnl-cta-msg" aria-live="polite">
-                {state === "error" ? "That doesn't look like a work email." : state === "failed" ? "Something went wrong. Try again in a moment." : (
-                  <>
-                    Rather pick a time?{" "}
-                    <button style={{ textDecoration: "underline", textUnderlineOffset: 3 }} onClick={onTalk} type="button">
-                      Book a call
-                    </button>
-                  </>
-                )}
-              </p>
-            </>
-          )}
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap", margin: "28px 0" }} data-reveal="">
+            <a
+              href="#workspace"
+              onClick={(e) => onNav?.("#workspace", e)}
+              className="cnl-pill cnl-pill-light"
+              style={{
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "14px 28px",
+                borderRadius: 9999,
+                fontWeight: 600,
+                fontSize: 15,
+                background: "var(--cnl-card-fg, #fff)",
+                color: "var(--cnl-card-bg, #000)",
+              }}
+            >
+              <Icon name="bolt" size={16} />
+              Launch Live Workspace
+            </a>
+            <a
+              href="/review"
+              className="cnl-pill"
+              style={{
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "14px 28px",
+                borderRadius: 9999,
+                fontWeight: 600,
+                fontSize: 15,
+                border: "1px solid rgba(255,255,255,0.25)",
+                color: "inherit",
+              }}
+            >
+              Fullscreen Review (/review) ↗
+            </a>
+            <a
+              href="https://github.com/Raghav-prog-max/Deep-Shield"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="cnl-pill"
+              style={{
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "14px 24px",
+                borderRadius: 9999,
+                fontSize: 14,
+                border: "1px solid rgba(255,255,255,0.15)",
+                color: "var(--cnl-card-mute, #a1a1aa)",
+              }}
+            >
+              GitHub Source & Benchmarks ↗
+            </a>
+          </div>
           {data.assurances && data.assurances.length ? (
             <ul className="cnl-assure">
               {data.assurances.map((a) => (
@@ -2702,6 +2456,22 @@ function Cta({ data, image, tones, onSubscribe, onTalk, reduced }: { data: NonNu
 /* ------------------------------------------------------------------ footer */
 
 function Footer({ brand, logo, data, onNav }: { brand: string; logo?: React.ReactNode; data: NonNullable<CairnAgentsLandingProps["footer"]>; onNav: (href: string | undefined, e?: React.MouseEvent) => void }) {
+  const [apiOnline, setApiOnline] = React.useState<boolean | null>(null)
+
+  React.useEffect(() => {
+    let active = true
+    fetch("/api/v1/m01/health")
+      .then((r) => {
+        if (active) setApiOnline(r.ok)
+      })
+      .catch(() => {
+        if (active) setApiOnline(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
   return (
     <footer className="cnl-foot" data-sec="company">
       <div className="cnl-foot-top">
@@ -2711,7 +2481,24 @@ function Footer({ brand, logo, data, onNav }: { brand: string; logo?: React.Reac
             <span>{brand}</span>
           </span>
           {data.tagline ? <p>{data.tagline}</p> : null}
-          <span className="cnl-status">All systems normal</span>
+          <a
+            href="#workspace"
+            onClick={(e) => onNav("#workspace", e)}
+            className="cnl-status"
+            style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer" }}
+            title="Click to check engine workspace"
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                background: apiOnline === true ? "#10b981" : apiOnline === false ? "#f59e0b" : "#94a3b8",
+                display: "inline-block",
+              }}
+            />
+            {apiOnline === true ? "FastAPI Connected · 4 Engines Online" : apiOnline === false ? "Local API Standby · Start Backend" : "Advisory Engines · Reviewer Decides"}
+          </a>
         </div>
         {(data.columns || []).map((c) => (
           <div key={c.title} className="cnl-foot-col">
@@ -2719,7 +2506,7 @@ function Footer({ brand, logo, data, onNav }: { brand: string; logo?: React.Reac
             <ul>
               {c.links.map((l) => (
                 <li key={l.label}>
-                  <a href={l.href || "#"} onClick={(e) => onNav(l.href, e)}>
+                  <a href={l.href || "#workspace"} onClick={(e) => onNav(l.href || "#workspace", e)}>
                     {l.label}
                   </a>
                 </li>
@@ -2733,13 +2520,19 @@ function Footer({ brand, logo, data, onNav }: { brand: string; logo?: React.Reac
       </div>
       <div className="cnl-foot-bottom">
         <span>
-          © {new Date().getFullYear()} {brand} Inc.
+          © {new Date().getFullYear()} {brand} · Advisory Media Integrity & Threat Analysis
           {data.note ? " · " + data.note : ""}
         </span>
         <nav aria-label="Legal">
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
-          <a href="#">Security</a>
+          <a href="#company" onClick={(e) => onNav("#company", e)}>
+            Principles & Ethics
+          </a>
+          <a href="#workspace" onClick={(e) => onNav("#workspace", e)}>
+            Advisory Scope & Limits
+          </a>
+          <a href="https://github.com/Raghav-prog-max/Deep-Shield" target="_blank" rel="noopener noreferrer">
+            GitHub Source & Audit ↗
+          </a>
         </nav>
       </div>
     </footer>
@@ -3095,7 +2888,7 @@ export default function CairnAgentsLanding({
         {call ? <Call kicker={call.kicker} title={call.title} text={call.text} data={call.data} image={img.call} tones={pal.ridges} reduced={reduced} brand={brand} /> : null}
         {stats && stats.items.length ? <Stats kicker={stats.kicker} title={stats.title} items={stats.items} reduced={reduced} /> : null}
         {quotes && quotes.items.length ? <Quotes kicker={quotes.kicker} items={quotes.items} /> : null}
-        {cta ? <Cta data={cta} image={img.cta} tones={pal.ridges} onSubscribe={onSubscribe} onTalk={() => setTalk(true)} reduced={reduced} /> : null}
+        {cta ? <Cta data={cta} image={img.cta} tones={pal.ridges} onNav={go} /> : null}
       </main>
       {footer ? <Footer brand={brand} logo={logo} data={footer} onNav={go} /> : null}
       {talk ? <TalkDialog brand={brand} volumes={volumes} onClose={() => setTalk(false)} onTalk={onTalk} /> : null}
