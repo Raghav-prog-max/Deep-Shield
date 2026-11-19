@@ -1,11 +1,16 @@
-"""Trained face-manipulation head for Module 02.
+"""Trained classification heads for Module 02 (`face_manipulation` and `synthetic_image`).
 
-The pretrained SigLIP backbone stays frozen. We read pooled features from three depths of the
-vision encoder (middle, three-quarter and final), standardise them and apply a small head trained by
-``scripts/train_m02_head.py`` on DEEP SHIELD's own multi-generator face set. The head is a few MB and
-is saved as ``models/m02_face_head.npz``; the engine loads it automatically when the file exists.
+The pretrained SigLIP2 backbone stays frozen. We read pooled features from three depths of the
+vision encoder (middle, three-quarter and final), optionally L2-normalise per layer to suppress
+cross-dataset brightness/contrast shortcuts, standardise them, and apply a compact head trained
+by ``scripts/train_m02_head.py`` or ``scripts/train_m02_synth_head.py``.
 
-Used by both the training script and the engine, so features are computed identically in both.
+Supported head architectures (all pure numpy at inference time, zero extra dependencies):
+  * ``linear``  — L2-regularised logistic regression: weights = [W, b]
+  * ``mlp``     — 1-hidden-layer ReLU MLP: weights = [W1, b1, W2, b2]
+  * ``mlp_ens`` — K-fold ensemble of 1-hidden-layer ReLU MLPs (4 arrays per fold), with optional
+                  per-layer L2 normalisation and validation-calibrated residual blend with the
+                  frozen backbone's own classifier logit.
 """
 from __future__ import annotations
 
@@ -69,16 +74,34 @@ def extract(model, processor, images, layers: Sequence[int], pos_idx: Sequence[i
 
 
 def _sigmoid(z: np.ndarray) -> np.ndarray:
-    return 1.0 / (1.0 + np.exp(-np.clip(z, -40, 40)))
+    return 1.0 / (1.0 + np.exp(-np.clip(z, -40.0, 40.0)))
+
+
+def _logit(p: np.ndarray) -> np.ndarray:
+    pc = np.clip(p.astype(np.float32), 1e-5, 1.0 - 1e-5)
+    return np.log(pc / (1.0 - pc))
+
+
+def l2_normalise_blocks(feats: np.ndarray, n_blocks: int) -> np.ndarray:
+    """Independently L2-normalise each encoder layer slice to reduce domain magnitude shift."""
+    if n_blocks <= 1 or feats.shape[1] % n_blocks != 0:
+        norms = np.linalg.norm(feats, axis=1, keepdims=True) + 1e-6
+        return (feats / norms).astype(np.float32)
+    dim = feats.shape[1] // n_blocks
+    parts = []
+    for i in range(n_blocks):
+        sl = feats[:, i * dim : (i + 1) * dim]
+        parts.append(sl / (np.linalg.norm(sl, axis=1, keepdims=True) + 1e-6))
+    return np.concatenate(parts, axis=1).astype(np.float32)
 
 
 @dataclass
 class FaceHead:
-    kind: str                      # "linear" | "mlp"
+    kind: str                      # "linear" | "mlp" | "mlp_ens"
     layers: List[int]
     mean: np.ndarray
     std: np.ndarray
-    weights: List[np.ndarray]      # linear: [W (D,1), b (1,)]; mlp: [W1, b1, W2, b2]
+    weights: List[np.ndarray]      # linear: [W, b]; mlp: [W1, b1, W2, b2]; mlp_ens: K * [W1, b1, W2, b2]
     threshold_low: float
     threshold_high: float
     meta: Dict
@@ -95,14 +118,37 @@ class FaceHead:
     def sha(self) -> str:
         return self.meta.get("sha", "")
 
-    def predict_proba(self, feats: np.ndarray) -> np.ndarray:
-        x = (feats - self.mean) / self.std
+    def predict_logits(self, feats: np.ndarray, base_probs: Optional[np.ndarray] = None) -> np.ndarray:
+        f = l2_normalise_blocks(feats, len(self.layers)) if self.meta.get("l2_norm_layers") else feats
+        x = (f - self.mean) / self.std
         if self.kind == "linear":
             w, b = self.weights
-            return _sigmoid(x @ w + b).ravel()
-        w1, b1, w2, b2 = self.weights
-        h = np.maximum(0.0, x @ w1 + b1)
-        return _sigmoid(h @ w2 + b2).ravel()
+            z = (x @ w + b).ravel()
+        elif self.kind == "mlp":
+            w1, b1, w2, b2 = self.weights
+            h = np.maximum(0.0, x @ w1 + b1)
+            z = (h @ w2 + b2).ravel()
+        elif self.kind == "mlp_ens":
+            k = len(self.weights) // 4
+            zs = []
+            for i in range(k):
+                w1, b1, w2, b2 = self.weights[4 * i : 4 * (i + 1)]
+                h = np.maximum(0.0, x @ w1 + b1)
+                zs.append((h @ w2 + b2).ravel())
+            z = np.mean(zs, axis=0)
+        else:
+            raise ValueError(f"Unsupported head kind: {self.kind}")
+
+        alpha = float(self.meta.get("base_logit_alpha", 0.0))
+        if alpha > 0.0 and base_probs is not None:
+            z = z + alpha * _logit(np.asarray(base_probs, dtype=np.float32)).ravel()
+        temp = float(self.meta.get("temperature", 1.0))
+        if temp > 0.0 and temp != 1.0 and self.kind == "mlp_ens":
+            z = z / temp
+        return z.astype(np.float32)
+
+    def predict_proba(self, feats: np.ndarray, base_probs: Optional[np.ndarray] = None) -> np.ndarray:
+        return _sigmoid(self.predict_logits(feats, base_probs=base_probs))
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)

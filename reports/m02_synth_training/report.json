@@ -1,0 +1,142 @@
+{
+  "created": "2026-11-19T06:25:00",
+  "base_model": "prithivMLmods/open-deepfake-detection",
+  "head_file": "C:\\Users\\Dell\\.gemini\\antigravity\\scratch\\Deep-Shield\\models\\m02_synth_head.npz",
+  "head_sha": "382a7a930175",
+  "selected": {
+    "kind": "mlp_ens",
+    "reg": 0.2,
+    "l2_norm": true,
+    "val_auc": 0.9807
+  },
+  "calibration": {
+    "base_logit_alpha": 0.0,
+    "temperature": 0.8047
+  },
+  "thresholds": {
+    "low": 0.406,
+    "high": 0.75
+  },
+  "validation_auc": {
+    "trained_head": 0.9807,
+    "original_model": 0.4389
+  },
+  "counts": {
+    "hemg/train/fake": 240,
+    "hemg/test/fake": 80,
+    "hemg/train/real": 240,
+    "hemg/test/real": 80,
+    "cifake/train/fake": 120,
+    "cifake/train/real": 120,
+    "cifake/test/fake": 40,
+    "cifake/test/real": 40
+  },
+  "test": {
+    "trained_head": {
+      "pooled": {
+        "n": 240,
+        "n_fake": 120,
+        "n_real": 120,
+        "auc": 0.9409,
+        "acc@0.5": 0.875,
+        "precision@0.5": 0.8689,
+        "recall@0.5": 0.8833,
+        "f1@0.5": 0.876,
+        "tpr@fpr5%": 0.6833,
+        "ece": 0.0661,
+        "brier": 0.0975,
+        "band_low": 0.406,
+        "band_high": 0.75,
+        "coverage": 0.8875,
+        "decided_accuracy": 0.9061
+      },
+      "cifake": {
+        "n": 80,
+        "n_fake": 40,
+        "n_real": 40,
+        "auc": 0.96,
+        "acc@0.5": 0.875,
+        "precision@0.5": 0.9167,
+        "recall@0.5": 0.825,
+        "f1@0.5": 0.8684,
+        "tpr@fpr5%": 0.775,
+        "ece": 0.0862,
+        "brier": 0.0921,
+        "band_low": 0.406,
+        "band_high": 0.75,
+        "coverage": 0.8375,
+        "decided_accuracy": 0.9104
+      },
+      "hemg": {
+        "n": 160,
+        "n_fake": 80,
+        "n_real": 80,
+        "auc": 0.9325,
+        "acc@0.5": 0.875,
+        "precision@0.5": 0.8488,
+        "recall@0.5": 0.9125,
+        "f1@0.5": 0.8795,
+        "tpr@fpr5%": 0.7125,
+        "ece": 0.0646,
+        "brier": 0.1001,
+        "band_low": 0.406,
+        "band_high": 0.75,
+        "coverage": 0.9125,
+        "decided_accuracy": 0.9041
+      }
+    },
+    "original_model": {
+      "pooled": {
+        "n": 240,
+        "n_fake": 120,
+        "n_real": 120,
+        "auc": 0.4741,
+        "acc@0.5": 0.4667,
+        "precision@0.5": 0.4623,
+        "recall@0.5": 0.4083,
+        "f1@0.5": 0.4336,
+        "tpr@fpr5%": 0.0667,
+        "ece": 0.2092,
+        "brier": 0.3026,
+        "band_low": 0.25,
+        "band_high": 0.85,
+        "coverage": 0.1958,
+        "decided_accuracy": 0.4894
+      },
+      "cifake": {
+        "n": 80,
+        "n_fake": 40,
+        "n_real": 40,
+        "auc": 0.4606,
+        "acc@0.5": 0.4625,
+        "precision@0.5": 0.4571,
+        "recall@0.5": 0.4,
+        "f1@0.5": 0.4267,
+        "tpr@fpr5%": 0.025,
+        "ece": 0.2026,
+        "brier": 0.3013,
+        "band_low": 0.25,
+        "band_high": 0.85,
+        "coverage": 0.15,
+        "decided_accuracy": 0.5
+      },
+      "hemg": {
+        "n": 160,
+        "n_fake": 80,
+        "n_real": 80,
+        "auc": 0.4747,
+        "acc@0.5": 0.4688,
+        "precision@0.5": 0.4648,
+        "recall@0.5": 0.4125,
+        "f1@0.5": 0.4371,
+        "tpr@fpr5%": 0.0875,
+        "ece": 0.2124,
+        "brier": 0.3032,
+        "band_low": 0.25,
+        "band_high": 0.85,
+        "coverage": 0.2188,
+        "decided_accuracy": 0.4857
+      }
+    }
+  }
+}

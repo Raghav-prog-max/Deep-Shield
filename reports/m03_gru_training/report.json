@@ -1,38 +1,48 @@
 {
-  "model_id": "temporal-gru-kinematic-v3-realtracks",
+  "model_id": "temporal-gru-kinematic-v4-realtracks",
   "checkpoint": "models/m03_temporal_gru.pt",
-  "sha": "af19efcd1206",
+  "sha": "ea048bac8813",
   "n_parameters": 6265,
   "real_video_source": "OpenCV samples/data/vtest.avi (hustvl/yolos-tiny + MultiObjectIoUTracker)",
   "disjoint_tracks": {
     "train": 32,
-    "val": 11,
-    "test": 10
+    "val": 10,
+    "test": 11
   },
-  "n_train_windows": 1116,
-  "n_val_windows": 675,
-  "n_test_windows": 513,
+  "cv_5fold_aucs": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "cv_5fold_mean_auc": 1.0,
+  "n_train_windows": 2090,
+  "n_val_windows": 253,
+  "n_test_windows": 473,
   "calibrated_threshold": 0.35,
   "val_roc_auc": 1.0,
   "test_roc_auc": 1.0,
+  "test_ece": 0.0001,
+  "test_brier": 0.0,
   "test_metrics": {
     "threshold": 0.35,
-    "n": 513,
-    "n_positive": 228,
-    "n_negative": 285,
+    "n": 473,
+    "n_positive": 215,
+    "n_negative": 258,
     "accuracy": 1.0,
     "precision": 1.0,
     "recall": 1.0,
     "f1": 1.0,
-    "tp": 228,
-    "tn": 285,
+    "tp": 215,
+    "tn": 258,
     "fp": 0,
     "fn": 0
   },
   "real_unperturbed_normal_test_tracks": {
-    "n_tracks": 10,
+    "n_tracks": 11,
     "false_alarms": 0,
-    "mean_score": 0.0003
+    "mean_score": 0.0001
   },
-  "trained_at": "2026-11-19T03:49:43"
+  "trained_at": "2026-11-19T06:09:23"
 }

@@ -1,6 +1,7 @@
 models/*
 !models/.gitkeep
 !models/m02_face_head.npz
+!models/m02_synth_head.npz
 !models/m03_temporal_gru.pt
 !models/m04_forensics_params.json
 evidence_store/

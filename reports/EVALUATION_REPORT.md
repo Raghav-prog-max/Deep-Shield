@@ -1,15 +1,15 @@
 # DEEP SHIELD — Consolidated Real-Dataset Evaluation & Calibration Report
 
-**Generated:** 2026-11-19T04:10:52
+**Generated:** 2026-11-19T06:31:50
 
 ## 1. Modules 01 & 03 — Neural Object Detection, Tracking, Rules & Real-Track Temporal GRU
 
 ### Real Surveillance Video Verification (`eval/videos/test/test_corridor_01.mp4` — OpenCV `vtest.avi`)
 
 - **Neural Object Detector:** `hustvl/yolos-tiny` (`transformers/pytorch`, rev `5a6a017a20cb`)
-- **M01 Status:** `completed` (82 neural person/bag detections in 14579.3 ms)
-- **M03 Status:** `completed` (29 tracked pedestrians, 16 tracks scored by PyTorch GRU, mean normal score `0.0088`)
-- **M03 PyTorch Temporal GRU (`temporal-gru-kinematic-v3-realtracks`, sha `af19efcd1206`, 6265 params):** Trained on disjoint real pedestrian tracks from `vtest.avi` (`train=32, val=11, test=10`). Held-out Test ROC-AUC **1.0**, Calibrated Threshold **0.35**, Unperturbed real normal track false alarms: **0/10**.
+- **M01 Status:** `completed` (82 neural person/bag detections in 15981.9 ms)
+- **M03 Status:** `completed` (29 tracked pedestrians, 16 tracks scored by PyTorch GRU, mean normal score `0.0626`)
+- **M03 PyTorch Temporal GRU (`temporal-gru-kinematic-v4-realtracks`, sha `ea048bac8813`, 6265 params):** Trained on disjoint real pedestrian tracks from `vtest.avi` (`train=32, val=10, test=11`). Held-out Test ROC-AUC **1.0**, Calibrated Threshold **0.35**, Unperturbed real normal track false alarms: **0/11**.
 
 ### Deterministic Rule Verification (Unfiltered Predictions, Temporal IoU >= 0.5)
 
@@ -25,12 +25,12 @@
 
 ## 2. Module 02 — Deepfake & Image Integrity (4-Source Real Kaggle / HF Benchmark)
 
-- **Base Model:** `prithivMLmods/open-deepfake-detection` (frozen SigLIP2 backbone) + trained DEEP SHIELD head (`C:\Users\Dell\.gemini\antigravity\scratch\Deep-Shield\models\m02_face_head.npz`, SHA `cf00a24531d0`)
-- **Validation-Calibrated Three-Band Thresholds (<=5% FPR/FNR):** Low = **0.173**, High = **0.816**
+- **Base Model:** `prithivMLmods/open-deepfake-detection` (frozen SigLIP2 backbone) + trained DEEP SHIELD head (`C:\Users\Dell\.gemini\antigravity\scratch\Deep-Shield\models\m02_face_head.npz`, SHA `b12bda01ed0c`)
+- **Validation-Calibrated Three-Band Thresholds (<=5% FPR/FNR):** Low = **0.207**, High = **0.777**
 - **Held-Out Pooled Test Set (651 real-world faces: 382 fake / 269 real across Kaggle 140k StyleGAN, StyleGAN2/TPDNE, DeepFakeFace swaps/diffusion, and Kaggle 190k Deepfake-and-Real-Images):**
-  - **Trained Head ROC-AUC:** **0.937** (vs Original Model ROC-AUC: `0.6269`)
-  - **Trained Head Accuracy @ 0.5:** **0.8602** | **F1 @ 0.5:** **0.8826** | **TPR @ 5% FPR:** **0.7435**
-  - **Three-Band Coverage:** **0.6452** | **Decided Accuracy:** **0.9571**
+  - **Trained Head ROC-AUC:** **0.9439** (vs Original Model ROC-AUC: `0.6269`)
+  - **Trained Head Accuracy @ 0.5:** **0.8725** | **F1 @ 0.5:** **0.8935** | **TPR @ 5% FPR:** **0.7356**
+  - **Three-Band Coverage:** **0.725** | **Decided Accuracy:** **0.9449**
 - See [reports/m02_training/report.md](m02_training/report.md) for per-dataset and leave-one-generator-out results.
 
 ## 3. Module 04 — Visual Forensics (Evaluated on Diverse Real Held-Out Photographs)
@@ -50,9 +50,9 @@ Calibrated SIFT+RANSAC parameters wired into `VisualForensicsEngine`: `ratio=0.5
 
 | Stage | Latency / Output |
 |---|---|
-| Module 01 neural image detection (`hustvl/yolos-tiny`) | **444.9 ms** |
-| Module 04 full-image forensic suite (SIFT copy-move + ELA + noise + JPEG ghosts) | **164.1 ms** |
-| Cross-module spatial-temporal intelligence linking | **0.21 ms** (0 linked group) |
-| Consolidated advisory PDF report generation | **42.06 ms** (4975 bytes) |
+| Module 01 neural image detection (`hustvl/yolos-tiny`) | **458.0 ms** |
+| Module 04 full-image forensic suite (SIFT copy-move + ELA + noise + JPEG ghosts) | **164.5 ms** |
+| Cross-module spatial-temporal intelligence linking | **0.28 ms** (0 linked group) |
+| Consolidated advisory PDF report generation | **46.67 ms** (4975 bytes) |
 
 > **Advisory Notice:** Model scores and heuristic rule detections remain separate and advisory for human review. No module infers identity, intent, or legal/disciplinary conclusions.

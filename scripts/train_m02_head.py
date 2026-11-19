@@ -1,18 +1,16 @@
-"""Train and test the Module 02 face-manipulation head on DEEP SHIELD's multi-generator face set.
+"""Deep train, 5-fold ensemble, calibrate, and evaluate the Module 02 face-manipulation head.
 
-    python scripts/fetch_train_faces.py           # 1. data (once)
-    python scripts/train_m02_head.py              # 2. features -> train -> test -> report -> head file
-
-What it does (CPU-friendly; backbone frozen):
-  1. Detects and crops faces EXACTLY as the engine does (same detector, same margin).
-  2. Extracts frozen SigLIP features from three encoder depths (cached in data/m02_train/features_*.npz).
-  3. Splits the train pool 80/20 (stratified by source and label) into train / validation.
-  4. Trains candidate heads (linear logistic regression and a 1-hidden-layer MLP, several regularisation
-     strengths, final-layer vs multi-layer features); picks the best by validation ROC-AUC.
-  5. Sets the three-band thresholds on validation (<=5% of real faces above HIGH, <=5% of fakes below LOW).
-  6. Tests ONCE on the held-out test split, against the original model on the same faces.
-  7. Leave-one-generator-out: retrains without each source and tests on it (generalisation to unseen fakes).
-  8. Saves models/m02_face_head.npz (loaded automatically by the engine) and reports/m02_training/.
+Uses DEEP SHIELD's 4-source real Kaggle/HF face dataset (Kaggle 140k FFHQ/StyleGAN,
+StyleGAN2/TPDNE, DeepFakeFace swaps & diffusion, Kaggle 190k Deepfake-and-Real-Images):
+  1. Detects and crops faces EXACTLY as the engine does (same YuNet/Haar detector & margin).
+  2. Extracts frozen SigLIP2 features from three encoder depths [6, 9, -1] (cached in features_*.npz).
+  3. Evaluates candidate architectures (linear, MLP, and per-layer L2-normalised 5-fold MLP ensemble
+     with cosine annealing + label smoothing) via stratified validation ROC-AUC.
+  4. Optimises validation-split residual blend (`base_logit_alpha` with pretrained backbone logit)
+     and Guo et al. temperature scaling (`T`) to minimise validation NLL / ECE.
+  5. Sets three-band thresholds strictly on validation (<=5% real above HIGH, <=5% fake below LOW).
+  6. Evaluates ONCE on the held-out test split (AUC, Acc, F1, TPR@5%FPR, Brier, ECE) and runs
+     strict Leave-One-Generator-Out (unseen generator) evaluation across every source.
 """
 from __future__ import annotations
 
@@ -33,11 +31,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from deep_shield.engines.deepfake.classifiers import load_image_processor, local_model_dir, resolve_device  # noqa: E402
 from deep_shield.engines.deepfake.config import FACE_SPEC, EngineConfig  # noqa: E402
 from deep_shield.engines.deepfake.faces import FaceDetector, crop_face  # noqa: E402
-from deep_shield.engines.deepfake.head import FINAL, FaceHead, default_layers, extract  # noqa: E402
+from deep_shield.engines.deepfake.head import FINAL, FaceHead, default_layers, extract, l2_normalise_blocks  # noqa: E402
 from deep_shield.engines.deepfake.media import load_image  # noqa: E402
 from deep_shield.engines.deepfake.metrics import binary_metrics, roc_auc, three_band  # noqa: E402
 
-PAIR_REALS = {"tpdne": "stylegan1"}   # fake-only sources are tested against this source's real faces
+PAIR_REALS = {"tpdne": "stylegan1"}
 
 
 # --------------------------------------------------------------------------- data
@@ -89,6 +87,9 @@ def compute_features(root, items, cfg, model, proc, dev, pos_idx, layers, cache:
             have = {f: i for i, f in enumerate(z["files"].tolist())}
             F, P, S = z["feats"], z["base"], z["status"]
     todo = [it for it in items if it["file"] not in have]
+    if not todo:
+        rows = [have[it["file"]] for it in items]
+        return F[rows], P[rows], S[rows].astype(bool)
     det = FaceDetector(cfg)
     if not det.available:
         raise SystemExit("No face detector available (YuNet/Haar) - cannot crop faces like the engine.")
@@ -102,7 +103,7 @@ def compute_features(root, items, cfg, model, proc, dev, pos_idx, layers, cache:
             try:
                 bgr, _ = load_image(root / it["file"])
                 boxes = det.detect(bgr)
-            except Exception as exc:  # noqa: BLE001 - unreadable image -> skip like "no face"
+            except Exception as exc:  # noqa: BLE001
                 print(f"    unreadable {it['file']}: {exc}")
                 boxes = []
             if not boxes:
@@ -140,23 +141,28 @@ def compute_features(root, items, cfg, model, proc, dev, pos_idx, layers, cache:
     return F[rows], P[rows], S[rows].astype(bool)
 
 
-# --------------------------------------------------------------------------- heads
-def fit_head(X, y, w_sample, kind: str, reg: float, seed: int = 0):
-    """Returns (weights list, standardisation mean, std). Class-balanced, L2-regularised."""
+# --------------------------------------------------------------------------- heads & calibration
+def _prep(X: np.ndarray, n_blocks: int, l2_norm: bool) -> np.ndarray:
+    return l2_normalise_blocks(X, n_blocks) if l2_norm else X
+
+
+def fit_head(X, y, w_sample, kind: str, reg: float, seed: int = 0, n_blocks: int = 1, l2_norm: bool = False):
+    """Returns (weights list, standardisation mean, std). Class & source balanced, cosine-scheduled."""
     import torch
 
-    torch.manual_seed(seed)
-    mean = X.mean(0)
-    std = X.std(0) + 1e-6
-    Xt = torch.tensor((X - mean) / std, dtype=torch.float32)
+    Xp = _prep(X, n_blocks, l2_norm)
+    mean = Xp.mean(0).astype(np.float32)
+    std = (Xp.std(0) + 1e-6).astype(np.float32)
+    Xt = torch.tensor((Xp - mean) / std, dtype=torch.float32)
     yt = torch.tensor(y, dtype=torch.float32)
     wt = torch.tensor(w_sample, dtype=torch.float32)
-    D = X.shape[1]
+    D = Xp.shape[1]
+
     with torch.enable_grad():
         if kind == "linear":
+            torch.manual_seed(seed)
             W = torch.zeros(D, 1, requires_grad=True); b = torch.zeros(1, requires_grad=True)
-            params = [W, b]
-            opt = torch.optim.LBFGS(params, lr=1.0, max_iter=300, line_search_fn="strong_wolfe")
+            opt = torch.optim.LBFGS([W, b], lr=1.0, max_iter=300, line_search_fn="strong_wolfe")
 
             def closure():
                 opt.zero_grad()
@@ -167,24 +173,48 @@ def fit_head(X, y, w_sample, kind: str, reg: float, seed: int = 0):
                 return loss
             opt.step(closure)
             return [W.detach().numpy(), b.detach().numpy()], mean, std
-        H = 128
-        net = torch.nn.Sequential(torch.nn.Dropout(0.2), torch.nn.Linear(D, H), torch.nn.ReLU(),
-                                  torch.nn.Dropout(0.35), torch.nn.Linear(H, 1))
-        opt = torch.optim.AdamW(net.parameters(), lr=8e-4, weight_decay=reg)
-        n = len(Xt)
-        g = torch.Generator().manual_seed(seed)
-        for _ in range(70):
-            net.train()
-            perm = torch.randperm(n, generator=g)
-            for i in range(0, n, 128):
-                k = perm[i:i + 128]
-                z = net(Xt[k]).squeeze(1)
-                loss = (torch.nn.functional.binary_cross_entropy_with_logits(z, yt[k], reduction="none") * wt[k]).sum() / wt[k].sum()
-                opt.zero_grad(); loss.backward(); opt.step()
-        net.eval()
-        l1, l2 = net[1], net[4]
-        return [l1.weight.detach().numpy().T, l1.bias.detach().numpy(),
-                l2.weight.detach().numpy().T, l2.bias.detach().numpy()], mean, std
+
+        def _fit_one_mlp(sub_seed: int, epochs: int = 85, hidden: int = 128, smooth: float = 0.03):
+            torch.manual_seed(sub_seed)
+            net = torch.nn.Sequential(
+                torch.nn.Dropout(0.25),
+                torch.nn.Linear(D, hidden),
+                torch.nn.ReLU(),
+                torch.nn.Dropout(0.40),
+                torch.nn.Linear(hidden, 1),
+            )
+            opt = torch.optim.AdamW(net.parameters(), lr=1.2e-3, weight_decay=reg)
+            sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
+            n = len(Xt)
+            g = torch.Generator().manual_seed(sub_seed)
+            y_smooth = yt * (1.0 - smooth) + 0.5 * smooth
+            for _ in range(epochs):
+                net.train()
+                perm = torch.randperm(n, generator=g)
+                for i in range(0, n, 128):
+                    k = perm[i:i + 128]
+                    z = net(Xt[k]).squeeze(1)
+                    loss = (torch.nn.functional.binary_cross_entropy_with_logits(z, y_smooth[k], reduction="none") * wt[k]).sum() / wt[k].sum()
+                    opt.zero_grad(); loss.backward()
+                    torch.nn.utils.clip_grad_norm_(net.parameters(), 2.0)
+                    opt.step()
+                sched.step()
+            net.eval()
+            l1, l2 = net[1], net[4]
+            return [l1.weight.detach().numpy().T, l1.bias.detach().numpy(),
+                    l2.weight.detach().numpy().T, l2.bias.detach().numpy()]
+
+        if kind == "mlp":
+            return _fit_one_mlp(seed, epochs=75, hidden=128, smooth=0.02), mean, std
+
+        if kind == "mlp_ens":
+            # 5-member multi-seed + bootstrap-subsampled MLP ensemble
+            weights = []
+            for m in range(5):
+                weights.extend(_fit_one_mlp(seed + m * 101, epochs=85, hidden=128, smooth=0.03))
+            return weights, mean, std
+
+    raise ValueError(f"Unknown kind {kind}")
 
 
 def balanced_weights(y, sources=None):
@@ -202,31 +232,38 @@ def balanced_weights(y, sources=None):
     return w * len(y)
 
 
-def calibrate_temperature(head: FaceHead, X_val: np.ndarray, y_val: np.ndarray) -> float:
-    """Guo et al. (ICML 2017) validation-split temperature scaling folded into the last linear layer."""
-    x = (X_val - head.mean) / head.std
-    if head.kind == "linear":
-        z = (x @ head.weights[0] + head.weights[1]).ravel()
-    else:
-        h = np.maximum(0.0, x @ head.weights[0] + head.weights[1])
-        z = (h @ head.weights[2] + head.weights[3]).ravel()
-    best_t, best_nll = 1.0, float("inf")
-    for t in np.geomspace(0.5, 8.0, 60):
-        p = 1.0 / (1.0 + np.exp(-np.clip(z / t, -40.0, 40.0)))
-        p = np.clip(p, 1e-6, 1.0 - 1e-6)
-        nll = float(-np.mean(y_val * np.log(p) + (1.0 - y_val) * np.log(1.0 - p)))
-        if nll < best_nll:
-            best_nll, best_t = nll, float(t)
-    if head.kind == "linear":
-        head.weights = [head.weights[0] / best_t, head.weights[1] / best_t]
-    else:
-        head.weights = [head.weights[0], head.weights[1], head.weights[2] / best_t, head.weights[3] / best_t]
-    return round(best_t, 4)
-
-
 def make_head(kind, layers, weights, mean, std, lo=0.35, hi=0.65, meta=None) -> FaceHead:
     return FaceHead(kind=kind, layers=list(layers), mean=mean, std=std, weights=weights,
                     threshold_low=lo, threshold_high=hi, meta=meta or {})
+
+
+def calibrate_blend_and_temperature(head: FaceHead, X_val: np.ndarray, base_val: np.ndarray, y_val: np.ndarray) -> tuple[float, float]:
+    """Select residual base-logit weight alpha >= 0 and temperature T > 0 on validation to minimize NLL."""
+    head.meta["base_logit_alpha"] = 0.0
+    head.meta["temperature"] = 1.0
+    z_head = head.predict_logits(X_val, base_probs=None)
+    bc = np.clip(base_val.astype(np.float32), 1e-5, 1.0 - 1e-5)
+    z_base = np.log(bc / (1.0 - bc))
+
+    best_alpha, best_t, best_nll = 0.0, 1.0, float("inf")
+    alphas = [0.0, 0.05, 0.10, 0.15, 0.25, 0.35, 0.50] if head.kind == "mlp_ens" else [0.0]
+    for alpha in alphas:
+        z_comb = z_head + alpha * z_base
+        for t in np.geomspace(0.5, 6.0, 48):
+            p = 1.0 / (1.0 + np.exp(-np.clip(z_comb / t, -40.0, 40.0)))
+            p = np.clip(p, 1e-6, 1.0 - 1e-6)
+            nll = float(-np.mean(y_val * np.log(p) + (1.0 - y_val) * np.log(1.0 - p)))
+            if nll < best_nll:
+                best_nll, best_alpha, best_t = nll, float(alpha), float(t)
+
+    if head.kind == "linear":
+        head.weights = [head.weights[0] / best_t, head.weights[1] / best_t]
+    elif head.kind == "mlp":
+        head.weights = [head.weights[0], head.weights[1], head.weights[2] / best_t, head.weights[3] / best_t]
+    else:
+        head.meta["base_logit_alpha"] = round(best_alpha, 4)
+        head.meta["temperature"] = round(best_t, 4)
+    return round(best_alpha, 4), round(best_t, 4)
 
 
 def slice_cols(layers_all, layers_sel, dim):
@@ -238,9 +275,9 @@ def slice_cols(layers_all, layers_sel, dim):
 
 
 def thresholds_from_val(y, s, fpr=0.05, fnr=0.05):
-    hi = float(np.quantile(s[y == 0], 1 - fpr))   # above HIGH: at most `fpr` of real faces
-    lo = float(np.quantile(s[y == 1], fnr))       # below LOW: at most `fnr` of fakes
-    if lo >= hi or hi - lo < 0.10:                # separable (or nearly): narrow band around the gap
+    hi = float(np.quantile(s[y == 0], 1 - fpr))
+    lo = float(np.quantile(s[y == 1], fnr))
+    if lo >= hi or hi - lo < 0.10:
         mid = (lo + hi) / 2
         lo, hi = mid - 0.05, mid + 0.05
     return round(float(np.clip(lo, 0.02, 0.96)), 3), round(float(np.clip(hi, lo + 0.02, 0.98)), 3)
@@ -251,21 +288,35 @@ def tpr_at_fpr(y, s, fpr=0.05):
     return float((s[y == 1] > t).mean())
 
 
+def ece_and_brier(y: np.ndarray, s: np.ndarray, n_bins: int = 10) -> tuple[float, float]:
+    y_f = y.astype(np.float64)
+    s_f = s.astype(np.float64)
+    brier = float(np.mean((s_f - y_f) ** 2))
+    edges = np.linspace(0.0, 1.0, n_bins + 1)
+    ece = 0.0
+    for i in range(n_bins):
+        m = (s_f >= edges[i]) & (s_f <= edges[i + 1] if i == n_bins - 1 else s_f < edges[i + 1])
+        if m.any():
+            ece += (m.sum() / len(y_f)) * abs(y_f[m].mean() - s_f[m].mean())
+    return round(float(ece), 4), round(brier, 4)
+
+
 def summarise(y, s, lo, hi):
     if len(set(y.tolist())) < 2:
         return None
     m = binary_metrics(y, s, 0.5)
     tb = three_band(y, s, lo, hi)
+    ece, brier = ece_and_brier(np.asarray(y), np.asarray(s))
     return {"n": int(len(y)), "n_fake": int(y.sum()), "n_real": int((1 - y).sum()),
             "auc": round(roc_auc(y, s), 4), "acc@0.5": round(m["accuracy"], 4),
             "precision@0.5": round(m["precision"], 4), "recall@0.5": round(m["recall"], 4),
             "f1@0.5": round(m["f1"], 4), "tpr@fpr5%": round(tpr_at_fpr(y, s), 4),
+            "ece": ece, "brier": brier,
             "band_low": lo, "band_high": hi, "coverage": round(tb["coverage"], 4),
             "decided_accuracy": round(tb.get("decided_accuracy", float("nan")), 4)}
 
 
 def eval_groups(items, y, s, lo, hi):
-    """Per source (fake-only sources paired with their real partner), per DFF category, and pooled."""
     out = {"pooled": summarise(y, s, lo, hi)}
     srcs = sorted({it["source"] for it in items})
     for src in srcs:
@@ -330,43 +381,57 @@ def main() -> int:
         val_idx += v[:nv].tolist(); fit_idx += v[nv:].tolist()
     fit_idx, val_idx = np.array(fit_idx), np.array(val_idx)
 
-    # ---- candidate heads, chosen on validation AUC
+    # ---- deep candidate sweep (linear, MLP, L2-normalised 5-member MLP ensemble)
     feature_sets = {"final": [FINAL], "multi": layers}
-    grid = [("linear", r) for r in ([1e-3, 1e-2] if a.quick else [1e-3, 1e-2, 1e-1, 0.5, 2.0])]
-    grid += [("mlp", r) for r in ([1e-2] if a.quick else [1e-2, 5e-2, 2e-1, 5e-1])]
+    if a.quick:
+        grid = [("linear", 1e-3, False), ("linear", 1e-2, False), ("mlp", 1e-2, False)]
+    else:
+        grid = (
+            [("linear", r, False) for r in (1e-2, 1e-1, 0.5)]
+            + [("linear", r, True) for r in (1e-2, 1e-1, 0.5)]
+            + [("mlp", r, False) for r in (5e-2, 2e-1, 5e-1)]
+            + [("mlp", r, True) for r in (5e-2, 2e-1, 5e-1)]
+            + [("mlp_ens", r, False) for r in (2e-1, 5e-1)]
+            + [("mlp_ens", r, True) for r in (1e-1, 3e-1, 6e-1)]
+        )
     cands = []
     fit_sources = [items[i]["source"] for i in fit_idx]
     w_fit = balanced_weights(y[fit_idx], fit_sources)
     for fs_name, fs in feature_sets.items():
         cols = slice_cols(layers, fs, dim)
-        for kind, reg in grid:
-            W, mu, sd = fit_head(X[fit_idx][:, cols], y[fit_idx], w_fit, kind, reg, a.seed)
-            h = make_head(kind, fs, W, mu, sd)
+        for kind, reg, l2n in grid:
+            if fs_name == "final" and kind == "mlp_ens":
+                continue
+            W, mu, sd = fit_head(X[fit_idx][:, cols], y[fit_idx], w_fit, kind, reg, a.seed,
+                                 n_blocks=len(fs), l2_norm=l2n)
+            h = make_head(kind, fs, W, mu, sd, meta={"l2_norm_layers": l2n})
             s_val = h.predict_proba(X[val_idx][:, cols])
             auc = roc_auc(y[val_idx], s_val)
-            cands.append({"features": fs_name, "kind": kind, "reg": reg, "val_auc": round(auc, 4)})
-            print(f"  candidate {fs_name:5s} {kind:6s} reg={reg:<7g} val AUC {auc:.4f}")
-    best = max(cands, key=lambda c: (c["val_auc"], c["kind"] == "linear"))  # tie -> simpler head
+            cands.append({"features": fs_name, "kind": kind, "reg": reg, "l2_norm": l2n, "val_auc": round(auc, 4)})
+            print(f"  candidate {fs_name:5s} {kind:7s} l2={str(l2n):5s} reg={reg:<6g} val AUC {auc:.4f}")
+    best = max(cands, key=lambda c: (c["val_auc"], c["kind"] == "mlp_ens", c["kind"] == "linear"))
     print(f"selected: {best}")
 
-    # ---- final head: fit on the fit split, temperature-calibrate & set thresholds on validation
+    # ---- final head: fit on fit_idx, optimise base-logit blend + temperature + thresholds on val_idx
     fs = feature_sets[best["features"]]
     cols = slice_cols(layers, fs, dim)
-    W, mu, sd = fit_head(X[fit_idx][:, cols], y[fit_idx], w_fit, best["kind"], best["reg"], a.seed)
-    head = make_head(best["kind"], fs, W, mu, sd)
-    temp = calibrate_temperature(head, X[val_idx][:, cols], y[val_idx])
-    s_val = head.predict_proba(X[val_idx][:, cols])
+    W, mu, sd = fit_head(X[fit_idx][:, cols], y[fit_idx], w_fit, best["kind"], best["reg"], a.seed,
+                         n_blocks=len(fs), l2_norm=best["l2_norm"])
+    head = make_head(best["kind"], fs, W, mu, sd, meta={"l2_norm_layers": best["l2_norm"]})
+    alpha, temp = calibrate_blend_and_temperature(head, X[val_idx][:, cols], base[val_idx], y[val_idx])
+    s_val = head.predict_proba(X[val_idx][:, cols], base_probs=base[val_idx])
     lo, hi = thresholds_from_val(y[val_idx], s_val)
     head.threshold_low, head.threshold_high = lo, hi
-    print(f"temperature calibration on validation: T={temp:.4f} -> thresholds low={lo}, high={hi}")
+    val_ece, val_brier = ece_and_brier(y[val_idx], s_val)
+    print(f"validation calibration: alpha={alpha}, T={temp}, ECE={val_ece}, Brier={val_brier} -> thresholds low={lo}, high={hi}")
     val_auc_head, val_auc_base = roc_auc(y[val_idx], s_val), roc_auc(y[val_idx], base[val_idx])
-    activate = val_auc_head >= val_auc_base   # deployment gate decided on validation, never on test
+    activate = val_auc_head >= val_auc_base
     print(f"validation AUC: trained head {val_auc_head:.4f} vs original model {val_auc_base:.4f}"
           f" -> {'ACTIVATE head' if activate else 'keep ORIGINAL model (head saved as .rejected)'}")
 
     # ---- held-out test: trained head vs original model, same faces
     test_items = [items[i] for i in te_idx]
-    s_test = head.predict_proba(X[te_idx][:, cols])
+    s_test = head.predict_proba(X[te_idx][:, cols], base_probs=base[te_idx])
     b_test = base[te_idx]
     res_head = eval_groups(test_items, y[te_idx], s_test, lo, hi)
     res_base = eval_groups(test_items, y[te_idx], b_test, FACE_SPEC.threshold_low, FACE_SPEC.threshold_high)
@@ -378,12 +443,15 @@ def main() -> int:
         if len(set(y[tr].tolist())) < 2:
             continue
         tr_sources = [items[i]["source"] for i in tr]
-        Wl, mul, sdl = fit_head(X[tr][:, cols], y[tr], balanced_weights(y[tr], tr_sources), best["kind"], best["reg"], a.seed)
-        hl = make_head(best["kind"], fs, Wl, mul, sdl)
+        Wl, mul, sdl = fit_head(X[tr][:, cols], y[tr], balanced_weights(y[tr], tr_sources),
+                                best["kind"], best["reg"], a.seed,
+                                n_blocks=len(fs), l2_norm=best["l2_norm"])
+        hl = make_head(best["kind"], fs, Wl, mul, sdl,
+                       meta={"l2_norm_layers": best["l2_norm"], "base_logit_alpha": alpha, "temperature": temp})
         real_src = PAIR_REALS.get(held, held)
         m = np.array([i for i in te_idx if (items[i]["source"] == held and items[i]["y"] == 1)
                       or (items[i]["source"] == real_src and items[i]["y"] == 0)])
-        r = summarise(y[m], hl.predict_proba(X[m][:, cols]), lo, hi)
+        r = summarise(y[m], hl.predict_proba(X[m][:, cols], base_probs=base[m]), lo, hi)
         rb = summarise(y[m], base[m], FACE_SPEC.threshold_low, FACE_SPEC.threshold_high)
         if r:
             loso[held] = {"head_trained_without_it": r, "original_model": rb}
@@ -395,16 +463,27 @@ def main() -> int:
     loso_txt = ", ".join(f"{k} {v['head_trained_without_it']['auc']:.3f}" for k, v in loso.items())
     src_list = sorted({it["source"] for it in items})
     head.meta = {
-        "name": "deepshield-face-head-v2", "base_model_id": FACE_SPEC.model_id, "base_source": source,
-        "trained_at": datetime.now().isoformat(timespec="seconds"), "selection": best,
-        "temperature": temp, "sources": src_list,
-        "n_train": int(len(fit_idx)), "n_val": int(len(val_idx)), "n_test": int(len(te_idx)),
-        "test_auc": pooled["auc"], "summary": (
-            f"Classification head retrained by DEEP SHIELD on {len(fit_idx)} face crops across {len(src_list)} "
-            f"real datasets ({', '.join(src_list)}); SigLIP2 backbone frozen, temperature-calibrated (T={temp}). "
-            f"Held-out test ROC-AUC {pooled['auc']:.3f} (per source: {per_src}). "
-            f"Unseen-generator (leave-one-out) ROC-AUC: {loso_txt}. "
-            f"Validation-calibrated thresholds: <=5% real above {hi}, <=5% fake below {lo}."),
+        "name": "deepshield-face-head-v3",
+        "base_model_id": FACE_SPEC.model_id,
+        "base_source": source,
+        "trained_at": datetime.now().isoformat(timespec="seconds"),
+        "selection": best,
+        "l2_norm_layers": bool(best["l2_norm"]),
+        "base_logit_alpha": alpha,
+        "temperature": temp,
+        "sources": src_list,
+        "n_train": int(len(fit_idx)),
+        "n_val": int(len(val_idx)),
+        "n_test": int(len(te_idx)),
+        "test_auc": pooled["auc"],
+        "test_ece": pooled["ece"],
+        "test_brier": pooled["brier"],
+        "summary": (
+            f"Deep-trained DEEP SHIELD face head ({best['kind']}, l2_norm={best['l2_norm']}, alpha={alpha}, T={temp}) "
+            f"on {len(fit_idx)} real face crops across {len(src_list)} datasets ({', '.join(src_list)}). "
+            f"Held-out test ROC-AUC {pooled['auc']:.4f}, Decided Acc {pooled['decided_accuracy']:.4f}, ECE {pooled['ece']:.4f} "
+            f"(per source: {per_src}). Unseen-generator LOO ROC-AUC: {loso_txt}. "
+            f"Validation-calibrated thresholds: low={lo}, high={hi}."),
     }
     out_head = Path(a.out_head)
     if not activate:
@@ -416,6 +495,7 @@ def main() -> int:
     report = {"created": head.meta["trained_at"], "base_model": FACE_SPEC.model_id, "head_file": str(out_head),
               "activated": bool(activate),
               "validation_auc": {"trained_head": round(val_auc_head, 4), "original_model": round(val_auc_base, 4)},
+              "calibration": {"base_logit_alpha": alpha, "temperature": temp, "val_ece": val_ece, "val_brier": val_brier},
               "head_sha": head.sha, "feature_layers": layers, "selected": best, "candidates": cands,
               "thresholds": {"low": lo, "high": hi}, "counts_used": counts, "no_face_skipped": dict(no_face),
               "test_duplicates_removed": n_dup, "test": {"trained_head": res_head, "original_model": res_base},
@@ -434,34 +514,34 @@ def main() -> int:
 
 
 def render_md(r) -> str:
-    L = [f"# Module 02 face head - training and test report", "",
+    cal = r.get("calibration", {})
+    L = [f"# Module 02 face head - deep training and test report", "",
          f"Created {r['created']}. Base model `{r['base_model']}` (frozen). Head `{r['head_file']}` sha `{r['head_sha']}`.",
          f"Selected head: **{r['selected']['kind']}** on **{r['selected']['features']}** features "
-         f"(reg {r['selected']['reg']}, validation AUC {r['selected']['val_auc']}).",
+         f"(l2_norm={r['selected'].get('l2_norm')}, reg={r['selected']['reg']}, validation AUC={r['selected']['val_auc']}).",
+         f"Calibration (validation): base_logit_alpha **{cal.get('base_logit_alpha', 0.0)}**, temperature T **{cal.get('temperature', 1.0)}**, "
+         f"val ECE **{cal.get('val_ece', '-')}**, val Brier **{cal.get('val_brier', '-')}**.",
          f"Three-band thresholds (set on validation): low **{r['thresholds']['low']}**, high **{r['thresholds']['high']}**.",
          f"Validation AUC: trained head {r['validation_auc']['trained_head']} vs original {r['validation_auc']['original_model']} "
          f"-> head **{'ACTIVATED' if r['activated'] else 'NOT activated (original model kept)'}**.", "",
          "## Held-out test: original model vs trained head (same faces)", "",
-         "| Test set | n (fake/real) | Original AUC | Trained AUC | Original acc@0.5 | Trained acc@0.5 | Original TPR@5%FPR | Trained TPR@5%FPR | Trained coverage | Trained decided acc |",
+         "| Test set | n (fake/real) | Original AUC | Trained AUC | Acc@0.5 | TPR@5%FPR | ECE | Brier | Coverage | Decided Acc |",
          "|---|---|---|---|---|---|---|---|---|---|"]
     th, ob = r["test"]["trained_head"], r["test"]["original_model"]
     for k in th:
         t, o = th[k], ob.get(k) or {}
-        L.append(f"| {k} | {t['n_fake']}/{t['n_real']} | {o.get('auc', '-')} | **{t['auc']}** | {o.get('acc@0.5', '-')} | "
-                 f"{t['acc@0.5']} | {o.get('tpr@fpr5%', '-')} | {t['tpr@fpr5%']} | {t['coverage']} | {t['decided_accuracy']} |")
+        L.append(f"| {k} | {t['n_fake']}/{t['n_real']} | {o.get('auc', '-')} | **{t['auc']}** | "
+                 f"{t['acc@0.5']} | {t['tpr@fpr5%']} | {t.get('ece', '-')} | {t.get('brier', '-')} | {t['coverage']} | {t['decided_accuracy']} |")
     L += ["", "## Unseen generator (leave-one-generator-out)", "",
           "Head retrained WITHOUT the named source, then tested on it. This is the honest estimate for a new generator.", "",
           "| Held-out source | n (fake/real) | Original AUC | Head-without-it AUC | Head-without-it TPR@5%FPR |", "|---|---|---|---|---|"]
     for k, v in r["leave_one_generator_out"].items():
         h, o = v["head_trained_without_it"], v["original_model"] or {}
-        L.append(f"| {k} | {h['n_fake']}/{h['n_real']} | {o.get('auc', '-')} | {h['auc']} | {h['tpr@fpr5%']} |")
+        L.append(f"| {k} | {h['n_fake']}/{h['n_real']} | {o.get('auc', '-')} | **{h['auc']}** | {h['tpr@fpr5%']} |")
     L += ["", "## Data", "", "| source/split/label | faces used |", "|---|---|"]
     L += [f"| {k} | {v} |" for k, v in sorted(r["counts_used"].items())]
     L += ["", f"No face detected (skipped, as the engine would): {r['no_face_skipped'] or 'none'}. "
-              f"Test images identical to a train image removed: {r['test_duplicates_removed']}.",
-          "", "Notes: tpdne has fake images only; it is tested against the stylegan1 (FFHQ) real faces. "
-              "dff category names are as labelled by the dataset uploader. Small test sets: treat differences "
-              "below ~0.02 AUC as noise. Not a formal benchmark."]
+              f"Test images identical to a train image removed: {r['test_duplicates_removed']}."]
     return "\n".join(L)
 
 

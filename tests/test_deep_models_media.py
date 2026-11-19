@@ -23,6 +23,7 @@ def test_all_weights_and_parameters_loaded(monkeypatch):
     # 1. Verify all real model checkpoints & calibrated parameter artifacts exist on disk
     assert (ROOT / "models" / "hustvl__yolos-tiny" / "config.json").is_file()
     assert (ROOT / "models" / "m02_face_head.npz").is_file()
+    assert (ROOT / "models" / "m02_synth_head.npz").is_file()
     assert (ROOT / "models" / "m03_temporal_gru.pt").is_file()
     assert (ROOT / "models" / "m04_forensics_params.json").is_file()
 
@@ -46,6 +47,7 @@ def test_all_weights_and_parameters_loaded(monkeypatch):
     assert m01_det["ready"] is True
     assert m01_det["backend"] in ("ultralytics/pytorch", "transformers/pytorch")
     assert models_data["m02_deepfake_image_integrity"]["tasks"]["face_manipulation"]["trained_head"] is not None
+    assert models_data["m02_deepfake_image_integrity"]["tasks"]["synthetic_image"]["trained_head"] is not None
     assert models_data["m03_video_events"]["gru_enabled"] is True
     assert models_data["m03_video_events"]["gru_model"]["n_parameters"] == 6265
     assert models_data["m04_visual_forensics"]["calibrated_parameters"]["ela_jpeg_quality"] == 90
@@ -84,6 +86,8 @@ def test_deep_multi_image_and_video_across_all_four_engines(tmp_path: Path):
         if "faces" in str(img_path):
             face_f = [f for f in res.findings if f.task == "face_manipulation"]
             assert face_f and face_f[0].model.backend == "transformers+trained_head"
+        synth_f = [f for f in res.findings if f.task == "synthetic_image"]
+        assert synth_f and synth_f[0].model.backend == "transformers+trained_head"
 
     # 2. M04 calibrated parameters wired to copymove.detect() on real tampered photo
     eng4 = VisualForensicsEngine(ForensicsConfig(evidence_dir=tmp_path / "ev_m04"))

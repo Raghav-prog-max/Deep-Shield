@@ -71,7 +71,7 @@ class DeepfakeImageIntegrityEngine:
                 c = get_classifier(t, self.cfg)
                 info["tasks"][t] = {"ready": True, "model": c.model_info.model_dump(),
                                     "device": str(c.backend.device), "thresholds": c.thresholds()}
-                if t == TASK_FACE:
+                if t in (TASK_FACE, TASK_SYNTH):
                     info["tasks"][t]["trained_head"] = (
                         {"name": c.head.name, "sha": c.head.sha, "test_auc": c.head.meta.get("test_auc"),
                          "trained_at": c.head.meta.get("trained_at")} if c.head else None)

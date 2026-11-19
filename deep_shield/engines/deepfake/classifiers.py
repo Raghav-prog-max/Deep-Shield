@@ -24,7 +24,7 @@ from PIL import Image
 
 from deep_shield.common.schema import ModelInfo
 
-from .config import SPECS, TASK_FACE, ClassifierSpec, EngineConfig
+from .config import SPECS, TASK_FACE, TASK_SYNTH, ClassifierSpec, EngineConfig
 from .head import FaceHead, extract, load_head
 
 
@@ -138,8 +138,8 @@ class HeadBackend:
     def predict(self, images: List[Image.Image]) -> List[Dict[str, float]]:
         if not images:
             return []
-        feats, _ = self.base.features(images, self.head.layers, self.pos_idx)
-        probs = self.head.predict_proba(feats)
+        feats, base_p = self.base.features(images, self.head.layers, self.pos_idx)
+        probs = self.head.predict_proba(feats, base_probs=base_p)
         labels = {self.pos_label, self.neg_label}
         res = []
         for p in probs:
@@ -156,12 +156,21 @@ def face_head_path(cfg: EngineConfig) -> Optional[Path]:
     return Path(v) if v else cfg.models_dir / "m02_face_head.npz"
 
 
+def synth_head_path(cfg: EngineConfig) -> Optional[Path]:
+    v = os.getenv("DEEPSHIELD_M02_SYNTH_HEAD")
+    if v is not None and v.strip().lower() in ("", "0", "none", "off"):
+        return None
+    return Path(v) if v else cfg.models_dir / "m02_synth_head.npz"
+
+
 def _apply_head_spec(spec: ClassifierSpec, head: FaceHead) -> ClassifierSpec:
     """Trained head brings its own validated thresholds unless the operator overrides them by env var."""
-    lo = spec.threshold_low if os.getenv("DEEPSHIELD_M02_FACE_LOW") else head.threshold_low
-    hi = spec.threshold_high if os.getenv("DEEPSHIELD_M02_FACE_HIGH") else head.threshold_high
-    lims = [head.meta.get("summary", "Trained DEEP SHIELD face head on a frozen pretrained backbone.")]
-    lims += [l for l in spec.limitations if "Internal check on 50" not in l]
+    env_lo = "DEEPSHIELD_M02_SYNTH_LOW" if spec.task == TASK_SYNTH else "DEEPSHIELD_M02_FACE_LOW"
+    env_hi = "DEEPSHIELD_M02_SYNTH_HIGH" if spec.task == TASK_SYNTH else "DEEPSHIELD_M02_FACE_HIGH"
+    lo = spec.threshold_low if os.getenv(env_lo) else head.threshold_low
+    hi = spec.threshold_high if os.getenv(env_hi) else head.threshold_high
+    lims = [head.meta.get("summary", f"Trained DEEP SHIELD {spec.task} head on a frozen pretrained backbone.")]
+    lims += [l for l in spec.limitations if "Internal check on 50" not in l and "ROC-AUC ~0.5" not in l]
     return replace(spec, threshold_low=lo, threshold_high=hi, limitations=tuple(lims))
 
 
@@ -204,7 +213,7 @@ class TaskClassifier:
             if key not in _BACKENDS:
                 _BACKENDS[key] = HFBackend(spec, cfg)
             self.backend = _BACKENDS[key]
-            if spec.task == TASK_FACE:
+            if spec.task in (TASK_FACE, TASK_SYNTH):
                 self._maybe_attach_head(cfg)
         self._pos = {l.strip().lower() for l in spec.positive_labels}
         model_labels = {l.lower() for l in self.backend.labels}
@@ -216,7 +225,7 @@ class TaskClassifier:
             )
 
     def _maybe_attach_head(self, cfg: EngineConfig) -> None:
-        path = face_head_path(cfg)
+        path = synth_head_path(cfg) if self.spec.task == TASK_SYNTH else face_head_path(cfg)
         try:
             head = load_head(path)
         except Exception as exc:  # noqa: BLE001 - a broken head file must not break the engine

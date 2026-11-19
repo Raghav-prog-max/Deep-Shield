@@ -1,0 +1,223 @@
+{
+  "created_at": "2026-11-19T06:25:33",
+  "m01_threat": {
+    "model": {
+      "model_id": "hustvl/yolos-tiny",
+      "revision": "5a6a017a20cb",
+      "task": "person_and_bag_detection",
+      "license": "Apache-2.0",
+      "source_url": "https://huggingface.co/hustvl/yolos-tiny",
+      "backend": "transformers/pytorch"
+    },
+    "real_video_status": "completed",
+    "real_video_ms": 12486.2,
+    "real_video_detections": 82,
+    "unique_tracks": 21,
+    "max_track_length_frames": 8,
+    "mean_detector_confidence": 0.8958,
+    "negative_non_person_scenes": {
+      "tested": 4,
+      "false_positive_persons": 0
+    }
+  },
+  "m02_face_robustness": {
+    "model": {
+      "model_id": "prithivMLmods/open-deepfake-detection + deepshield-face-head-v3",
+      "revision": "aaa680d8ff799424ba5d092b6d5e0b999f0e0ab6+head:b12bda01ed0c",
+      "task": "face_manipulation",
+      "license": "apache-2.0",
+      "source_url": "https://huggingface.co/prithivMLmods/open-deepfake-detection",
+      "backend": "transformers+trained_head"
+    },
+    "thresholds": {
+      "low": 0.207,
+      "high": 0.777
+    },
+    "n_faces_tested": 107,
+    "robustness_matrix": {
+      "clean": {
+        "n": 107,
+        "roc_auc": 0.9472,
+        "acc@0.5": 0.8505,
+        "f1@0.5": 0.871,
+        "precision@0.5": 0.8182,
+        "recall@0.5": 0.931
+      },
+      "jpeg_q60": {
+        "n": 107,
+        "roc_auc": 0.9215,
+        "acc@0.5": 0.8411,
+        "f1@0.5": 0.8496,
+        "precision@0.5": 0.8727,
+        "recall@0.5": 0.8276
+      },
+      "jpeg_q40": {
+        "n": 107,
+        "roc_auc": 0.8649,
+        "acc@0.5": 0.757,
+        "f1@0.5": 0.7547,
+        "precision@0.5": 0.8333,
+        "recall@0.5": 0.6897
+      },
+      "downscale_0.5x": {
+        "n": 107,
+        "roc_auc": 0.8645,
+        "acc@0.5": 0.7383,
+        "f1@0.5": 0.8,
+        "precision@0.5": 0.6829,
+        "recall@0.5": 0.9655
+      },
+      "gaussian_blur": {
+        "n": 107,
+        "roc_auc": 0.8895,
+        "acc@0.5": 0.7103,
+        "f1@0.5": 0.7832,
+        "precision@0.5": 0.6588,
+        "recall@0.5": 0.9655
+      },
+      "brightness_contrast": {
+        "n": 107,
+        "roc_auc": 0.9356,
+        "acc@0.5": 0.8411,
+        "f1@0.5": 0.8595,
+        "precision@0.5": 0.8254,
+        "recall@0.5": 0.8966
+      }
+    },
+    "download_webp_check": {
+      "score": 0.9266,
+      "classification": "face_manipulation_indicated",
+      "thresholds": {
+        "low": 0.207,
+        "high": 0.777
+      }
+    }
+  },
+  "m02_synth": {
+    "model": {
+      "model_id": "prithivMLmods/open-deepfake-detection + deepshield-synth-head-v1",
+      "revision": "aaa680d8ff799424ba5d092b6d5e0b999f0e0ab6+head:382a7a930175",
+      "task": "synthetic_image",
+      "license": "apache-2.0",
+      "source_url": "https://huggingface.co/prithivMLmods/open-deepfake-detection",
+      "backend": "transformers+trained_head"
+    },
+    "thresholds": {
+      "low": 0.406,
+      "high": 0.75
+    },
+    "eval_synthetic_test": {
+      "n": 16,
+      "roc_auc": 1.0,
+      "acc@0.5": 1.0,
+      "f1@0.5": 1.0
+    },
+    "full_heldout_training_report_pooled": {
+      "n": 240,
+      "n_fake": 120,
+      "n_real": 120,
+      "auc": 0.9409,
+      "acc@0.5": 0.875,
+      "precision@0.5": 0.8689,
+      "recall@0.5": 0.8833,
+      "f1@0.5": 0.876,
+      "tpr@fpr5%": 0.6833,
+      "ece": 0.0661,
+      "brier": 0.0975,
+      "band_low": 0.406,
+      "band_high": 0.75,
+      "coverage": 0.8875,
+      "decided_accuracy": 0.9061
+    }
+  },
+  "m03_gru": {
+    "model_id": "temporal-gru-kinematic-v4-realtracks",
+    "revision": "trained:ea048bac8813",
+    "n_parameters": 6265,
+    "threshold": 0.35,
+    "scenarios_passed": "6/6",
+    "scenarios": {
+      "normal_slow_walk_0.6bls": {
+        "score": 0.0001,
+        "threshold": 0.35,
+        "peak_speed_bls": 0.6,
+        "flagged_anomalous": false,
+        "expected_anomalous": false,
+        "correct": true
+      },
+      "normal_brisk_walk_1.4bls": {
+        "score": 0.0001,
+        "threshold": 0.35,
+        "peak_speed_bls": 1.4,
+        "flagged_anomalous": false,
+        "expected_anomalous": false,
+        "correct": true
+      },
+      "normal_pause_and_stop": {
+        "score": 0.0001,
+        "threshold": 0.35,
+        "peak_speed_bls": 0.545,
+        "flagged_anomalous": false,
+        "expected_anomalous": false,
+        "correct": true
+      },
+      "anomalous_sustained_sprint_3.4bls": {
+        "score": 0.9999,
+        "threshold": 0.35,
+        "peak_speed_bls": 3.4,
+        "flagged_anomalous": true,
+        "expected_anomalous": true,
+        "correct": true
+      },
+      "anomalous_calm_then_burst_sprint": {
+        "score": 0.9999,
+        "threshold": 0.35,
+        "peak_speed_bls": 3.545,
+        "flagged_anomalous": true,
+        "expected_anomalous": true,
+        "correct": true
+      },
+      "anomalous_erratic_zigzag_reversals": {
+        "score": 0.9999,
+        "threshold": 0.35,
+        "peak_speed_bls": 4.556,
+        "flagged_anomalous": true,
+        "expected_anomalous": true,
+        "correct": true
+      }
+    }
+  },
+  "m04_forensics": {
+    "params": {
+      "ratio": 0.55,
+      "min_dist": 36.0,
+      "min_inliers": 8,
+      "contrast": 0.01
+    },
+    "translation_128px_q90": {
+      "tp": 22,
+      "n": 30,
+      "recall": 0.7333
+    },
+    "rotated_15deg_128px": {
+      "tp": 22,
+      "n": 30,
+      "recall": 0.7333
+    },
+    "scaled_1.15x_128px": {
+      "tp": 22,
+      "n": 30,
+      "recall": 0.7333
+    },
+    "recompressed_q75_128px": {
+      "tp": 22,
+      "n": 30,
+      "recall": 0.7333
+    },
+    "untouched_real_photos": {
+      "fp": 0,
+      "n": 30,
+      "false_alarm_rate": 0.0
+    }
+  }
+}
