@@ -1,29 +1,47 @@
 {
-  "verified_at": "2026-11-19T01:47:21",
+  "checked_at": "2026-11-19T04:26:22Z",
+  "repository_commit": "6206fd990feb0fc35dd6311a278c8acd31bb19a1",
   "hosted_frontend": {
     "root": {
-      "url": "https://deep-shield-sooty.vercel.app",
-      "reachable": false,
-      "error": "<urlopen error timed out>"
+      "url": "https://deep-shield-sooty.vercel.app/",
+      "reachable": true,
+      "http_status": 200,
+      "response_bytes": 95349
     },
     "review_workspace": {
       "url": "https://deep-shield-sooty.vercel.app/review",
-      "reachable": false,
-      "error": "<urlopen error timed out>"
+      "reachable": true,
+      "http_status": 200,
+      "response_bytes": 10130
     }
   },
-  "engine_health": {
-    "m01": "M01_threat_intelligence",
-    "m02": "M02_deepfake_image_integrity",
-    "m03": "M03_video_events",
-    "m03_gru_enabled": true,
-    "m04": "M04_visual_forensics"
+  "hosted_backend": {
+    "same_origin_m01_health": {
+      "url": "https://deep-shield-sooty.vercel.app/api/v1/m01/health",
+      "reachable": false,
+      "http_status": 404
+    },
+    "public_backend_configured": false,
+    "hosted_analysis_verified": false
   },
-  "job_flow": {
+  "github_actions": {
+    "run_id": 44453823617,
+    "url": "https://github.com/Raghav-prog-max/Deep-Shield/actions/runs/44453823617",
+    "commit": "6206fd990feb0fc35dd6311a278c8acd31bb19a1",
+    "conclusion": "success",
+    "jobs": {
+      "backend-tests": "success",
+      "frontend-build": "success"
+    },
+    "coverage_note": "Backend CI uses DEEPSHIELD_M02_BACKEND=stub and excludes tests/test_deep_models_media.py; it does not establish that all real-model tests passed."
+  },
+  "previous_local_integration_record": {
+    "verified_at": "2026-11-19T01:47:21",
+    "hosted_frontend_check": "timed_out_at_that_time",
     "job_id": "338325f4b241418885d905eb2c9ba225",
+    "final_status": "completed",
     "interrupted_worker_attempt": 1,
     "recovered_worker_attempt": 2,
-    "final_status": "completed",
     "modules_completed": [
       "M01_threat_intelligence",
       "M02_deepfake_image_integrity",
@@ -31,6 +49,13 @@
     ],
     "evidence_links_verified": 11,
     "pdf_report_bytes": 5603,
-    "retention_cleanup_verified": true
-  }
+    "retention_cleanup_verified": true,
+    "scope": "Recorded local/backend integration checks, not a public hosted backend check."
+  },
+  "remaining": [
+    "Deploy API and durable worker",
+    "Configure NEXT_PUBLIC_API_BASE_URL in Vercel and redeploy",
+    "Verify consented representative image and video jobs through the hosted review workspace",
+    "Record real-model acceptance evaluation with explicit skipped/excluded test counts"
+  ]
 }

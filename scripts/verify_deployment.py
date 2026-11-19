@@ -1,14 +1,7 @@
 """End-to-end verification of the DEEP SHIELD deployment, API, worker recovery, evidence links, and PDF reports.
 
-Exercises every requirement of Project Status Section '3. Verify the hosted app':
-  1. Hosted HTTPS frontend health check (https://deep-shield-sooty.vercel.app and /review)
-  2. Engine health endpoints (/api/v1/m01/health .. /api/v1/m04/health, including M02 trained head & M03 GRU)
-  3. Media upload -> queued job creation (/api/v1/intelligence/jobs)
-  4. Interrupted worker lease recovery simulation across service restart
-  5. Complete job execution -> integrated result (/api/v1/intelligence/jobs/{id}/result)
-  6. Evidence file serving (/api/v1/m02/evidence/... & /api/v1/m04/evidence/...)
-  7. PDF report download & validation (/api/v1/intelligence/jobs/{id}/report.pdf)
-  8. Persistence across store reconnect & retention purge verification
+Runs local API/worker integration checks and probes the public frontend/API routes.
+The TestClient job flow below is local; it does not count as a hosted media test.
 
 Writes reports/DEPLOYMENT_VERIFICATION.md and reports/deployment_verification.json.
 """
@@ -18,6 +11,7 @@ import json
 import os
 import sys
 import tempfile
+import urllib.error
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -49,6 +43,8 @@ def check_hosted_url(url: str) -> dict:
                 "contains_deep_shield": "DEEP SHIELD" in body.upper() or "DEEP-SHIELD" in body.upper(),
                 "bytes": len(body),
             }
+    except urllib.error.HTTPError as exc:
+        return {"url": url, "reachable": False, "status_code": exc.code, "error": str(exc)}
     except Exception as exc:  # noqa: BLE001
         return {"url": url, "reachable": False, "error": str(exc)}
 
@@ -68,6 +64,7 @@ def main() -> int:
         # 1. Hosted HTTPS frontend checks
         hosted_root = check_hosted_url(HOSTED_URL)
         hosted_review = check_hosted_url(f"{HOSTED_URL}/review")
+        hosted_api_health = check_hosted_url(f"{HOSTED_URL}/api/v1/m01/health")
 
         # 2. Engine health endpoints
         h1 = client.get("/api/v1/m01/health").json()
@@ -126,25 +123,35 @@ def main() -> int:
         del_resp = client.delete(f"/api/v1/intelligence/jobs/{job_id}")
         assert del_resp.status_code == 200 and del_resp.json()["deleted"] == job_id
 
+        configured_backend = os.getenv("NEXT_PUBLIC_API_BASE_URL", "").rstrip("/")
         report = {
-            "verified_at": datetime.now().isoformat(timespec="seconds"),
+            "verified_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             "hosted_frontend": {"root": hosted_root, "review_workspace": hosted_review},
-            "engine_health": {
-                "m01": h1.get("module"),
-                "m02": h2.get("module"),
-                "m03": h3.get("module"),
-                "m03_gru_enabled": h3.get("gru_enabled"),
-                "m04": h4.get("module"),
+            "hosted_backend": {
+                "same_origin_m01_health": hosted_api_health,
+                "configured_backend_url": configured_backend or None,
+                "public_backend_configured": bool(configured_backend),
+                "hosted_analysis_verified": False,
             },
-            "job_flow": {
-                "job_id": job_id,
-                "interrupted_worker_attempt": 1,
-                "recovered_worker_attempt": 2,
-                "final_status": "completed",
-                "modules_completed": [m["module"] for m in res_body["module_results"]],
-                "evidence_links_verified": evidence_checked,
-                "pdf_report_bytes": len(pdf_resp.content),
-                "retention_cleanup_verified": True,
+            "local_backend_integration": {
+                "scope": "Local FastAPI TestClient and temporary SQLite store; no hosted media job was submitted.",
+                "engine_health": {
+                    "m01": h1.get("module"),
+                    "m02": h2.get("module"),
+                    "m03": h3.get("module"),
+                    "m03_gru_enabled": h3.get("gru_enabled"),
+                    "m04": h4.get("module"),
+                },
+                "job_flow": {
+                    "job_id": job_id,
+                    "interrupted_worker_attempt": 1,
+                    "recovered_worker_attempt": 2,
+                    "final_status": "completed",
+                    "modules_completed": [m["module"] for m in res_body["module_results"]],
+                    "evidence_links_verified": evidence_checked,
+                    "pdf_report_bytes": len(pdf_resp.content),
+                    "retention_cleanup_verified": True,
+                },
             },
         }
 
@@ -152,25 +159,39 @@ def main() -> int:
         out_dir.mkdir(parents=True, exist_ok=True)
         (out_dir / "deployment_verification.json").write_text(json.dumps(report, indent=2))
 
+        root_status = "PASS" if hosted_root.get("reachable") else "FAIL"
+        review_status = "PASS" if hosted_review.get("reachable") else "FAIL"
+        api_status = "AVAILABLE" if hosted_api_health.get("reachable") else "NOT AVAILABLE"
+        root_http = hosted_root.get("status_code") or "unavailable"
+        review_http = hosted_review.get("status_code") or "unavailable"
+        api_http = hosted_api_health.get("status_code") or "unavailable"
         md = [
-            "# DEEP SHIELD — Deployment & End-to-End Verification Report",
+            "# Deep Shield - Deployment Verification",
             "",
-            f"**Verified at:** {report['verified_at']}",
-            f"**Live Hosted Frontend URL:** [{HOSTED_URL}]({HOSTED_URL}) ([`/review`]({HOSTED_URL}/review))",
+            f"**Checked at:** {report['verified_at']}",
+            f"**Frontend:** [{HOSTED_URL}]({HOSTED_URL}) ([`/review`]({HOSTED_URL}/review))",
             "",
-            "## Verification Checklist",
+            "## Public checks",
             "",
             "| Check | Status | Details |",
             "|---|---|---|",
-            f"| Hosted HTTPS Landing Page (`/`) | **PASSED** | HTTP {hosted_root.get('status_code')} · HTTPS={hosted_root.get('https')} · {hosted_root.get('bytes')} bytes |",
-            f"| Hosted HTTPS Review Workspace (`/review`) | **PASSED** | HTTP {hosted_review.get('status_code')} · HTTPS={hosted_review.get('https')} · {hosted_review.get('bytes')} bytes |",
-            f"| Engine Health (`/api/v1/m01..m04/health`) | **PASSED** | M01, M02 (v0.3.0 + trained head), M03 (`gru_enabled={h3.get('gru_enabled')}`), M04 online |",
-            f"| Media Upload & Queued Job Creation | **PASSED** | Job `{job_id}` created (`HTTP 202`) |",
-            f"| Interrupted Worker Lease Recovery | **PASSED** | `worker-1` interrupted on attempt 1 -> `worker-2` recovered on attempt 2 |",
-            f"| Persistence Across Service Reconnect | **PASSED** | SQLite job record & integrated `IntelligenceResult` persisted and retrieved |",
-            f"| Evidence Routes (`/api/v1/m0*/evidence/...`) | **PASSED** | {evidence_checked} derived evidence files served (`HTTP 200`) |",
-            f"| PDF Report Download (`/report.pdf`) | **PASSED** | Valid `%PDF` document ({len(pdf_resp.content)} bytes) |",
-            f"| Evidence & Job Retention Cleanup | **PASSED** | `DELETE /api/v1/intelligence/jobs/{job_id}` purged record & evidence |",
+            f"| Landing page (`/`) | **{root_status}** | HTTP {root_http}; {hosted_root.get('bytes', 0)} response bytes |",
+            f"| Review workspace (`/review`) | **{review_status}** | HTTP {review_http}; {hosted_review.get('bytes', 0)} response bytes |",
+            f"| Same-origin API health (`/api/v1/m01/health`) | **{api_status}** | HTTP {api_http} |",
+            "| Hosted image/video analysis | **NOT VERIFIED** | This script does not submit a media job to a hosted backend. |",
+            "",
+            "## Local backend integration checks",
+            "",
+            "These checks use FastAPI TestClient and temporary local storage; they do not demonstrate hosted inference.",
+            "",
+            f"- Engine health routes responded locally; M03 GRU enabled: `{h3.get('gru_enabled')}`.",
+            f"- Job `{job_id}` completed after simulated worker lease recovery (attempts 1 -> 2).",
+            f"- Verified {evidence_checked} evidence responses and a {len(pdf_resp.content)} byte PDF report.",
+            "- Job/evidence deletion endpoint completed successfully.",
+            "",
+            "## Remaining production checks",
+            "",
+            "Deploy and configure a backend, connect it to the frontend, then submit consented representative images and videos through `/review`. Record hosted job results, evidence, PDF, and retention outcomes separately.",
         ]
         (out_dir / "DEPLOYMENT_VERIFICATION.md").write_text("\n".join(md) + "\n")
         print("\n".join(md))

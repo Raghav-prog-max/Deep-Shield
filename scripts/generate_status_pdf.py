@@ -1,8 +1,10 @@
-"""Generate the updated 3-page DEEP SHIELD Project Status PDF with verified 6-dataset + 52-video metrics."""
+"""Build the shareable, evidence-qualified Deep Shield project status PDF."""
 from __future__ import annotations
 
 from pathlib import Path
+
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
@@ -16,204 +18,151 @@ from reportlab.platypus import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+OUT = ROOT / "reports" / "Deep_Shield_Project_Status_2026-11-19.pdf"
+NAVY = colors.HexColor("#142d3a")
+TEAL = colors.HexColor("#137a70")
+INK = colors.HexColor("#23343c")
+MUTED = colors.HexColor("#62747c")
+PALE = colors.HexColor("#eef5f5")
+GRID = colors.HexColor("#d6e0e3")
+GREEN = colors.HexColor("#e5f3ec")
+AMBER = colors.HexColor("#fff3d9")
+RED = colors.HexColor("#fde9e6")
 
 
-def _header_footer(canvas, doc):
+def header_footer(canvas, doc):
     canvas.saveState()
-    w, h = A4
-    canvas.setFillColor(colors.HexColor("#112936"))
-    canvas.rect(0, h - 12 * mm, w, 12 * mm, fill=1, stroke=0)
+    width, height = A4
+    canvas.setFillColor(NAVY)
+    canvas.rect(0, height - 12 * mm, width, 12 * mm, fill=1, stroke=0)
     canvas.setFillColor(colors.white)
     canvas.setFont("Helvetica-Bold", 8)
-    canvas.drawString(22 * mm, h - 7.8 * mm, "DEEP SHIELD  /  PROJECT STATUS")
-    canvas.drawRightString(w - 22 * mm, h - 7.8 * mm, "19 NOV 2026")
-
-    canvas.setStrokeColor(colors.HexColor("#d3dce0"))
-    canvas.setLineWidth(0.5)
-    canvas.line(22 * mm, 15 * mm, w - 22 * mm, 15 * mm)
-    canvas.setFillColor(colors.HexColor("#687780"))
-    canvas.setFont("Helvetica", 8)
-    canvas.drawString(22 * mm, 10 * mm, "github.com/Raghav-prog-max/Deep-Shield")
-    canvas.drawRightString(w - 22 * mm, 10 * mm, str(doc.page))
+    canvas.drawString(18 * mm, height - 7.8 * mm, "DEEP SHIELD  /  PROJECT STATUS")
+    canvas.drawRightString(width - 18 * mm, height - 7.8 * mm, "19 NOV 2026")
+    canvas.setStrokeColor(GRID)
+    canvas.line(18 * mm, 14 * mm, width - 18 * mm, 14 * mm)
+    canvas.setFillColor(MUTED)
+    canvas.setFont("Helvetica", 7.5)
+    canvas.drawString(18 * mm, 9 * mm, "github.com/Raghav-prog-max/Deep-Shield")
+    canvas.drawRightString(width - 18 * mm, 9 * mm, f"{doc.page}")
     canvas.restoreState()
 
 
-def build_pdf(out_path: Path) -> None:
+def build_pdf(out_path: Path = OUT) -> None:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     doc = SimpleDocTemplate(
         str(out_path),
         pagesize=A4,
-        leftMargin=22 * mm,
-        rightMargin=22 * mm,
-        topMargin=24 * mm,
-        bottomMargin=22 * mm,
-        title="DEEP SHIELD — Project Status (19 Nov 2026)",
-        author="DEEP SHIELD Team",
+        leftMargin=18 * mm,
+        rightMargin=18 * mm,
+        topMargin=19 * mm,
+        bottomMargin=19 * mm,
+        title="Deep Shield - Project Status - 19 Nov 2026",
+        author="Deep Shield Team",
     )
-    styles = getSampleStyleSheet()
-    h1 = ParagraphStyle("H1", parent=styles["Title"], alignment=0, fontName="Helvetica-Bold", fontSize=24, leading=28, textColor=colors.HexColor("#112936"), spaceAfter=2 * mm)
-    sub = ParagraphStyle("Sub", parent=styles["Normal"], fontName="Helvetica", fontSize=11, leading=14, textColor=colors.HexColor("#5c6d75"), spaceAfter=6 * mm)
-    h2 = ParagraphStyle("H2", parent=styles["Heading2"], fontName="Helvetica-Bold", fontSize=16, leading=20, textColor=colors.HexColor("#112936"), spaceBefore=4 * mm, spaceAfter=3 * mm)
-    h3 = ParagraphStyle("H3", parent=styles["Heading3"], fontName="Helvetica-Bold", fontSize=11.5, leading=15, textColor=colors.HexColor("#0e7265"), spaceBefore=4 * mm, spaceAfter=2 * mm)
-    body = ParagraphStyle("Body", parent=styles["Normal"], fontName="Helvetica", fontSize=9.2, leading=13.2, textColor=colors.HexColor("#223138"), spaceAfter=2.2 * mm)
-    cell = ParagraphStyle("Cell", parent=styles["Normal"], fontName="Helvetica", fontSize=8.2, leading=11.3, textColor=colors.HexColor("#223138"))
-    cell_bold = ParagraphStyle("CellBold", parent=cell, fontName="Helvetica-Bold")
-    cell_head = ParagraphStyle("CellHead", parent=cell, fontName="Helvetica-Bold", textColor=colors.white)
-    banner_cell = ParagraphStyle("BannerCell", parent=cell, alignment=1, fontName="Helvetica-Bold", textColor=colors.HexColor("#0e7265"), fontSize=8.2, leading=11.5)
-    flow_cell = ParagraphStyle("FlowCell", parent=cell, alignment=1, fontName="Helvetica-Bold", textColor=colors.HexColor("#112936"), fontSize=8.2, leading=11)
-
+    base = getSampleStyleSheet()
+    title = ParagraphStyle("TitleDS", parent=base["Title"], fontName="Helvetica-Bold", fontSize=26, leading=30, alignment=TA_LEFT, textColor=NAVY, spaceAfter=2 * mm)
+    subtitle = ParagraphStyle("SubDS", parent=base["Normal"], fontName="Helvetica", fontSize=10, leading=14, textColor=MUTED, spaceAfter=4 * mm)
+    h2 = ParagraphStyle("H2DS", parent=base["Heading2"], fontName="Helvetica-Bold", fontSize=15, leading=18, textColor=NAVY, spaceBefore=3 * mm, spaceAfter=2 * mm)
+    h3 = ParagraphStyle("H3DS", parent=base["Heading3"], fontName="Helvetica-Bold", fontSize=10, leading=13, textColor=TEAL, spaceBefore=2 * mm, spaceAfter=1.5 * mm)
+    body = ParagraphStyle("BodyDS", parent=base["BodyText"], fontName="Helvetica", fontSize=8.6, leading=12, textColor=INK, spaceAfter=2 * mm)
+    small = ParagraphStyle("SmallDS", parent=body, fontSize=7.5, leading=10)
+    cell = ParagraphStyle("CellDS", parent=small, spaceAfter=0)
+    cell_bold = ParagraphStyle("CellBoldDS", parent=cell, fontName="Helvetica-Bold")
+    cell_head = ParagraphStyle("CellHeadDS", parent=cell, fontName="Helvetica-Bold", textColor=colors.white)
+    banner = ParagraphStyle("BannerDS", parent=body, alignment=TA_CENTER, fontName="Helvetica-Bold", fontSize=8.2, leading=11, textColor=NAVY, spaceAfter=0)
+    flow = ParagraphStyle("FlowDS", parent=body, alignment=TA_CENTER, fontName="Helvetica-Bold", fontSize=8, leading=10, spaceAfter=0)
     story = []
 
-    # ---------------- PAGE 1 ----------------
-    story.append(Paragraph("DEEP SHIELD", h1))
-    story.append(Paragraph("Authentic 6-dataset image + 52-video real benchmark, audit, and cloud packaging", sub))
+    story.append(Paragraph("Deep Shield", title))
+    story.append(Paragraph("Project status, verification, and remaining production work", subtitle))
+    story.append(Paragraph("Reviewed 19 Nov 2026 | Repository: Raghav-prog-max/Deep-Shield | Commit: 6206fd990feb0fc35dd6311a278c8acd31bb19a1", small))
+    story.append(Spacer(1, 2 * mm))
 
-    banner = Table(
-        [[
-            Paragraph("6-DATASET FACE v4 + SYNTH v1<br/>Decided Acc 92.86% / 90.61%", banner_cell),
-            Paragraph("52 REAL BENCHMARK VIDEOS<br/>Celeb-DF v2 + FF++/DFD + UCF-Crime", banner_cell),
-            Paragraph("36 / 36 TESTS &amp; CLOUD READY<br/>Railway / Render / HF Spaces / Vercel", banner_cell),
-        ]],
-        colWidths=[55 * mm, 56 * mm, 55 * mm],
-    )
-    banner.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f2f7f6")),
-        ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#cddbd9")),
-        ("INNERGRID", (0, 0), (-1, -1), 0.6, colors.HexColor("#cddbd9")),
-        ("TOPPADDING", (0, 0), (-1, -1), 7),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+    summary = Table([[Paragraph("IMPLEMENTED", banner), Paragraph("FRONTEND LIVE", banner), Paragraph("HOSTED BACKEND NOT CONNECTED", banner)]], colWidths=[55 * mm, 55 * mm, 64 * mm])
+    summary.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, 0), GREEN), ("BACKGROUND", (1, 0), (1, 0), GREEN), ("BACKGROUND", (2, 0), (2, 0), AMBER),
+        ("BOX", (0, 0), (-1, -1), 0.6, GRID), ("INNERGRID", (0, 0), (-1, -1), 0.6, GRID),
+        ("TOPPADDING", (0, 0), (-1, -1), 7), ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
     ]))
-    story.append(banner)
-    story.append(Spacer(1, 5 * mm))
-    story.append(Paragraph("<font color='#0e7265'><b>System Architecture</b></font>", h3))
+    story.append(summary)
+    story.append(Spacer(1, 3 * mm))
+    story.append(Paragraph("Flowchart and completion", h2))
 
-    def _box(text: str, width_mm: float = 120, bg: str = "#e8f3f1", border: str = "#1b6b61"):
-        t = Table([[Paragraph(text, flow_cell)]], colWidths=[width_mm * mm])
-        t.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(bg)),
-            ("BOX", (0, 0), (-1, -1), 1.0, colors.HexColor(border)),
-            ("TOPPADDING", (0, 0), (-1, -1), 6.5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6.5),
-        ]))
-        return t
-
-    story.append(_box("IMAGE, VIDEO, OR HARDWARE WEBCAM CAPTURE", 96))
-    story.append(Spacer(1, 2.5 * mm))
-
-    mods = Table(
-        [[
-            Paragraph("M01 Threat<br/>hustvl/yolos-tiny<br/><font color='#0e7265'>COCO + IoU Track</font>", flow_cell),
-            Paragraph("M02 Deepfake<br/>face-v4 + synth-v1<br/><font color='#0e7265'>6-Src + 40 Videos</font>", flow_cell),
-            Paragraph("M03 Events<br/>Rules + GRU v4<br/><font color='#0e7265'>6,265p · Real CCTV</font>", flow_cell),
-            Paragraph("M04 Forensics<br/>SIFT/RANSAC + ELA<br/><font color='#0e7265'>0/30 Untouched FP</font>", flow_cell),
-        ]],
-        colWidths=[40 * mm, 44 * mm, 41 * mm, 41 * mm],
-    )
-    mods.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#e8f3f1")),
-        ("BOX", (0, 0), (-1, -1), 1.0, colors.HexColor("#1b6b61")),
-        ("INNERGRID", (0, 0), (-1, -1), 1.0, colors.HexColor("#1b6b61")),
-        ("TOPPADDING", (0, 0), (-1, -1), 7),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
-    ]))
-    story.append(mods)
-    story.append(Spacer(1, 2.5 * mm))
-    story.append(_box("CROSS-MODULE EVIDENCE LINKER (SCORES KEPT STRICTLY SEPARATE)", 135))
-    story.append(Spacer(1, 2.5 * mm))
-    story.append(_box("FASTAPI + DURABLE SQLITE WORKER + RETENTION PURGE + PDF REPORT", 145))
-    story.append(Spacer(1, 2.5 * mm))
-    story.append(_box("NEXT.JS LANDING PAGE + LIVE WORKSPACE (/ &amp; /review) — ZERO MOCK FALLBACKS", 152))
-    story.append(Spacer(1, 2.5 * mm))
-
-    bottom = Table(
-        [[
-            Paragraph("6-DATASET IMAGE + 52-VIDEO REAL<br/>BENCHMARKS &amp; STRESS TESTS", flow_cell),
-            Paragraph("CLOUD BACKEND PACKAGING<br/>Railway · Render · HF Spaces · CI", flow_cell),
-        ]],
-        colWidths=[82 * mm, 84 * mm],
-    )
-    bottom.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#e8f3f1")),
-        ("BOX", (0, 0), (-1, -1), 1.0, colors.HexColor("#1b6b61")),
-        ("INNERGRID", (0, 0), (-1, -1), 1.0, colors.HexColor("#1b6b61")),
-        ("TOPPADDING", (0, 0), (-1, -1), 7),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
-    ]))
-    story.append(bottom)
-    story.append(Spacer(1, 4 * mm))
-    story.append(Paragraph("Every hardcoded heuristic, mock client fallback, synthetic evaluation fixture, and stale threshold bug has been eliminated. All four engines run real local weights verified on genuine Kaggle/HuggingFace images plus 52 real benchmark videos (Celeb-DF v2, FaceForensics++/Google DFD, and UCF-Crime CCTV).", body))
-
-    # ---------------- PAGE 2 ----------------
-    story.append(PageBreak())
-    story.append(Paragraph("Verified Component Matrix", h2))
-    story.append(Paragraph("All four analysis modules run independently and report separate score types, calibrated thresholds, model revisions, and explicit caveats for human review.", body))
-
-    rows = [
-        [Paragraph("ENGINE / LAYER", cell_head), Paragraph("LOADED WEIGHTS &amp; ARCHITECTURE", cell_head), Paragraph("VERIFIED REAL-DATA METRICS", cell_head)],
-        [Paragraph("M01 — Threat &amp; Anomaly", cell_bold), Paragraph("Local MS-COCO 2017 hustvl/yolos-tiny (rev 5a6a017a20cb, Apache-2.0) + velocity-predicted MultiObjectIoUTracker; optional Ultralytics yolo26n. Dwell 30s / unattended 60s.", cell), Paragraph("vtest.avi: 82 detections, 21 tracks, mean conf 0.8958; 0/4 non-person FPs; 48/48 rule events; live-tested on 12 UCF-Crime CCTV clips.", cell)],
-        [Paragraph("M02 — Face Manipulation (v4)", cell_bold), Paragraph("Frozen SigLIP2 + 5-member L2-norm MLP ensemble deepshield-face-head-v4 (sha f12a651f67ec, alpha=0.1, Guo T=1.9768, thr 0.156/0.804) + heatmaps + spectra + ELA/noise.", cell), Paragraph("6 real image+video datasets (3,504 items). 966 test faces: AUC 0.8561 (vs 0.5750), ECE 0.0490, Decided Acc 92.86%. 40 MP4s: FF++/DFD 0.7200, Celeb-DF 0.6200, pooled 80.0% Decided Acc.", cell)],
-        [Paragraph("M02 — Whole-Image AI (synthetic_image)", cell_bold), Paragraph("Enabled by default on images via deepshield-synth-head-v1 (models/m02_synth_head.npz, sha 382a7a930175, 5-member L2-norm MLP ensemble, T=0.8047, thr 0.406/0.75).", cell), Paragraph("960 real AI-vs-Photo images (Hemg + CIFAKE). Test (240): ROC-AUC 0.9409 (vs 0.4741), Acc 87.50%, F1 0.8760, ECE 0.0661, Decided Acc 90.61%.", cell)],
-        [Paragraph("M03 — Video Events + GRU", cell_bold), Paragraph("Shared M01 tracks + calibrated rules (crowd 4/5s, run 2.5 BL/s) + PyTorch Temporal GRU v4 (models/m03_temporal_gru.pt, 6,265 params, sha ea048bac8813, thr 0.35).", cell), Paragraph("5-fold CV on 53 real vtest.avi tracks: CV AUC 1.0000, ECE 0.0001, 0/11 false alarms on held-out walks, 6/6 kinematic scenarios; tested on 12 UCF-Crime clips.", cell)],
-        [Paragraph("M04 — Visual Forensics", cell_bold), Paragraph("SIFT + RANSAC wired to models/m04_forensics_params.json (r=0.55, d=36, inliers=8, c=0.01), ELA q90, local noise map, JPEG quant/grid/ghosts &amp; EXIF.", cell), Paragraph("30-photo stress test: 0/30 (0.0%) untouched FPR; 22/30 (73.33%) recall across translation, 15 deg rotation, 1.15x scale &amp; q75; 5/5 JPEG q.", cell)],
-        [Paragraph("Cloud &amp; Durable Worker", cell_bold), Paragraph("FastAPI /api/v1/intelligence + SQLite durable queue + scripts/cloud_entrypoint.py supervisor + Dockerfile, railway.json, render.yaml, Dockerfile.hf, GitHub Actions CI.", cell), Paragraph("cloud_entrypoint.py live-verified on custom PORT; linking 0.28 ms, PDF 46.67 ms; lease-recovery &amp; retention purge verified.", cell)],
-        [Paragraph("Frontend &amp; Tests", cell_bold), Paragraph("Next.js 15 + React 19 + GSAP landing (/) &amp; workspace (/review), real webcam capture, both M02 heads live, visible caveats, zero mock fallback.", cell), Paragraph("tsc --noEmit &amp; next build pass; live at deep-shield-sooty.vercel.app; 36 / 36 real-model pytest tests pass (0 skipped).", cell)],
+    flow_rows = [
+        [Paragraph("IMAGE / VIDEO / WEBCAM", flow)],
+        [Paragraph("M01 Threat  |  M02 Integrity  |  M03 Events  |  M04 Forensics", flow)],
+        [Paragraph("Cross-module evidence linker (scores remain separate)", flow)],
+        [Paragraph("FastAPI + durable SQLite worker + PDF reports + retention", flow)],
+        [Paragraph("Next.js landing + review workspace", flow)],
+        [Paragraph("Vercel pages return 200  |  API health on Vercel returns 404", flow)],
+        [Paragraph("REMAINING: deploy backend -> configure Vercel -> verify real media jobs", flow)],
     ]
-    tbl = Table(rows, colWidths=[37 * mm, 76 * mm, 53 * mm])
-    tbl.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#112936")),
-        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f6f9fa")]),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#d3dce0")),
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("TOPPADDING", (0, 0), (-1, -1), 5.0),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 5.0),
-    ]))
-    story.append(tbl)
-    story.append(Spacer(1, 3.5 * mm))
-    story.append(Paragraph("Social-Media Degradation Stress Test (M02 Face v4, 107 held-out faces)", h3))
-    story.append(Paragraph("Clean ROC-AUC <b>0.9493</b> (Acc 87.85%, F1 0.8926) | Brightness <b>0.9391</b> | JPEG q60 <b>0.9324</b> | Gaussian Blur <b>0.8944</b> | Downscale 0.5x <b>0.8666</b> | JPEG q40 <b>0.8543</b>. Per-source test AUCs: TPDNE <b>0.9952</b>, StyleGAN1 <b>0.9802</b>, Kaggle-Deepfake <b>0.8835</b>, DFF <b>0.8519</b>, FF++/DFD Video <b>0.7182</b> (LOO unseen <b>0.7410</b>), Celeb-DF v2 <b>0.6238</b>.", body))
+    flow_table = Table(flow_rows, colWidths=[174 * mm])
+    flow_styles = [
+        ("BOX", (0, 0), (-1, -1), 0.6, GRID), ("INNERGRID", (0, 0), (-1, -1), 0.6, GRID),
+        ("BACKGROUND", (0, 0), (0, 4), PALE), ("BACKGROUND", (0, 5), (0, 5), AMBER), ("BACKGROUND", (0, 6), (0, 6), RED),
+        ("TOPPADDING", (0, 0), (-1, -1), 4.2), ("BOTTOMPADDING", (0, 0), (-1, -1), 4.2),
+    ]
+    flow_styles += [("TEXTCOLOR", (0, row), (0, row), TEAL) for row in range(4)]
+    flow_styles.append(("TEXTCOLOR", (0, 6), (0, 6), colors.HexColor("#963d31")))
+    flow_table.setStyle(TableStyle(flow_styles))
+    story.append(flow_table)
+    story.append(Spacer(1, 3 * mm))
 
-    # ---------------- PAGE 3 ----------------
+    story.append(Paragraph("Status by stage", h2))
+    status_rows = [
+        [Paragraph("STAGE", cell_head), Paragraph("STATUS", cell_head), Paragraph("WHAT THE EVIDENCE SAYS", cell_head)],
+        [Paragraph("M01-M04 engines and assets", cell_bold), Paragraph("Implemented", cell_bold), Paragraph("Code and trained M02/M03/M04 assets are present. M01 YOLOS weights are fetched by setup/CI.", cell)],
+        [Paragraph("API, worker, reports", cell_bold), Paragraph("Implemented; local run recorded", cell_bold), Paragraph("Previous local integration recorded lease recovery, 11 evidence files, PDF output, and retention cleanup.", cell)],
+        [Paragraph("Frontend", cell_bold), Paragraph("Hosted", cell_bold), Paragraph("On 19 Nov: landing HTTP 200 (95,349 bytes); /review HTTP 200 (10,130 bytes).", cell)],
+        [Paragraph("GitHub Actions", cell_bold), Paragraph("Passed", cell_bold), Paragraph("Current commit run 44453823617 passed backend CI and frontend typecheck/build. Backend CI uses M02 stub and excludes deep-model media tests.", cell)],
+        [Paragraph("Evaluation", cell_bold), Paragraph("Reports present", cell_bold), Paragraph("Benchmarks are documented in reports but were not independently rerun for this status review.", cell)],
+        [Paragraph("Cloud packaging", cell_bold), Paragraph("Ready to deploy", cell_bold), Paragraph("Railway, Render, Hugging Face Spaces, and Docker Compose configuration is present; no public backend is verified.", cell)],
+        [Paragraph("Hosted end-to-end", cell_bold), Paragraph("Not complete", cell_bold), Paragraph("Same-origin /api/v1/m01/health returns HTTP 404. Hosted image/video analysis is not verified.", cell)],
+    ]
+    matrix = Table(status_rows, colWidths=[39 * mm, 32 * mm, 103 * mm], repeatRows=1)
+    matrix.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), NAVY), ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f6f9fa")]),
+        ("GRID", (0, 0), (-1, -1), 0.45, GRID), ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
+    story.append(matrix)
+
     story.append(PageBreak())
-    story.append(Paragraph("Honest Limitations &amp; Cloud Deployment", h2))
-    story.append(Paragraph("1. Verified Reports &amp; Reproducibility", h3))
-    story.append(Paragraph("All training, real-video benchmark, and stress-test reports are committed under reports/ and models/:", body))
-    story.append(Paragraph("- <b>reports/VIDEO_BENCHMARK_REPORT.md</b> — 40 actor-disjoint real deepfake MP4s (Celeb-DF v2 + FF++/Google DFD) &amp; 12 real UCF-Crime CCTV surveillance videos.", body))
-    story.append(Paragraph("- <b>reports/m02_training/report.md</b> — 6-dataset real image+video training (deepshield-face-head-v4, 966 held-out test faces, Guo calibration, 6-source LOO audit).", body))
-    story.append(Paragraph("- <b>reports/m02_synth_training/report.md</b> — Whole-image AI-generation head (deepshield-synth-head-v1 on Hemg + CIFAKE, 0.9409 ROC-AUC vs 0.4741 baseline).", body))
-    story.append(Paragraph("- <b>reports/DEEP_STRESS_TEST_REPORT.md</b> &amp; <b>reports/EVALUATION_REPORT.md</b> — Social-media degradations, 30-photo M04 stress test, M03 5-fold CV &amp; system timings.", body))
+    story.append(Paragraph("Verification and next steps", h2))
+    story.append(Paragraph("Current public and CI evidence", h3))
+    story.append(Paragraph("The Vercel landing and review pages are reachable, but the Vercel domain does not serve the FastAPI health route. The review workspace has a field for a backend URL; no public API URL is recorded in the repository. The successful GitHub Actions run validates the configured CI scope only. It is not evidence of real-model media acceptance or a hosted backend.", body))
+    story.append(Paragraph("The earlier deployment report contained a mismatch: its Markdown labelled frontend checks passed while its JSON recorded timeouts. The corrected record distinguishes the earlier local backend integration from the current public frontend check and marks hosted analysis unverified.", body))
 
-    story.append(Paragraph("2. Honest Known Limitations (Required Reviewer Context)", h3))
-    story.append(Paragraph("- <b>Compressed Video Deepfakes &amp; Unseen Generators (M02):</b> Video-level AUC reaches 0.7200 on FF++/DFD and 0.6200 on Celeb-DF v2 (80.0% pooled Decided Acc; unseen LOO transfer: tpdne 0.8137, dfd_video 0.7410, dff 0.5855, stylegan1 0.5417, kaggle_deepfake 0.5120, celebdf_video 0.4559). Heavily recompressed video swaps often fall in the inconclusive band by design; pair M02 with M04 visual forensics.", body))
-    story.append(Paragraph("- <b>Multi-Camera CCTV Perspective (M03):</b> On uncalibrated UCF-Crime cameras, foreground perspective crossings can elevate GRU kinematic scores on normal scenes, while subtle non-kinematic anomalies (e.g. distant shoplifting) do not trigger running kinetics. Site-specific calibration is required before operational CCTV deployment.", body))
-    story.append(Paragraph("- <b>Low-Texture Copy-Move (M04):</b> SIFT requires texture keypoints (~73.3% recall across 30 diverse photos, 0.0% untouched false-alarm rate).", body))
+    story.append(Paragraph("Remaining work", h3))
+    todos = [
+        "Deploy the API and durable worker; confirm model loading, health checks, persistent storage, restart, and retention behavior.",
+        "Set NEXT_PUBLIC_API_BASE_URL in Vercel to the backend URL and redeploy the frontend.",
+        "Submit consented representative images and videos from /review. Check real engine results, evidence links, PDF download, retention, and error paths.",
+        "Reproduce real-model acceptance tests; record the exact command, media protocol, model/config revision, counts, skips, and results. Make CI coverage limitations visible.",
+        "Review thresholds against the intended cameras and media; keep outputs advisory and require a human reviewer.",
+    ]
+    for index, item in enumerate(todos, 1):
+        story.append(Paragraph(f"<b>{index}.</b> {item}", body))
 
-    story.append(Paragraph("3. Cloud &amp; Self-Hosted Deployment (DEPLOYMENT.md)", h3))
-    story.append(Paragraph("For multi-device remote access from deep-shield-sooty.vercel.app, deploy the single-container backend (Dockerfile + scripts/cloud_entrypoint.py) to Railway (railway.json), Render (render.yaml), or HuggingFace Spaces (Dockerfile.hf, free 16 GB RAM CPU tier) and set NEXT_PUBLIC_API_BASE_URL in Vercel. For self-hosted Linux HTTPS, run <b>docker compose --env-file .env.production up -d --build</b>.", body))
+    story.append(Paragraph("Evaluation figures recorded in repository", h3))
+    story.append(Paragraph("The project reports record M02 face ROC-AUC 0.8561, M02 synthetic-image ROC-AUC 0.9409, and M04 22/30 edited-image detections with 0/30 untouched false alarms. These are previously recorded results, not freshly reproduced here. See reports/m02_training/report.md, reports/m02_synth_training/report.md, reports/DEEP_STRESS_TEST_REPORT.md, and reports/VIDEO_BENCHMARK_REPORT.md for scope and caveats.", body))
 
-    story.append(Spacer(1, 3.5 * mm))
-    interp = Table(
-        [[Paragraph("<b>Advisory Governance Notice</b><br/>No module identifies individuals or infers intent, authenticity, or wrongdoing. All detector confidences, temperature-calibrated classifier probabilities, temporal GRU scores, rule candidates, and forensic indicators remain strictly separate and advisory for human reviewers.", cell)]],
-        colWidths=[166 * mm],
-    )
-    interp.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#eef7f5")),
-        ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#1b6b61")),
-        ("TOPPADDING", (0, 0), (-1, -1), 8),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-        ("LEFTPADDING", (0, 0), (-1, -1), 10),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+    notice = Table([[Paragraph("ADVISORY USE ONLY. The system must not identify people or infer intent, criminality, or wrongdoing. Results may fail on new cameras, populations, compression levels, or manipulation methods. Evaluate on consented media representative of the intended use before deployment.", cell_bold)]], colWidths=[174 * mm])
+    notice.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), AMBER), ("BOX", (0, 0), (-1, -1), 0.7, colors.HexColor("#d5b96f")),
+        ("LEFTPADDING", (0, 0), (-1, -1), 8), ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING", (0, 0), (-1, -1), 7), ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
     ]))
-    story.append(interp)
+    story.append(Spacer(1, 2 * mm))
+    story.append(notice)
+    story.append(Spacer(1, 3 * mm))
+    story.append(Paragraph("More detail: PROJECT_STATUS.md | DEPLOYMENT.md | EVALUATION.md | reports/DEPLOYMENT_VERIFICATION.md", small))
 
-    doc.build(story, onFirstPage=_header_footer, onLaterPages=_header_footer)
+    doc.build(story, onFirstPage=header_footer, onLaterPages=header_footer)
+    print(f"Generated {out_path} ({out_path.stat().st_size} bytes)")
 
 
 if __name__ == "__main__":
-    target = ROOT / "reports" / "Deep_Shield_Project_Status_2026-11-19.pdf"
-    build_pdf(target)
-    for dl_name in ("Deep_Shield_Project_Status_2026-11-19.pdf", "Deep_Shield_Project_Status_2026-11-19_Updated.pdf"):
-        try:
-            Path(r"C:\Users\Dell\Downloads", dl_name).write_bytes(target.read_bytes())
-        except OSError:
-            pass
-    print(f"Generated {target} ({target.stat().st_size} bytes)")
+    build_pdf()
