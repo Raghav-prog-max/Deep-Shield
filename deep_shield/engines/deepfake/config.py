@@ -20,14 +20,14 @@ def _rooted(value: str) -> Path:
     return p if p.is_absolute() else (ROOT / p).resolve()
 
 TASK_FACE = "face_manipulation"      # model: face deepfake classifier (+ suspicious-region heatmap)
-TASK_SYNTH = "synthetic_image"       # model: whole-image AI-generation check (experimental, opt-in)
+TASK_SYNTH = "synthetic_image"       # model: whole-image AI-generation classifier (trained head when loaded)
 TASK_FREQ = "frequency_analysis"     # classical: spectral fingerprint of face crops (indicator only)
 TASK_MANIP = "image_manipulation"    # classical: ELA + noise-level maps + metadata (visual only)
 ALL_TASKS = (TASK_FACE, TASK_SYNTH, TASK_FREQ, TASK_MANIP)
 SCORED_TASKS = (TASK_FACE, TASK_SYNTH)
 IMAGE_ONLY_TASKS = (TASK_FREQ, TASK_MANIP)
 DEFAULT_TASKS = tuple(t for t in os.getenv(
-    "DEEPSHIELD_M02_DEFAULT_TASKS", f"{TASK_FACE},{TASK_MANIP},{TASK_FREQ}").split(",") if t)
+    "DEEPSHIELD_M02_DEFAULT_TASKS", f"{TASK_FACE},{TASK_SYNTH},{TASK_MANIP},{TASK_FREQ}").split(",") if t)
 
 FREQ_LIMITATIONS = (
     "Visual aid only: the spectral high-frequency indicator did not separate real from StyleGAN faces "

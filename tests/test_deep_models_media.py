@@ -80,14 +80,22 @@ def test_deep_multi_image_and_video_across_all_four_engines(tmp_path: Path):
         ROOT / "eval" / "synthetic" / "test" / "real" / "test_real_01.jpg",
         ROOT / "eval" / "synthetic" / "test" / "fake" / "test_fake_01.jpg",
     ]:
-        res = eng2.analyze(img_path, tasks=["face_manipulation", "synthetic_image", "frequency_analysis", "image_manipulation"])
+        # Run with DEFAULT tasks (verifies synthetic_image now runs automatically by default on images!)
+        res = eng2.analyze(img_path)
         assert res.status == "completed", res.error
-        assert len(res.task_summaries) == 4
+        assert [s.task for s in res.task_summaries] == [
+            "face_manipulation",
+            "synthetic_image",
+            "frequency_analysis",
+            "image_manipulation",
+        ]
         if "faces" in str(img_path):
             face_f = [f for f in res.findings if f.task == "face_manipulation"]
             assert face_f and face_f[0].model.backend == "transformers+trained_head"
         synth_f = [f for f in res.findings if f.task == "synthetic_image"]
         assert synth_f and synth_f[0].model.backend == "transformers+trained_head"
+        synth_summary = [s for s in res.task_summaries if s.task == "synthetic_image"][0]
+        assert "experimental" not in synth_summary.basis.lower()
 
     # 2. M04 calibrated parameters wired to copymove.detect() on real tampered photo
     eng4 = VisualForensicsEngine(ForensicsConfig(evidence_dir=tmp_path / "ev_m04"))

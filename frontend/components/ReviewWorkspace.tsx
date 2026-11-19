@@ -21,6 +21,14 @@ const moduleLabels: Record<string, string> = {
   M04_visual_forensics: "Visual forensics",
 };
 
+interface M02TaskHealth {
+  ready?: boolean;
+  default?: boolean;
+  model?: { model_id?: string; backend?: string; revision?: string };
+  thresholds?: { low?: number; high?: number };
+  trained_head?: { name?: string; sha?: string; test_auc?: number; test_ece?: number } | null;
+}
+
 interface LoadedModelsHealth {
   m01_threat_intelligence?: {
     detector?: { ready?: boolean; model_id?: string; backend?: string; tracker?: string };
@@ -29,12 +37,8 @@ interface LoadedModelsHealth {
   m02_deepfake_image_integrity?: {
     face_detector?: string;
     tasks?: {
-      face_manipulation?: {
-        ready?: boolean;
-        model?: { model_id?: string; backend?: string; revision?: string };
-        thresholds?: { low?: number; high?: number };
-        trained_head?: { name?: string; sha?: string; test_auc?: number } | null;
-      };
+      face_manipulation?: M02TaskHealth;
+      synthetic_image?: M02TaskHealth;
     };
   };
   m03_video_events?: {
@@ -55,36 +59,53 @@ function formatTime(finding: Finding) {
   return `${start.toFixed(1)}s`;
 }
 
-function describeEngineLive(id: string, health: LoadedModelsHealth | null, online: boolean | null): { text: string; ready: boolean } {
+function formatM02TaskLine(label: string, task?: M02TaskHealth): string {
+  if (!task) return `${label}: unavailable`;
+  const head = task.trained_head;
+  const thr = task.thresholds;
+  const baseText = head
+    ? `${head.name || "trained-head"} (sha ${head.sha || "?"}, AUC ${head.test_auc ?? "?"})`
+    : task.model?.model_id || "Unavailable";
+  const thrText = thr?.low !== undefined && thr?.high !== undefined ? ` · thr ${thr.low}/${thr.high}` : "";
+  return `${label}: ${baseText}${thrText}`;
+}
+
+function describeEngineLive(id: string, health: LoadedModelsHealth | null, online: boolean | null): { lines: string[]; ready: boolean } {
   if (!online || !health) {
-    return { text: online === false ? "Backend offline — start FastAPI to load model weights" : "Querying backend /api/v1/intelligence/models…", ready: false };
+    return {
+      lines: [online === false ? "Backend offline — start FastAPI to load model weights" : "Querying backend /api/v1/intelligence/models…"],
+      ready: false,
+    };
   }
   if (id === "M01_threat_intelligence") {
     const det = health.m01_threat_intelligence?.detector;
     const dwell = health.m01_threat_intelligence?.thresholds?.loitering_seconds;
     return {
-      text: det?.ready
-        ? `${det.model_id || det.backend} + ${det.tracker || "tracker"}${dwell ? ` · Dwell ${dwell}s` : ""}`
-        : "Detector checkpoint not loaded",
+      lines: [
+        det?.ready
+          ? `${det.model_id || det.backend} + ${det.tracker || "tracker"}${dwell ? ` · Dwell ${dwell}s` : ""}`
+          : "Detector checkpoint not loaded",
+      ],
       ready: Boolean(det?.ready),
     };
   }
   if (id === "M02_deepfake_image_integrity") {
     const face = health.m02_deepfake_image_integrity?.tasks?.face_manipulation;
-    const head = face?.trained_head;
-    const thr = face?.thresholds;
-    const baseText = head
-      ? `${head.name || "trained-head"} (sha ${head.sha || "?"}, AUC ${head.test_auc ?? "?"})`
-      : face?.model?.model_id || "Unavailable";
-    const thrText = thr?.low !== undefined && thr?.high !== undefined ? ` · thr ${thr.low}/${thr.high}` : "";
-    return { text: `${baseText}${thrText}`, ready: Boolean(face?.ready) };
+    const synth = health.m02_deepfake_image_integrity?.tasks?.synthetic_image;
+    const lines = [formatM02TaskLine("Face", face)];
+    if (synth) {
+      lines.push(formatM02TaskLine("Synth", synth));
+    }
+    return { lines, ready: Boolean(face?.ready && (synth ? synth.ready : true)) };
   }
   if (id === "M03_video_events") {
     const gru = health.m03_video_events?.gru_model;
     return {
-      text: gru
-        ? `${gru.model_id} (${gru.n_parameters ?? "?"} params · ${gru.revision} · thr ${gru.threshold ?? "?"})`
-        : "Rule engine active (Temporal GRU disabled)",
+      lines: [
+        gru
+          ? `${gru.model_id} (${gru.n_parameters ?? "?"} params · ${gru.revision} · thr ${gru.threshold ?? "?"})`
+          : "Rule engine active (Temporal GRU disabled)",
+      ],
       ready: Boolean(health.m03_video_events),
     };
   }
@@ -92,13 +113,15 @@ function describeEngineLive(id: string, health: LoadedModelsHealth | null, onlin
     const m4 = health.m04_visual_forensics;
     const p = m4?.calibrated_parameters;
     return {
-      text: m4
-        ? `${(m4.copy_move_detector || "sift").toUpperCase()} + RANSAC (r=${p?.sift_ratio_threshold ?? "?"}, min=${p?.ransac_min_inliers ?? "?"}) · ELA q${p?.ela_jpeg_quality ?? 90}`
-        : "Unavailable",
+      lines: [
+        m4
+          ? `${(m4.copy_move_detector || "sift").toUpperCase()} + RANSAC (r=${p?.sift_ratio_threshold ?? "?"}, min=${p?.ransac_min_inliers ?? "?"}) · ELA q${p?.ela_jpeg_quality ?? 90}`
+          : "Unavailable",
+      ],
       ready: Boolean(m4),
     };
   }
-  return { text: "Unknown module", ready: false };
+  return { lines: ["Unknown module"], ready: false };
 }
 
 export default function ReviewWorkspace({ standalone = false }: { standalone?: boolean }) {
@@ -367,11 +390,23 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
 
   const findings = [...rawFindings].sort((a, b) => {
     const rank = (f: Finding) =>
-      isManipFlagged(f) ? 4 : isInconclusive(f) ? 3 : f.task === "face_manipulation" ? 2 : f.task === "copy_move" ? 1 : 0;
+      isManipFlagged(f)
+        ? 5
+        : isInconclusive(f)
+          ? 4
+          : f.task === "face_manipulation"
+            ? 3
+            : f.task === "synthetic_image"
+              ? 2
+              : f.task === "copy_move"
+                ? 1
+                : 0;
     return rank(b) - rank(a);
   });
 
   const faceFindings = findings.filter((f) => f.task === "face_manipulation");
+  const synthFindings = findings.filter((f) => f.task === "synthetic_image");
+  const scoredIntegrityFindings = [...faceFindings, ...synthFindings];
   const copyMoveFlagged = findings.filter((f) => f.classification === "copy_move_candidate");
   const flaggedManipFindings = findings.filter(isManipFlagged);
   const inconclusiveFindings = findings.filter(isInconclusive);
@@ -387,18 +422,21 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
       const topScore = flaggedManipFindings.find((f) => f.score !== null)?.score;
       return {
         tone: "fake" as const,
-        title: "⚠ MANIPULATION INDICATOR FLAGGED — HUMAN REVIEW REQUIRED",
+        title: "⚠ MANIPULATION / AI-GENERATION INDICATOR FLAGGED — HUMAN REVIEW REQUIRED",
         sub: `Advisory engine findings (scores kept separate): ${parts.join(" · ")}.`,
         pill: topScore !== undefined && topScore !== null ? `FLAGGED · ${(topScore * 100).toFixed(1)}%` : "INDICATOR FLAGGED",
       };
     }
     if (inconclusiveFindings.length > 0) {
-      const f = inconclusiveFindings[0];
+      const parts = inconclusiveFindings.map(
+        (f) => `${f.task}${f.score !== null ? ` (${f.score.toFixed(3)})` : ""}`
+      );
+      const first = inconclusiveFindings[0];
       return {
         tone: "inconclusive" as const,
         title: "◐ INCONCLUSIVE RESULT — MANUAL FORENSIC REVIEW REQUIRED",
-        sub: `Engine ${f.task} returned a score in the calibrated inconclusive band${f.score !== null ? ` (${f.score.toFixed(3)})` : ""}. Inspect evidence maps before deciding.`,
-        pill: f.score !== null ? `INCONCLUSIVE · ${f.score.toFixed(3)}` : "INCONCLUSIVE",
+        sub: `Engine task(s) inside the calibrated inconclusive band: ${parts.join(" · ")}. Inspect evidence maps before deciding.`,
+        pill: first.score !== null ? `INCONCLUSIVE · ${first.score.toFixed(3)}` : "INCONCLUSIVE",
       };
     }
     if (anyModuleFailed) {
@@ -409,13 +447,20 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
         pill: "PARTIAL",
       };
     }
-    if (faceFindings.length > 0 && faceFindings.every(isNoManipIndicated) && copyMoveFlagged.length === 0) {
-      const topFaceScore = Math.max(...faceFindings.map((f) => f.score ?? 0));
+    if (
+      scoredIntegrityFindings.length > 0 &&
+      scoredIntegrityFindings.every(isNoManipIndicated) &&
+      copyMoveFlagged.length === 0
+    ) {
+      const scoreParts = scoredIntegrityFindings.map(
+        (f) => `${f.task}: ${f.score !== null ? f.score.toFixed(3) : "n/a"}`
+      );
+      const topScore = Math.max(...scoredIntegrityFindings.map((f) => f.score ?? 0));
       return {
         tone: "real" as const,
-        title: "✓ NO FACE MANIPULATION OR COPY-MOVE CLONING INDICATED (ADVISORY)",
-        sub: `M02 face_manipulation score (${topFaceScore.toFixed(3)}) is below the validated low threshold and M04 found no consistent cloned-region matches. Advisory only — not proof of authenticity.`,
-        pill: `NO INDICATOR · ${topFaceScore.toFixed(3)}`,
+        title: "✓ NO MANIPULATION OR AI GENERATION INDICATED (ADVISORY)",
+        sub: `Separate M02 scores below validated low thresholds (${scoreParts.join(" · ")}) and M04 found no copy-move clone candidates. Advisory only — not proof of authenticity.`,
+        pill: `NO INDICATOR · ${topScore.toFixed(3)}`,
       };
     }
     const m02Summary = result.module_results
@@ -429,7 +474,7 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
         : "Inspect each engine's independent observations and evidence artifacts below.",
       pill: "REVIEW FINDINGS",
     };
-  }, [result, flaggedManipFindings, inconclusiveFindings, anyModuleFailed, faceFindings, copyMoveFlagged]);
+  }, [result, flaggedManipFindings, inconclusiveFindings, anyModuleFailed, scoredIntegrityFindings, copyMoveFlagged]);
 
   function formatFindingTitle(finding: Finding): string {
     if (finding.classification === "face_manipulation_indicated") {
@@ -438,8 +483,20 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
     if (finding.classification === "no_face_manipulation_indicated") {
       return "✓ No Face Manipulation Indicated";
     }
+    if (finding.classification === "ai_generation_indicated") {
+      return "⚠ AI-Generated / Synthetic Image Indicated";
+    }
+    if (finding.classification === "no_ai_generation_indicated") {
+      return "✓ No AI Generation Indicated";
+    }
     if (finding.classification === "copy_move_candidate") {
       return "⚠ Copy-Move Cloned Region Candidate";
+    }
+    if (finding.classification === "anomalous_motion_candidate") {
+      return "⚠ Anomalous Motion Candidate (Temporal GRU)";
+    }
+    if (finding.classification === "inconclusive") {
+      return "◐ Inconclusive (Calibrated Uncertain Band)";
     }
     return finding.classification.replaceAll("_", " ");
   }
@@ -652,9 +709,11 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
                         }}
                       />
                     </div>
-                    <small style={{ font: "8px var(--mono)", color: "#799396", paddingLeft: "23px" }}>
-                      {live.text}
-                    </small>
+                    {live.lines.map((line, lineIdx) => (
+                      <small key={lineIdx} style={{ font: "8px var(--mono)", color: "#799396", paddingLeft: "23px", lineHeight: 1.35 }}>
+                        {line}
+                      </small>
+                    ))}
                   </div>
                 );
               })}
@@ -714,7 +773,19 @@ export default function ReviewWorkspace({ standalone = false }: { standalone?: b
                   )}
                   <span className="finding-task">{finding.task}</span>
                 </div>
-                <div className="finding-bottom"><span>{finding.score_type.replaceAll("_", " ")}{finding.score === null ? "" : ` · ${finding.score.toFixed(3)}`}</span>{finding.track_id && <span>Track {finding.track_id}</span>}</div>
+                <div className="finding-bottom">
+                  <span>{finding.score_type.replaceAll("_", " ")}{finding.score === null ? "" : ` · ${finding.score.toFixed(3)}`}</span>
+                  {finding.thresholds?.low !== undefined && finding.thresholds?.high !== undefined && (
+                    <span>thr {finding.thresholds.low}/{finding.thresholds.high}</span>
+                  )}
+                  {finding.model?.model_id && <span>{finding.model.model_id}</span>}
+                  {finding.track_id && <span>Track {finding.track_id}</span>}
+                </div>
+                {!!finding.limitations?.length && (
+                  <p style={{ margin: "6px 0 0", font: "11px/1.45 var(--sans, system-ui)", color: "#8ba6aa" }}>
+                    <strong style={{ color: "#a5c3c7", fontWeight: 600 }}>Caveat:</strong> {finding.limitations[0]}
+                  </p>
+                )}
                 {!!finding.evidence.length && <div className="evidence-links">{finding.evidence.map((evidence) => {
                   const url = evidenceUrl(finding.module, evidence.path);
                   return url ? <a key={evidence.path} href={url} target="_blank" rel="noreferrer">{evidence.kind.replaceAll("_", " ")} ↗</a> : null;

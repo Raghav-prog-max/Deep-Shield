@@ -7,14 +7,14 @@ Live hosted web application: **[https://deep-shield-sooty.vercel.app](https://de
 
 | Module | Capability | Current implementation |
 |---|---|---|
-| 01 | Threat and anomaly intelligence | YOLO people/bag detection, ByteTrack, zone entry, dwell and unattended-object candidates |
-| 02 | Deepfake and image integrity | Face manipulation analysis, frequency plots, ELA/noise maps and metadata |
-| 03 | Video event understanding | Reuses M01 tracks for zone entry/exit, loitering, crowding and rapid-movement candidates |
-| 04 | Visual forensics | Copy-move, ELA/noise, JPEG observations and metadata |
+| 01 | Threat and anomaly intelligence | Local MS-COCO 2017 `hustvl/yolos-tiny` (Apache-2.0) + velocity-predicted `MultiObjectIoUTracker` (optional Ultralytics `yolo26n` + ByteTrack); zone entry, dwell (30s) and unattended-object (60s) candidates |
+| 02 | Deepfake and image integrity | Frozen SigLIP2 + deep-trained `deepshield-face-head-v3` (ROC-AUC **0.9439**, 4 real datasets) + `deepshield-synth-head-v1` (ROC-AUC **0.9409**, enabled by default on images), occlusion heatmaps, frequency plots, ELA/noise maps & metadata |
+| 03 | Video event understanding | Reuses M01 neural tracks for calibrated rules (zone entry/exit, loitering, crowding, rapid movement) + PyTorch Temporal Kinematic GRU v4 (`models/m03_temporal_gru.pt`, 6,265 params, trained on 53 real tracks) |
+| 04 | Visual forensics | Calibrated SIFT + RANSAC copy-move (`models/m04_forensics_params.json`), ELA q90 / noise maps, JPEG quantization/grid/ghosts and metadata observations |
 
-No module recognizes identity or infers intent or wrongdoing. M01/M03 rule thresholds and M02 classifier thresholds require evaluation on consented, representative footage before operational use. See [EVALUATION.md](EVALUATION.md) for required labels and the M02 evaluation workflow.
+No module recognizes identity or infers intent or wrongdoing. All model scores and rule triggers remain strictly separate and advisory for human review; see [EVALUATION.md](EVALUATION.md), [reports/EVALUATION_REPORT.md](reports/EVALUATION_REPORT.md), and [reports/DEEP_STRESS_TEST_REPORT.md](reports/DEEP_STRESS_TEST_REPORT.md) for verified real-dataset metrics and honest known limitations.
 
-This project is licensed under AGPL-3.0-only. Ultralytics code and YOLO26n weights use AGPL-3.0 by default; see [LICENSE](LICENSE) and [Ultralytics licensing](https://www.ultralytics.com/license) before private or commercial deployment.
+This project is licensed under AGPL-3.0-only. Default M01 weights (`hustvl/yolos-tiny`) and M02 backbone (`prithivMLmods/open-deepfake-detection`) are Apache-2.0; optional Ultralytics YOLO26n weights use AGPL-3.0 (see [LICENSE](LICENSE)).
 
 | Acceptance criterion (proposal §9) | How Module 02 meets it |
 |---|---|
@@ -31,10 +31,10 @@ This project is licensed under AGPL-3.0-only. Ultralytics code and YOLO26n weigh
 
 ## 1. What it does
 
-| Task | Input to model | Default model (Hugging Face) | Licence | Verdicts |
+| Task | Input to model | Default model + trained head | Licence | Verdicts |
 |---|---|---|---|---|
-| `face_manipulation` | Square face crop (detected face + 25% context) | [`prithivMLmods/open-deepfake-detection`](https://huggingface.co/prithivMLmods/open-deepfake-detection) — SigLIP2, labels `Fake`/`Real`; thresholds 0.35 / 0.65 | Apache-2.0 | `face_manipulation_indicated` · `inconclusive` · `no_face_manipulation_indicated` |
-| `synthetic_image` (**experimental**) | Whole image / video keyframe | Same checkpoint; wide inconclusive band 0.25 / 0.85 | Apache-2.0 | `ai_generation_indicated` · `inconclusive` · `no_ai_generation_indicated` |
+| `face_manipulation` | Square face crop (detected face + 25% context) | [`prithivMLmods/open-deepfake-detection`](https://huggingface.co/prithivMLmods/open-deepfake-detection) (frozen SigLIP2) + `models/m02_face_head.npz` (`deepshield-face-head-v3`, SHA `b12bda01ed0c`); calibrated thresholds `0.207 / 0.777` | Apache-2.0 | `face_manipulation_indicated` · `inconclusive` · `no_face_manipulation_indicated` |
+| `synthetic_image` | Whole image (default on images; opt-in & capped on video) | Frozen SigLIP2 + `models/m02_synth_head.npz` (`deepshield-synth-head-v1`, SHA `382a7a930175`); calibrated thresholds `0.406 / 0.750` | Apache-2.0 | `ai_generation_indicated` · `inconclusive` · `no_ai_generation_indicated` |
 
 **Model selection (internal check, 17 Nov 2026, 25 real + 25 fake each — not a formal benchmark):**
 
@@ -46,14 +46,14 @@ This project is licensed under AGPL-3.0-only. Ultralytics code and YOLO26n weigh
 | `NYUAD-ComNets/NYUAD_AI-generated_images_detector` | — | 0.58 |
 | Face localisation | Frame | OpenCV **YuNet** (OpenCV Zoo); falls back to the OpenCV Haar cascade | Apache-2.0 / BSD | — |
 
-### Task overview (v0.2)
+### Task overview (v0.3)
 
 | Task | Default | Method | Output type |
 |---|---|---|---|
-| `face_manipulation` | images + videos | Face detection → SigLIP2 classifier → **occlusion heatmap** for faces scoring ≥ 0.35 | Verdict (three-band) + score + region map |
+| `face_manipulation` | images + videos | YuNet/Haar face detection → frozen SigLIP2 + `deepshield-face-head-v3` (multi-layer L2-norm MLP, Guo `T=1.6`) → **occlusion heatmap** for faces scoring ≥ `low` | Verdict (three-band) + calibrated score + region map |
+| `synthetic_image` | images (opt-in on video) | Frozen SigLIP2 + `deepshield-synth-head-v1` (5-member L2-norm MLP ensemble, `T=0.8047`) on the whole image | Verdict (three-band) + calibrated score; capped at `inconclusive` on video |
 | `frequency_analysis` | images | Windowed FFT → azimuthal power spectrum → high-frequency excess vs a 1/f fit (Durall et al., CVPR 2020) | **Spectrum plot only**: the indicator scored ROC-AUC 0.52 on our 50-face check, so no score or verdict is reported |
 | `image_manipulation` | images | ELA (JPEG q90 re-compression) + local noise-level map (Immerkær kernel, ratio to image median) + EXIF review | **Visual maps only**, no score, no verdict |
-| `synthetic_image` | opt-in | Same classifier on the whole image | Experimental; capped at "inconclusive" on video |
 
 Why `image_manipulation` gives no verdict: in our checks, automatic block-outlier flagging missed real pastes and flagged untouched textured photos. The visual maps do make edits visible to a reviewer: a pasted region with a different noise level shows as a solid red or blue block, and re-compressed pastes stand out in ELA. Following proposal §10, they are therefore labelled exploratory visualizations.
 
@@ -91,7 +91,7 @@ Set-ExecutionPolicy -Scope Process Bypass        # only if activation is blocked
 pip install torch
 pip install -r requirements.txt
 python scripts\download_models.py                # M02; ~700 MB, pinned revisions + SHA-256
-python scripts\download_m01_model.py             # M01/M03 YOLO26n checkpoint + SHA-256
+python scripts\download_m01_model.py             # M01/M03 hustvl/yolos-tiny COCO checkpoint + SHA-256 (add --yolo for yolo26n.pt)
 $env:DEEPSHIELD_TEST_REAL = "1"; pytest -q        # wiring tests + real-model smoke test
 python scripts\run_m02.py tests\assets\face_sample.jpg
 ```
@@ -175,10 +175,11 @@ def run_m02_job(path, tasks=None):
 | `DEEPSHIELD_M02_SAMPLE_FPS` · `_MAX_FRAMES` · `_MAX_DURATION` | 2 · 64 · 120 | Video sampling limits |
 | `DEEPSHIELD_M02_FACE_MIN` · `DEEPSHIELD_M02_FACE_DET_THR` | 48 · 0.75 | Minimum face size (px); YuNet confidence threshold |
 | `DEEPSHIELD_M02_BATCH` · `DEEPSHIELD_MAX_UPLOAD_MB` | 16 · 200 | Inference batch size; upload size limit |
-| `DEEPSHIELD_M02_DEFAULT_TASKS` | `face_manipulation,image_manipulation,frequency_analysis` | Tasks run when none are requested (videos keep only the face task) |
+| `DEEPSHIELD_M02_DEFAULT_TASKS` | `face_manipulation,synthetic_image,image_manipulation,frequency_analysis` | Tasks run when none are requested (videos keep only `face_manipulation`) |
 | `DEEPSHIELD_M02_EXPLAIN` | `1` | `0` disables the occlusion heatmap (saves about 25 extra classifier passes per face) |
-| `DEEPSHIELD_M02_FACE_HEAD` | `models/m02_face_head.npz` | Trained multi-generator face head (§6b). Loaded automatically when present; `none` restores original head |
-| `DEEPSHIELD_M01_MODEL` | `models/yolo26n.pt` | Local Ultralytics checkpoint; download with `scripts/download_m01_model.py` |
+| `DEEPSHIELD_M02_FACE_HEAD` | `models/m02_face_head.npz` | Trained 4-dataset face head (`deepshield-face-head-v3`, §6b). Loaded automatically; `none` restores original head |
+| `DEEPSHIELD_M02_SYNTH_HEAD` | `models/m02_synth_head.npz` | Trained whole-image AI head (`deepshield-synth-head-v1`, §6b). Loaded automatically; `none` restores original head |
+| `DEEPSHIELD_M01_MODEL` | `models/hustvl__yolos-tiny` (or optional `models/yolo26n.pt`) | Local MS-COCO detector; download with `scripts/download_m01_model.py` (`--yolo` for Ultralytics) |
 | `DEEPSHIELD_M01_ZONES` | empty | Optional JSON array of normalized polygon zones |
 | `DEEPSHIELD_M01_SAMPLE_FPS` · `_MAX_DURATION` | 1 · 60 | M01 sample rate and video duration cap |
 | `DEEPSHIELD_M01_DWELL_SECONDS` · `_UNATTENDED_SECONDS` | 30 · 60 | M01 loiter and unattended-object candidate thresholds |
@@ -199,17 +200,22 @@ python scripts/evaluate_m02.py --data eval/synthetic --task synthetic_image  --l
 
 The script outputs `metrics.json` with ROC-AUC, accuracy, precision, recall, F1 and the confusion matrix at 0.5. It also reports three-band coverage and how many cases are inconclusive, plus a threshold sweep from 0.05 to 0.95. Per-file scores go to `scores.csv`. Record the dataset source, licence, access date, split and class balance with the numbers. Use FaceForensics++ only under its access agreement and do not redistribute samples. Use consented or synthetic media for the live demo.
 
-### 6b. Multi-generator trained face head & consolidated M01–M04 evaluation
+### 6b. Deep-trained M02 heads, M03 Temporal GRU v4 & consolidated M01–M04 evaluation
 
-Module 02 includes a trained classification head (`models/m02_face_head.npz`, SHA `c8c61b23a9d5`) on top of the frozen SigLIP2 backbone across three generator families (`stylegan1`, `tpdne` StyleGAN2, and `dff` DeepFakeFace swaps/diffusion), lifting held-out pooled test ROC-AUC from `0.6509` to **`0.9057`** (`90.1%` decided accuracy):
+Module 02 ships two calibrated classification heads on top of the frozen SigLIP2 backbone:
+- **Face Manipulation (`models/m02_face_head.npz`, `deepshield-face-head-v3`, SHA `b12bda01ed0c`):** Trained on **2,800** real images (`2,596` faces) across **4 real Kaggle/HF datasets** (`stylegan1`, `tpdne`, `dff`, `kaggle_deepfake`). Held-out test (`651` faces): ROC-AUC **`0.9439`** (vs `0.6269` baseline), Acc@0.5 `87.25%`, ECE `0.0306`, Decided Acc **`94.49%`**.
+- **Whole-Image AI Generation (`models/m02_synth_head.npz`, `deepshield-synth-head-v1`, SHA `382a7a930175`):** Trained on **960** real AI-vs-Photo images (`Hemg` + `CIFAKE`). Held-out test (`240` images): ROC-AUC **`0.9409`** (vs `0.4741` baseline), Acc@0.5 `87.50%`, Decided Acc **`90.61%`**.
 
 ```bash
-python scripts/fetch_train_faces.py          # fetch disjoint train/test face splits into data/m02_train
-python scripts/train_m02_head.py             # train head, calibrate on validation, test on held-out split
+python scripts/fetch_train_faces.py          # fetch disjoint 4-source train/test face splits
+python scripts/train_m02_head.py             # train & calibrate M02 face head (Guo temperature T)
+python scripts/train_m02_synth_head.py       # fetch Hemg + CIFAKE and train M02 synthetic_image head
+python scripts/train_m03_gru.py              # train M03 PyTorch Temporal GRU v4 on 53 real vtest.avi tracks
 python scripts/evaluate_all.py --out reports # run consolidated M01-M04 evaluation & threshold calibration
+python scripts/deep_stress_test.py           # run degradation, negative-scene & 30-photo copy-move stress test
 ```
 
-Full evaluation outputs are committed under [reports/EVALUATION_REPORT.md](reports/EVALUATION_REPORT.md) and [reports/m02_training/report.md](reports/m02_training/report.md).
+Full evaluation and stress-test outputs are committed under [reports/EVALUATION_REPORT.md](reports/EVALUATION_REPORT.md), [reports/DEEP_STRESS_TEST_REPORT.md](reports/DEEP_STRESS_TEST_REPORT.md), [reports/m02_training/report.md](reports/m02_training/report.md), [reports/m02_synth_training/report.md](reports/m02_synth_training/report.md), and [reports/m03_gru_training/report.json](reports/m03_gru_training/report.json).
 
 ## 7. Known limitations — show these in the report
 
@@ -318,7 +324,7 @@ Evidence is stored under `evidence_store/m04/<media_id>/` (override with `DEEPSH
 
 # DEEP SHIELD · Module 01 — Threat and Anomaly Intelligence
 
-M01 uses a local YOLO26n COCO checkpoint with ByteTrack to detect people, backpacks, handbags and suitcases. It supports image detection and sampled video tracking. Video defaults to 1 frame/second with a 60-second cap. The checkpoint is not fine-tuned on campus footage.
+M01 uses a local MS-COCO 2017 pretrained `hustvl/yolos-tiny` checkpoint (Apache-2.0) paired with a velocity-predicted `MultiObjectIoUTracker` — or optional Ultralytics YOLO26n + ByteTrack when installed — to detect people, backpacks, handbags and suitcases. It supports image detection and sampled video tracking. Video defaults to 1 frame/second with a 60-second cap. All legacy heuristic OpenCV contour/face-box fallbacks have been removed.
 
 Download the checkpoint after installing `requirements.txt`:
 
@@ -343,16 +349,16 @@ M01 returns detector-confidence findings separately from rule-event findings for
 
 # DEEP SHIELD · Module 03 — Video Event Understanding
 
-M03 reuses the same M01 detector and ByteTrack tracks. It samples video at 2 fps by default (configurable from 2–5 fps), caps analysis at 60 seconds, and emits timestamped candidates for zone entry/exit, loitering, crowding and rapid movement. The crowd rule uses configured zones, or the full frame if no zones are provided. Short intervals of the same event type are merged.
+M03 reuses the same M01 neural detector and multi-object tracks. It samples video at 2 fps by default (configurable from 2–5 fps), caps analysis at 60 seconds, and emits timestamped candidates for zone entry/exit, loitering, crowding, rapid movement, and kinematic anomalies via the trained PyTorch Temporal GRU (`models/m03_temporal_gru.pt`, `temporal-gru-kinematic-v4-realtracks`, 6,265 params, trained with 5-fold cross-track CV on 53 real pedestrian tracks from `vtest.avi`). The crowd rule uses configured zones, or the full frame if no zones are provided. Short intervals of the same event type are merged.
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /api/v1/m03/health` | Detector, sampling and event-rule configuration status |
+| `GET /api/v1/m03/health` | Detector, sampling, Temporal GRU model and event-rule configuration status |
 | `POST /api/v1/m03/analyze` | multipart video `file`; optional `zones` JSON field; returns shared `ModuleResult` |
 | `GET /api/v1/m03/evidence/{media_id}/{file}` | Annotated frames referenced by events |
 | `DELETE /api/v1/m03/evidence/{media_id}` | Delete derived M03 evidence |
 
-This version uses explainable rules; the optional GRU is not included. Crowd and movement thresholds are starting values, not validated behavior. Evaluate event precision/recall and timestamp error on consented, representative video before relying on the output.
+Temporal GRU scores and explainable rule triggers remain strictly separate and advisory. Crowd, dwell, movement, and GRU thresholds should be re-evaluated on consented, representative footage for each operational camera angle.
 
 ## Cross-module evidence linking
 

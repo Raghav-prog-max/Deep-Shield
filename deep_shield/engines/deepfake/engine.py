@@ -7,11 +7,11 @@ Usage
     result = engine.analyze("clip.mp4")            # -> ModuleResult (pydantic)
     print(result.model_dump_json(indent=2))
 
-Image tasks (default: face_manipulation, image_manipulation, frequency_analysis):
-  face_manipulation  - face detection -> per-face deepfake score + suspicious-region heatmap
+Image tasks (default: face_manipulation, synthetic_image, image_manipulation, frequency_analysis):
+  face_manipulation  - face detection -> per-face deepfake classifier + suspicious-region heatmap
+  synthetic_image    - whole-image AI-generation classifier (trained head when models/m02_synth_head.npz is present)
   frequency_analysis - spectral fingerprint of each face crop (uncalibrated indicator)
   image_manipulation - ELA + local noise-level maps + metadata review (visual, no verdict)
-  synthetic_image    - whole-image AI-generation check (experimental, opt-in)
 Video (default: face_manipulation): timestamped frame sampling -> face tracks -> per-track
 temporal aggregation (mean / median / max / segments above threshold) + heatmap of the top frame.
 """
@@ -69,11 +69,12 @@ class DeepfakeImageIntegrityEngine:
         for t in SPECS:
             try:
                 c = get_classifier(t, self.cfg)
-                info["tasks"][t] = {"ready": True, "model": c.model_info.model_dump(),
+                info["tasks"][t] = {"ready": True, "default": t in DEFAULT_TASKS, "model": c.model_info.model_dump(),
                                     "device": str(c.backend.device), "thresholds": c.thresholds()}
                 if t in (TASK_FACE, TASK_SYNTH):
                     info["tasks"][t]["trained_head"] = (
                         {"name": c.head.name, "sha": c.head.sha, "test_auc": c.head.meta.get("test_auc"),
+                         "test_ece": c.head.meta.get("test_ece"),
                          "trained_at": c.head.meta.get("trained_at")} if c.head else None)
                     if c.head_note:
                         info["tasks"][t]["note"] = c.head_note
@@ -95,7 +96,7 @@ class DeepfakeImageIntegrityEngine:
 
         kind = media_kind(path)
         if kind == "video" and not explicit:
-            tasks = [t for t in tasks if t not in IMAGE_ONLY_TASKS] or [TASK_FACE]
+            tasks = [t for t in tasks if t not in IMAGE_ONLY_TASKS and t != TASK_SYNTH] or [TASK_FACE]
         sha = sha256_file(path)
         res = ModuleResult(module=MODULE_NAME, engine_version=ENGINE_VERSION, media_id=sha[:16],
                            media_sha256=sha, media_type=MediaType(kind),
@@ -135,10 +136,12 @@ class DeepfakeImageIntegrityEngine:
         if TASK_SYNTH in tasks:
             clf = get_classifier(TASK_SYNTH, self.cfg)
             p = clf.classify([pil])[0]
+            head_label = clf.head.name if clf.head else "experimental"
+            basis = f"whole image ({clf.head.name})" if clf.head else "whole image (experimental)"
             ref = store.save_annotated(
                 bgr, [], "synthetic_image_input.jpg", "annotated_image",
                 "Input assessed for whole-image AI generation",
-                header=f"synthetic_image score {p.score:.2f} -> {p.classification} (experimental)")
+                header=f"synthetic_image score {p.score:.2f} -> {p.classification} ({head_label})")
             res.findings.append(Finding(
                 module=MODULE_NAME, task=TASK_SYNTH, level="image", media_id=res.media_id,
                 media_type=MediaType.IMAGE, classification=p.classification, score=p.score,
@@ -147,7 +150,7 @@ class DeepfakeImageIntegrityEngine:
                 evidence=[ref], limitations=list(clf.spec.limitations)))
             res.task_summaries.append(TaskSummary(
                 task=TASK_SYNTH, classification=p.classification, score=p.score,
-                score_type=ScoreType.CLASSIFIER_PROBABILITY, basis="whole image (experimental)",
+                score_type=ScoreType.CLASSIFIER_PROBABILITY, basis=basis,
                 model=clf.model_info))
         if TASK_FREQ in tasks:
             self._image_frequency(pil, faces, store, res)

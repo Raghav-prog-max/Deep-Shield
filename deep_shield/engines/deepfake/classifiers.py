@@ -170,7 +170,14 @@ def _apply_head_spec(spec: ClassifierSpec, head: FaceHead) -> ClassifierSpec:
     lo = spec.threshold_low if os.getenv(env_lo) else head.threshold_low
     hi = spec.threshold_high if os.getenv(env_hi) else head.threshold_high
     lims = [head.meta.get("summary", f"Trained DEEP SHIELD {spec.task} head on a frozen pretrained backbone.")]
-    lims += [l for l in spec.limitations if "Internal check on 50" not in l and "ROC-AUC ~0.5" not in l]
+    for lim in spec.limitations:
+        if any(s in lim for s in ("Internal check on 50", "ROC-AUC ~0.5", "EXPERIMENTAL:", "uncalibrated model output")):
+            continue
+        lims.append(lim)
+    lims.append(
+        "Score is temperature-calibrated on the validation split (advisory indicator only; "
+        "calibration can degrade on unseen generators or heavy recompression and is not proof of manipulation or authenticity)."
+    )
     return replace(spec, threshold_low=lo, threshold_high=hi, limitations=tuple(lims))
 
 

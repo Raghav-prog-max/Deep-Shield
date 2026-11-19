@@ -27,7 +27,7 @@ This deployment runs the API, a separate SQLite-backed worker, the Next.js revie
 
 - This queue is durable across API/worker restarts when the Docker volumes remain intact. Run one API replica against the SQLite database. Multiple workers can claim jobs safely, but each loads the inference models into memory; begin with one worker on CPU.
 - Back up the `application-data`, `evidence-store`, and `model-store` volumes together. Keep Caddy's data volume for certificate renewal. Test a restore before relying on backups.
-- Uploaded source files are deleted after a job finishes. Generated evidence and result records are retained; define and implement a retention/deletion schedule before storing real operational media.
+- Uploaded source files are deleted immediately after a job finishes. Derived evidence (`evidence_store/m01..m04`) and completed SQLite job records are automatically purged by the worker after `DEEPSHIELD_RETENTION_HOURS` (default `168` hours / 7 days), and can also be removed on demand via `DELETE /api/v1/intelligence/jobs/{job_id}` or `POST /api/v1/intelligence/retention/purge`. Adjust `DEEPSHIELD_RETENTION_HOURS` to match your operational retention policy before storing sensitive media.
 - The default upload limit is 200 MB. Tune `DEEPSHIELD_MAX_UPLOAD_MB` and proxy limits together if this changes.
 - The single-host SQLite design is not a multi-host/high-availability queue. For multiple API hosts, move job state to PostgreSQL and use a broker such as Redis/RQ or Celery with shared object storage.
 - Basic Auth protects the whole site over HTTPS. Add organization identity, access logs and formal retention controls if the deployment will handle sensitive media or multiple reviewers.

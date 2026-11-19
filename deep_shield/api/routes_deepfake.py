@@ -40,7 +40,7 @@ def analyze(
     file: UploadFile = File(...),
     tasks: str = Form("", description=("Comma-separated. Empty = defaults (images: " + ",".join(DEFAULT_TASKS)
                                         + "; videos: face_manipulation). Options: face_manipulation, "
-                                        "frequency_analysis, image_manipulation, synthetic_image (experimental).")),
+                                        "synthetic_image, frequency_analysis, image_manipulation.")),
     assume_face_crop: bool = Form(False, description="Image only: treat the whole image as one face crop"),
 ):
     """Synchronous analysis (runs in FastAPI's threadpool). For long videos call

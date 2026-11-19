@@ -88,7 +88,7 @@ def test_video_temporal(engine, media):
 def test_default_image_tasks_full(engine, media):
     r = engine.analyze(media / "face.jpg")
     tasks = [s.task for s in r.task_summaries]
-    assert tasks == ["face_manipulation", "frequency_analysis", "image_manipulation"]
+    assert tasks == ["face_manipulation", "synthetic_image", "frequency_analysis", "image_manipulation"]
     face = [f for f in r.findings if f.task == "face_manipulation"][0]
     if face.score >= 0.35:   # heatmap is produced unless the face is clearly 'real'
         assert any(e.kind == "region_heatmap" for e in face.evidence)
@@ -97,6 +97,8 @@ def test_default_image_tasks_full(engine, media):
             assert len(face.explanation["top_region_image"]) == 4
         else:
             assert "top_region_image" not in face.explanation
+    synth = [f for f in r.findings if f.task == "synthetic_image"]
+    assert synth and 0 <= synth[0].score <= 1
     fq = [f for f in r.findings if f.task == "frequency_analysis"]
     assert fq and fq[0].track_id == "F1" and "hf_excess" in fq[0].explanation
     mp = [f for f in r.findings if f.task == "image_manipulation"][0]

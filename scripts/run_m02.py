@@ -20,7 +20,7 @@ def main() -> int:
     ap.add_argument("media")
     ap.add_argument("--tasks", default=None,
                     help=f"comma list; default for images: {','.join(DEFAULT_TASKS)} "
-                         "(videos: face_manipulation). Add synthetic_image for the experimental AI-image check.")
+                         "(videos: face_manipulation). Pass synthetic_image on video to score sampled keyframes (verdict capped).")
     ap.add_argument("--assume-face-crop", action="store_true", help="image is already a face crop")
     ap.add_argument("--out", help="write full JSON result here")
     ap.add_argument("--backend", choices=["hf", "stub"], help="override DEEPSHIELD_M02_BACKEND")

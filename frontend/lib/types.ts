@@ -4,6 +4,13 @@ export type EvidenceRef = {
   description?: string | null;
 };
 
+export type ModelInfo = {
+  model_id: string;
+  revision?: string | null;
+  task?: string | null;
+  backend?: string | null;
+};
+
 export type Finding = {
   finding_id: string;
   module: string;
@@ -12,10 +19,12 @@ export type Finding = {
   classification: string;
   score: number | null;
   score_type: string;
+  thresholds?: { low?: number; high?: number } | null;
   timestamp_s: number | null;
   time_start_s: number | null;
   time_end_s: number | null;
   track_id: string | null;
+  model?: ModelInfo | null;
   evidence: EvidenceRef[];
   limitations: string[];
 };
