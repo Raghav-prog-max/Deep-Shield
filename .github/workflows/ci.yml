@@ -15,14 +15,16 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - name: Install CPU PyTorch & project requirements
+      - name: Install CPU PyTorch, TorchVision & project requirements
         run: |
-          pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+          pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
           pip install --no-cache-dir -r requirements.txt pytest httpx
+      - name: Download M01/M03 hustvl/yolos-tiny weights (26 MB)
+        run: python scripts/download_m01_model.py
       - name: Run unit & integration test suite
         env:
           DEEPSHIELD_M02_BACKEND: stub
-        run: pytest -q --ignore=tests/test_deep_models_media.py
+        run: pytest -v --ignore=tests/test_deep_models_media.py
 
   frontend-build:
     runs-on: ubuntu-latest

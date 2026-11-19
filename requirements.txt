@@ -1,7 +1,7 @@
-# Install PyTorch FIRST:
-#   Windows laptop (CPU) : pip install torch
-#   Linux CPU            : pip install torch --index-url https://download.pytorch.org/whl/cpu
-#   NVIDIA GPU / DGX     : pip install torch --index-url https://download.pytorch.org/whl/cu128
+# Install PyTorch + TorchVision FIRST (from the same index to avoid ABI mismatch):
+#   Windows laptop (CPU) : pip install torch torchvision
+#   Linux CPU            : pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+#   NVIDIA GPU / DGX     : pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 torch>=2.2
 transformers>=4.40          # image-classification pipeline only (stable across 4.x/5.x)
 huggingface_hub>=0.23
