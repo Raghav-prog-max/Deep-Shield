@@ -1,9 +1,12 @@
 # DEEP SHIELD · Modules 01–04
 
-DEEP SHIELD analyzes images and video for human review. Modules 01–04 return findings in the shared `ModuleResult` schema. Outputs are advisory; detector confidence, classifier scores, forensic indicators and rule events remain separate.
+> **Explainable Media Integrity & Forensic Threat Analysis System**
+>
+> 🌐 **Live Deployed Web Application:** [https://deep-shield-sooty.vercel.app](https://deep-shield-sooty.vercel.app)  
+> 🔍 **Fullscreen Review Workspace:** [https://deep-shield-sooty.vercel.app/review](https://deep-shield-sooty.vercel.app/review)  
+> 📊 **Project Status & Architecture Flowchart:** [PROJECT_STATUS.md](PROJECT_STATUS.md) · **Verified Benchmark Report:** [reports/EVALUATION_REPORT.md](reports/EVALUATION_REPORT.md)
 
-See [PROJECT_STATUS.md](PROJECT_STATUS.md) for the current completed stages, evaluation reports, and project flowchart.
-Live hosted web application: **[https://deep-shield-sooty.vercel.app](https://deep-shield-sooty.vercel.app)** ([`/review`](https://deep-shield-sooty.vercel.app/review) for the direct media review workspace).
+DEEP SHIELD analyzes images and video for human review. Modules 01–04 return findings in the shared `ModuleResult` schema. Outputs are advisory; detector confidence, classifier scores, forensic indicators and rule events remain separate.
 
 | Module | Capability | Current implementation |
 |---|---|---|
