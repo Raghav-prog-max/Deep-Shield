@@ -14,7 +14,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: pip
       - name: Install CPU PyTorch, TorchVision & project requirements
         run: |
           pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
